@@ -10,8 +10,8 @@ import SwiftUI
 @main
 struct image_toolsApp: App {
     var body: some Scene {
-        WindowGroup {
-            ContentView()
-        }
+                    WindowGroup {
+                MainView()
+            }
     }
 }
