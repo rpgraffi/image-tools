@@ -10,7 +10,7 @@ struct FormatControlView: View {
 
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
     private let controlMinWidth: CGFloat = Theme.Metrics.controlMinWidth
-    private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
+    private let controlMaxWidth: CGFloat = 140
 
     var body: some View {
         let topCorner = controlHeight / 2

@@ -7,6 +7,7 @@ struct ResizeControlView: View {
     @State private var isEditingPercent: Bool = false
     @State private var localPercent: Int = 100 // 0...100 UI value (rounded)
     @State private var percentString: String = "100"
+    @State private var didHapticAtFullResize: Bool = false
     @FocusState private var percentFieldFocused: Bool
     @FocusState private var widthFieldFocused: Bool
     @FocusState private var heightFieldFocused: Bool
@@ -107,36 +108,47 @@ struct ResizeControlView: View {
         let width = containerSize.width
         let corner = Theme.Metrics.pillCornerRadius(forHeight: containerSize.height)
         let percentProgress = CGFloat(Double(localPercent) / 100.0)
+        let fadeStart: CGFloat = 0.95
+        let fillOpacity: CGFloat = percentProgress < fadeStart ? 1.0 : max(0.0, (1.0 - (percentProgress - fadeStart) / (1.0 - fadeStart)))
         return ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .fill(Theme.Colors.controlBackground)
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .fill(LinearGradient(colors: [Theme.Colors.accentGradientStart, Theme.Colors.accentGradientEnd], startPoint: .leading, endPoint: .trailing))
+                .opacity(fillOpacity)
                 .frame(width: max(0, width * percentProgress))
                 .animation(Theme.Animations.pillFill(), value: localPercent)
 
-            HStack(spacing: 4) {
+            HStack(spacing: 8) {
+                Text("Resize")
+                    .font(.headline)
+                    .foregroundColor(Color.secondary)
+
+                Spacer(minLength: 0)
+
                 if isEditingPercent {
-                    TextField("", text: $percentString)
-                        .textFieldStyle(.plain)
-                        .multilineTextAlignment(.center)
-                        .font(.headline)
-                        .focused($percentFieldFocused)
-                        .frame(maxWidth: .infinity)
-                        .onSubmit { commitPercentFromString(); isEditingPercent = false; percentFieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
-                        .onChange(of: percentString) { _, newValue in
-                            // integer-only filtering
-                            let digits = newValue.filter { $0.isNumber }
-                            if digits != percentString { percentString = digits }
-                        }
-                    Text("%")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                    HStack(spacing: 2) {
+                        TextField("", text: $percentString)
+                            .textFieldStyle(.plain)
+                            .multilineTextAlignment(.trailing)
+                            .font(.headline)
+                            .focused($percentFieldFocused)
+                            .frame(minWidth: 28, maxWidth: 44)
+                            .onSubmit { commitPercentFromString(); isEditingPercent = false; percentFieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
+                            .onChange(of: percentString) { _, newValue in
+                                // integer-only filtering
+                                let digits = newValue.filter { $0.isNumber }
+                                if digits != percentString { percentString = digits }
+                            }
+                        Text("%")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                    }
+                    .contentShape(Rectangle())
                 } else {
                     Text("\(localPercent)%")
                         .font(.headline)
                         .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity)
                         .contentShape(Rectangle())
                         .onTapGesture {
                             isEditingPercent = true
@@ -148,6 +160,13 @@ struct ResizeControlView: View {
             .padding(.horizontal, 12)
         }
         .contentShape(Rectangle())
+        .onTapGesture {
+            if !isEditingPercent && !percentFieldFocused {
+                isEditingPercent = true
+                percentString = String(localPercent)
+                percentFieldFocused = true
+            }
+        }
         .gesture(DragGesture(minimumDistance: 2)
             .onChanged { value in
                 if isEditingPercent || percentFieldFocused { return }
@@ -156,6 +175,12 @@ struct ResizeControlView: View {
                 let rounded = clampPercent(Int(round(p)))
                 localPercent = rounded
                 vm.resizePercent = Double(localPercent) / 100.0
+                if rounded >= 100 && !didHapticAtFullResize {
+                    NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+                    didHapticAtFullResize = true
+                } else if rounded < 100 && didHapticAtFullResize {
+                    didHapticAtFullResize = false
+                }
             }
         )
     }
@@ -191,7 +216,7 @@ struct ResizeControlView: View {
 
                 Text("W")
                     .font(.headline)
-                    .foregroundColor(Theme.Colors.fieldAffordanceLabel)
+                    .foregroundColor(Color.secondary)
                     .padding(.trailing, 8)
             }
 
@@ -223,7 +248,7 @@ struct ResizeControlView: View {
 
                 Text("H")
                     .font(.headline)
-                    .foregroundColor(Theme.Colors.fieldAffordanceLabel)
+                    .foregroundColor(Color.secondary)
                     .padding(.trailing, 8)
             }
         }

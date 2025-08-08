@@ -9,6 +9,8 @@ struct CompressControlView: View {
 
     @State private var isEditingPercent: Bool = false
     @State private var percentString: String = "80"
+    @State private var didHapticAtFullQuality: Bool = false
+    @State private var lastTenPercentTick: Int? = nil
 
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
     private let controlMinWidth: CGFloat = Theme.Metrics.controlMinWidth
@@ -68,35 +70,46 @@ struct CompressControlView: View {
         let width = containerSize.width
         let corner = Theme.Metrics.pillCornerRadius(forHeight: containerSize.height)
         let progress = CGFloat(min(max(vm.compressionPercent, 0.0), 1.0))
+        let fadeStart: CGFloat = 0.95
+        let fillOpacity: CGFloat = progress < fadeStart ? 1.0 : max(0.0, (1.0 - (progress - fadeStart) / (1.0 - fadeStart)))
         return ZStack(alignment: .leading) {
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .fill(Theme.Colors.controlBackground)
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .fill(LinearGradient(colors: [Theme.Colors.accentGradientStart, Theme.Colors.accentGradientEnd], startPoint: .leading, endPoint: .trailing))
+                .opacity(fillOpacity)
                 .frame(width: max(0, width * progress))
                 .animation(Theme.Animations.pillFill(), value: vm.compressionPercent)
 
-            HStack(spacing: 4) {
+            HStack(spacing: 8) {
+                Text("Quality")
+                    .font(.headline)
+                    .foregroundColor(Color.secondary)
+
+                Spacer(minLength: 0)
+
                 if isEditingPercent {
-                    TextField("", text: $percentString)
-                        .textFieldStyle(.plain)
-                        .multilineTextAlignment(.center)
-                        .font(.headline)
-                        .focused($percentFieldFocused)
-                        .frame(maxWidth: .infinity)
-                        .onSubmit { commitPercentFromString(); isEditingPercent = false; percentFieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
-                        .onChange(of: percentString) { _, newValue in
-                            let digits = newValue.filter { $0.isNumber }
-                            if digits != percentString { percentString = digits }
-                        }
-                    Text("%")
-                        .font(.headline)
-                        .foregroundStyle(.primary)
+                    HStack(spacing: 2) {
+                        TextField("", text: $percentString)
+                            .textFieldStyle(.plain)
+                            .multilineTextAlignment(.trailing)
+                            .font(.headline)
+                            .focused($percentFieldFocused)
+                            .frame(minWidth: 28, maxWidth: 44)
+                            .onSubmit { commitPercentFromString(); isEditingPercent = false; percentFieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
+                            .onChange(of: percentString) { _, newValue in
+                                let digits = newValue.filter { $0.isNumber }
+                                if digits != percentString { percentString = digits }
+                            }
+                        Text("%")
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                    }
+                    .contentShape(Rectangle())
                 } else {
                     Text("\(Int(vm.compressionPercent * 100))%")
                         .font(.headline)
                         .foregroundStyle(.primary)
-                        .frame(maxWidth: .infinity)
                         .contentShape(Rectangle())
                         .onTapGesture {
                             isEditingPercent = true
@@ -108,14 +121,40 @@ struct CompressControlView: View {
             .padding(.horizontal, 12)
         }
         .contentShape(Rectangle())
+        .onTapGesture {
+            if !isEditingPercent && !percentFieldFocused {
+                isEditingPercent = true
+                percentString = String(Int(vm.compressionPercent * 100))
+                percentFieldFocused = true
+            }
+        }
         .gesture(DragGesture(minimumDistance: 2)
             .onChanged { value in
                 if isEditingPercent || percentFieldFocused { return }
                 let x = min(max(0, value.location.x), width)
                 let raw = Double(x / width)
-                let clamped = max(0.05, min(1.0, raw))
-                let stepped = (clamped * 100).rounded() / 100.0
+                let stepped = max(0.05, min(1.0, (raw * 20).rounded() / 20.0)) // 5% steps
                 vm.compressionPercent = stepped
+
+                // 100% haptic once per drag
+                if stepped >= 1.0 && !didHapticAtFullQuality {
+                    NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+                    didHapticAtFullQuality = true
+                } else if stepped < 1.0 && didHapticAtFullQuality {
+                    didHapticAtFullQuality = false
+                }
+
+                // Light haptic at each 10% boundary
+                let currentTick = Int((stepped * 100).rounded())
+                if currentTick % 10 == 0 && currentTick > 0 && currentTick < 100 {
+                    if lastTenPercentTick != currentTick {
+                        NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+                        lastTenPercentTick = currentTick
+                    }
+                } else if lastTenPercentTick != nil {
+                    // Reset when moving away from the exact boundary
+                    lastTenPercentTick = nil
+                }
             }
         )
     }
@@ -139,7 +178,7 @@ struct CompressControlView: View {
                     }
                 Text("KB")
                     .font(.headline)
-                    .foregroundColor(Theme.Colors.fieldAffordanceLabel)
+                    .foregroundColor(Color.secondary)
             }
             .padding(.horizontal, 12)
         }

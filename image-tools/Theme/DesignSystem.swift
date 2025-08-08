@@ -11,13 +11,11 @@ enum Theme {
 
     struct Colors {
         static let controlBackground: Color = Color.secondary.opacity(0.12)
-        static let accentGradientStart: Color = Color.accentColor.opacity(0.25)
-        static let accentGradientEnd: Color = Color.accentColor.opacity(0.6)
+        static let accentGradientStart: Color = Color.accentColor.opacity(0.5)
+        static let accentGradientEnd: Color = Color.accentColor.opacity(0.9)
 
         static let iconForeground: Color = .primary
         static let iconBackground: Color = Color.secondary.opacity(0.12)
-
-        static let fieldAffordanceLabel: Color = Color.secondary.opacity(0.5)
     }
 
     struct Animations {

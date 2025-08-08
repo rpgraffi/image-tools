@@ -2,11 +2,10 @@ import SwiftUI
 import AppKit
 
 struct VisualEffectView: NSViewRepresentable {
-    var material: NSVisualEffectView.Material = .contentBackground
-    var blendingMode: NSVisualEffectView.BlendingMode = .withinWindow
-    var state: NSVisualEffectView.State = .active
+    var material: NSVisualEffectView.Material = .sidebar
+    var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
+    var state: NSVisualEffectView.State = .followsWindowActiveState
     var emphasized: Bool = false
-    var appearance: NSAppearance.Name? = .vibrantLight
 
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
@@ -14,9 +13,6 @@ struct VisualEffectView: NSViewRepresentable {
         view.blendingMode = blendingMode
         view.state = state
         view.isEmphasized = emphasized
-        if let appearanceName = appearance {
-            view.appearance = NSAppearance(named: appearanceName)
-        }
         return view
     }
 
@@ -25,8 +21,5 @@ struct VisualEffectView: NSViewRepresentable {
         nsView.blendingMode = blendingMode
         nsView.state = state
         nsView.isEmphasized = emphasized
-        if let appearanceName = appearance {
-            nsView.appearance = NSAppearance(named: appearanceName)
-        }
     }
 } 
