@@ -14,7 +14,7 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var resizeWidth: String = ""
     @Published var resizeHeight: String = ""
 
-    @Published var selectedFormat: ImageFormat? = nil
+    @Published var selectedFormat: ImageFormat? = nil { didSet { persistSelectedFormat() } }
 
     @Published var compressionMode: CompressionModeToggle = .percent
     @Published var compressionPercent: Double = 0.8
@@ -26,7 +26,30 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var removeBackground: Bool = false
 
     // Recently used formats for prioritization
-    @Published var recentFormats: [ImageFormat] = []
+    @Published var recentFormats: [ImageFormat] = [] { didSet { persistRecentFormats() } }
+
+    // MARK: - Init / Persistence
+    init() {
+        loadPersistedState()
+    }
+
+    private let defaults = UserDefaults.standard
+    private let recentKey = "image_tools.recent_formats.v1"
+    private let selectedKey = "image_tools.selected_format.v1"
+
+    private func loadPersistedState() {
+        if let raw = defaults.array(forKey: recentKey) as? [String] {
+            let mapped = raw.compactMap { ImageFormat(rawValue: $0) }
+            if !mapped.isEmpty { recentFormats = Array(mapped.prefix(3)) }
+        }
+        if let selRaw = defaults.string(forKey: selectedKey), let fmt = ImageFormat(rawValue: selRaw) {
+            let caps = ImageIOCapabilities.shared
+            if caps.supportsWriting(utType: fmt.utType) { selectedFormat = fmt }
+        }
+    }
+
+    private func persistRecentFormats() { defaults.set(recentFormats.map { $0.rawValue }, forKey: recentKey) }
+    private func persistSelectedFormat() { defaults.set(selectedFormat?.rawValue, forKey: selectedKey) }
 
     // MARK: - Preview calculations (reusable service-like helpers)
     struct PreviewInfo {
@@ -208,9 +231,9 @@ final class ImageToolsViewModel: ObservableObject {
         }
     }
 
-    private func bumpRecentFormats(_ fmt: ImageFormat) {
+    func bumpRecentFormats(_ fmt: ImageFormat) {
         recentFormats.removeAll { $0 == fmt }
         recentFormats.insert(fmt, at: 0)
-        if recentFormats.count > 5 { recentFormats = Array(recentFormats.prefix(5)) }
+        if recentFormats.count > 3 { recentFormats = Array(recentFormats.prefix(3)) }
     }
 } 

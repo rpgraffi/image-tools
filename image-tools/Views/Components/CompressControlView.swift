@@ -126,7 +126,7 @@ struct CompressControlView: View {
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .fill(Theme.Colors.controlBackground)
             HStack(spacing: 6) {
-                TextField("Target KB", text: $vm.compressionTargetKB)
+                TextField("Target", text: $vm.compressionTargetKB)
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.center)
                     .font(.headline)
