@@ -5,162 +5,237 @@ struct ResizeControlView: View {
     @ObservedObject var vm: ImageToolsViewModel
 
     @State private var isEditingPercent: Bool = false
-    @State private var localPercent: Double = 100 // 0...100 UI value
+    @State private var localPercent: Int = 100 // 0...100 UI value (rounded)
+    @State private var percentString: String = "100"
+    @FocusState private var percentFieldFocused: Bool
+    @FocusState private var widthFieldFocused: Bool
+    @FocusState private var heightFieldFocused: Bool
 
-    private let controlHeight: CGFloat = 36
-    private let controlMinWidth: CGFloat = 220
-    private let controlMaxWidth: CGFloat = 320
+    private let controlHeight: CGFloat = Theme.Metrics.controlHeight
+    private let controlMinWidth: CGFloat = Theme.Metrics.controlMinWidth
+    private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
 
     var body: some View {
         HStack(spacing: 8) {
-            Text("Resize")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-
-            modeSwitch
-
+            // Main control (percent pill or pixel fields)
             ZStack { // fixed footprint for both modes
-                if vm.sizeUnit == .percent {
-                    percentPill
-                        .transition(.opacity)
-                } else {
-                    pixelFields
-                        .transition(.opacity)
+                GeometryReader { geo in
+                    let size = geo.size
+                    Group {
+                        if vm.sizeUnit == .percent {
+                            percentPill(containerSize: size)
+                                .transition(.opacity)
+                        } else {
+                            pixelFields(containerSize: size)
+                                .transition(.opacity)
+                        }
+                    }
+                    .frame(width: size.width, height: size.height)
                 }
             }
             .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, minHeight: controlHeight, maxHeight: controlHeight)
+
+            // Single switch button showing only the alternative mode
+            CircleIconButton(action: toggleMode) {
+                Text(vm.sizeUnit == .percent ? "px" : "%")
+            }
+            .frame(minHeight: controlHeight, maxHeight: controlHeight)
+            .animation(Theme.Animations.spring(), value: vm.sizeUnit)
         }
         .onAppear {
-            localPercent = max(0, min(100, vm.resizePercent * 100))
+            localPercent = clampPercent(Int(round(vm.resizePercent * 100)))
+            percentString = String(localPercent)
         }
         .onChange(of: vm.sizeUnit) { _, newValue in
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
+            withAnimation(Theme.Animations.spring()) {
                 if newValue == .pixels {
                     vm.prefillPixelsIfPossible()
                 }
             }
         }
-    }
-
-    private var modeSwitch: some View {
-        HStack(spacing: 2) {
-            CapsuleSegment(label: "%", isSelected: vm.sizeUnit == .percent) {
-                if vm.sizeUnit != .percent {
-                    withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
-                        vm.sizeUnit = .percent
-                        localPercent = max(0, min(100, vm.resizePercent * 100))
-                    }
-                }
+        // Confirm edit when focus leaves the percent field
+        .onChange(of: percentFieldFocused) { _, focused in
+            if !focused && isEditingPercent {
+                commitPercentFromString()
+                isEditingPercent = false
             }
-            CapsuleSegment(label: "px", isSelected: vm.sizeUnit == .pixels) {
-                if vm.sizeUnit != .pixels {
-                    withAnimation(.spring(response: 0.6, dampingFraction: 0.85)) {
-                        vm.sizeUnit = .pixels
-                        vm.prefillPixelsIfPossible()
+            if focused {
+                // Select all text when field gains focus (after click processing)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    if percentFieldFocused && isEditingPercent {
+                        NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
                     }
                 }
             }
         }
-        .padding(.horizontal, 2)
-        .padding(.vertical, 2)
-        .background(Capsule().fill(Color.secondary.opacity(0.12)))
+        .onChange(of: widthFieldFocused) { _, focused in
+            if focused {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    if widthFieldFocused {
+                        NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+                    }
+                }
+            }
+        }
+        .onChange(of: heightFieldFocused) { _, focused in
+            if focused {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    if heightFieldFocused {
+                        NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
+                    }
+                }
+            }
+        }
     }
 
-    private var percentPill: some View {
-        GeometryReader { geo in
-            let width = geo.size.width
-            let percentProgress = CGFloat(localPercent / 100.0)
-            ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: controlHeight/2, style: .continuous)
-                    .fill(Color.secondary.opacity(0.12))
-                RoundedRectangle(cornerRadius: controlHeight/2, style: .continuous)
-                    .fill(LinearGradient(colors: [.accentColor.opacity(0.25), .accentColor.opacity(0.6)], startPoint: .leading, endPoint: .trailing))
-                    .frame(width: max(0, width * percentProgress))
-                    .animation(.spring(response: 0.7, dampingFraction: 0.85), value: localPercent)
 
-                HStack {
-                    if isEditingPercent {
-                        TextField("%", value: Binding(
-                            get: { localPercent },
-                            set: { newVal in
-                                localPercent = min(100, max(0, newVal))
-                                vm.resizePercent = localPercent / 100.0
-                            }
-                        ), format: .number)
+
+    private func toggleMode() {
+        withAnimation(Theme.Animations.spring()) {
+            if vm.sizeUnit == .percent {
+                vm.sizeUnit = .pixels
+                vm.prefillPixelsIfPossible()
+            } else {
+                vm.sizeUnit = .percent
+                localPercent = clampPercent(Int(round(vm.resizePercent * 100)))
+                percentString = String(localPercent)
+            }
+        }
+    }
+
+    private func percentPill(containerSize: CGSize) -> some View {
+        let width = containerSize.width
+        let corner = Theme.Metrics.pillCornerRadius(forHeight: containerSize.height)
+        let percentProgress = CGFloat(Double(localPercent) / 100.0)
+        return ZStack(alignment: .leading) {
+            RoundedRectangle(cornerRadius: corner, style: .continuous)
+                .fill(Theme.Colors.controlBackground)
+            RoundedRectangle(cornerRadius: corner, style: .continuous)
+                .fill(LinearGradient(colors: [Theme.Colors.accentGradientStart, Theme.Colors.accentGradientEnd], startPoint: .leading, endPoint: .trailing))
+                .frame(width: max(0, width * percentProgress))
+                .animation(Theme.Animations.pillFill(), value: localPercent)
+
+            HStack(spacing: 4) {
+                if isEditingPercent {
+                    TextField("", text: $percentString)
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.center)
+                        .font(.headline)
+                        .focused($percentFieldFocused)
                         .frame(maxWidth: .infinity)
-                        .onSubmit { isEditingPercent = false }
-                    } else {
-                        Text("\(Int(localPercent))%")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                            .frame(maxWidth: .infinity)
-                            .contentShape(Rectangle())
-                            .onTapGesture { isEditingPercent = true }
+                        .onSubmit { commitPercentFromString(); isEditingPercent = false; percentFieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
+                        .onChange(of: percentString) { _, newValue in
+                            // integer-only filtering
+                            let digits = newValue.filter { $0.isNumber }
+                            if digits != percentString { percentString = digits }
+                        }
+                    Text("%")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                } else {
+                    Text("\(localPercent)%")
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            isEditingPercent = true
+                            percentString = String(localPercent)
+                            percentFieldFocused = true
+                        }
+                }
+            }
+            .padding(.horizontal, 12)
+        }
+        .contentShape(Rectangle())
+        .gesture(DragGesture(minimumDistance: 2)
+            .onChanged { value in
+                if isEditingPercent || percentFieldFocused { return }
+                let x = min(max(0, value.location.x), width)
+                let p = (x / width) * 100
+                let rounded = clampPercent(Int(round(p)))
+                localPercent = rounded
+                vm.resizePercent = Double(localPercent) / 100.0
+            }
+        )
+    }
+
+    private func pixelFields(containerSize: CGSize) -> some View {
+        let width = containerSize.width
+        let corner = Theme.Metrics.pillCornerRadius(forHeight: containerSize.height)
+        let fieldWidth = (width - 1) / 2 // 1pt internal divider
+        return HStack(spacing: 0) {
+            ZStack(alignment: .trailing) {
+                TextField("", text: $vm.resizeWidth)
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .padding(.horizontal, 8)
+                    .frame(width: fieldWidth, height: containerSize.height)
+                    .background(
+                        UnevenRoundedRectangle(cornerRadii: .init(
+                            topLeading: corner,
+                            bottomLeading: corner,
+                            bottomTrailing: 0,
+                            topTrailing: 0
+                        ))
+                        .fill(Theme.Colors.controlBackground)
+                    )
+                    .focused($widthFieldFocused)
+                    .onSubmit { NSApp.keyWindow?.endEditing(for: nil); widthFieldFocused = false }
+                    .onChange(of: vm.resizeWidth) { _, newValue in
+                        // integer-only filtering
+                        let digits = newValue.filter { $0.isNumber }
+                        if digits != vm.resizeWidth { vm.resizeWidth = digits }
                     }
-                }
-                .padding(.horizontal, 12)
+
+                Text("W")
+                    .font(.headline)
+                    .foregroundColor(Theme.Colors.fieldAffordanceLabel)
+                    .padding(.trailing, 8)
             }
-            .gesture(DragGesture(minimumDistance: 0)
-                .onChanged { value in
-                    let x = min(max(0, value.location.x), width)
-                    let p = (x / width) * 100
-                    localPercent = Double(p)
-                    vm.resizePercent = localPercent / 100.0
-                }
-            )
-        }
-    }
 
-    private var pixelFields: some View {
-        GeometryReader { geo in
-            let width = geo.size.width
-            let fieldWidth = (width - 12) / 2
-            HStack(spacing: 12) {
-                PillTextField(text: $vm.resizeWidth, placeholder: "W")
-                    .frame(width: fieldWidth, height: controlHeight)
-                Text("×").foregroundStyle(.secondary)
-                PillTextField(text: $vm.resizeHeight, placeholder: "H")
-                    .frame(width: fieldWidth, height: controlHeight)
+            Spacer().frame(width: 1)
+
+            ZStack(alignment: .trailing) {
+                TextField("", text: $vm.resizeHeight)
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.center)
+                    .font(.headline)
+                    .padding(.horizontal, 8)
+                    .frame(width: fieldWidth, height: containerSize.height)
+                    .background(
+                        UnevenRoundedRectangle(cornerRadii: .init(
+                            topLeading: 0,
+                            bottomLeading: 0,
+                            bottomTrailing: corner,
+                            topTrailing: corner
+                        ))
+                        .fill(Theme.Colors.controlBackground)
+                    )
+                    .focused($heightFieldFocused)
+                    .onSubmit { NSApp.keyWindow?.endEditing(for: nil); heightFieldFocused = false }
+                    .onChange(of: vm.resizeHeight) { _, newValue in
+                        // integer-only filtering
+                        let digits = newValue.filter { $0.isNumber }
+                        if digits != vm.resizeHeight { vm.resizeHeight = digits }
+                    }
+
+                Text("H")
+                    .font(.headline)
+                    .foregroundColor(Theme.Colors.fieldAffordanceLabel)
+                    .padding(.trailing, 8)
             }
         }
     }
-}
 
-private struct CapsuleSegment: View {
-    let label: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(label)
-                .font(.caption)
-                .foregroundStyle(isSelected ? .white : .primary.opacity(0.8))
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(
-                    Capsule().fill(isSelected ? Color.accentColor : Color.clear)
-                )
-        }
-        .buttonStyle(.plain)
+    private func commitPercentFromString() {
+        let parsed = Int(percentString) ?? localPercent
+        let clamped = clampPercent(parsed)
+        localPercent = clamped
+        percentString = String(clamped)
+        vm.resizePercent = Double(clamped) / 100.0
     }
-}
 
-private struct PillTextField: View {
-    @Binding var text: String
-    let placeholder: String
-
-    var body: some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 18, style: .continuous)
-                .fill(Color.secondary.opacity(0.12))
-            TextField(placeholder, text: $text)
-                .textFieldStyle(.plain)
-                .multilineTextAlignment(.center)
-                .font(.headline)
-                .padding(.horizontal, 8)
-        }
-    }
+    private func clampPercent(_ v: Int) -> Int { max(0, min(100, v)) }
 } 

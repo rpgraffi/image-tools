@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct MainView: View {
     @StateObject private var vm = ImageToolsViewModel()
@@ -41,16 +42,19 @@ struct MainView: View {
                     HStack(spacing: 8) {
                         Text("Convert")
                         Menu {
-                            // Prioritize recent
-                            ForEach(vm.recentFormats, id: \.self) { fmt in
+                            // Prioritize recent (supported only)
+                            let caps = ImageIOCapabilities.shared
+                            ForEach(vm.recentFormats.filter { caps.supportsWriting(utType: $0.utType) }, id: \.self) { fmt in
                                 Button(fmt.displayName) { vm.selectedFormat = fmt }
                             }
                             if !vm.recentFormats.isEmpty { Divider() }
-                            ForEach(ImageFormat.allCases.sorted { a, b in
-                                if vm.recentFormats.contains(a) { return true }
-                                if vm.recentFormats.contains(b) { return false }
-                                return a.displayName < b.displayName
-                            }, id: \.self) { fmt in
+                            ForEach(ImageFormat.allCases
+                                .filter { caps.supportsWriting(utType: $0.utType) }
+                                .sorted { a, b in
+                                    if vm.recentFormats.contains(a) { return true }
+                                    if vm.recentFormats.contains(b) { return false }
+                                    return a.displayName < b.displayName
+                                }, id: \.self) { fmt in
                                 Button(fmt.displayName) { vm.selectedFormat = fmt }
                             }
                         } label: {
@@ -63,33 +67,9 @@ struct MainView: View {
                 Divider().frame(height: 28)
 
                 // Compress
-                VStack(alignment: .leading, spacing: 6) {
-                    HStack(spacing: 8) {
-                        Text("Compress")
-                        Picker("Mode", selection: $vm.compressionMode) {
-                            Text("%") .tag(CompressionModeToggle.percent)
-                            Text("KB").tag(CompressionModeToggle.targetKB)
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 120)
-
-                        if vm.compressionMode == .percent {
-                            HStack(spacing: 4) {
-                                Slider(value: $vm.compressionPercent, in: 0.05...1.0, step: 0.01)
-                                    .frame(width: 160)
-                                Text("\(Int(vm.compressionPercent * 100))%")
-                                    .monospacedDigit()
-                                    .frame(width: 56, alignment: .trailing)
-                            }
-                            .transition(.opacity.combined(with: .scale))
-                        } else {
-                            TextField("Target KB", text: $vm.compressionTargetKB)
-                                .frame(width: 100)
-                                .textFieldStyle(.roundedBorder)
-                                .transition(.opacity.combined(with: .scale))
-                        }
-                    }
-                }
+                CompressControlView(vm: vm)
+                    .frame(minWidth: 300)
+                    .transition(.opacity.combined(with: .scale))
 
                 Divider().frame(height: 28)
 
@@ -190,7 +170,7 @@ struct MainView: View {
             }
         }
         .padding(16)
-        .onDrop(of: [kUTTypeFileURL as String], isTargeted: $isDropping) { providers in
+        .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isDropping) { providers in
             handleDrop(providers: providers)
         }
     }
@@ -199,9 +179,9 @@ struct MainView: View {
         var handled = false
         let group = DispatchGroup()
         var urls: [URL] = []
-        for provider in providers where provider.hasItemConformingToTypeIdentifier(kUTTypeFileURL as String) {
+        for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
             group.enter()
-            provider.loadItem(forTypeIdentifier: kUTTypeFileURL as String, options: nil) { item, _ in
+            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
                 defer { group.leave() }
                 if let data = item as? Data, let url = URL(dataRepresentation: data, relativeTo: nil) {
                     urls.append(url)
@@ -279,7 +259,7 @@ private struct ImageRow: View {
             }
             Toggle(isOn: .constant(asset.isEnabled)) { EmptyView() }
                 .toggleStyle(.checkbox)
-                .onChange(of: asset.isEnabled) { _ in toggle() }
+                .onChange(of: asset.isEnabled) { _, _ in toggle() }
                 .help("Enable/Disable for batch")
         }
         .contentShape(Rectangle())

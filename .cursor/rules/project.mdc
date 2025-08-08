@@ -1,0 +1,125 @@
+---
+description: Guidelines for the project (Interface, Animations, Design, Coding, Libraries)
+globs:
+alwaysApply: false
+---
+
+
+The final goal is a all in one image tool box.
+Current problem: There is no nice tool in the app store (especially for mac) that is capable of following tasks:
+
+Resize Image by %
+
+Resize Image by px (width and/or height)
+
+Convert Image (as many formats as possible)
+
+Compress Image by %
+
+Compress Image to certain mb/kb number
+
+Rotate
+
+Flip (Horizontal/Vertical)
+
+Remove background
+
+And also be able to combine those things
+
+Also save a preset with multiple of those tasks (Image Processing Pipeline)
+
+MCP Support, so AI can interact with it
+
+## Interface
+
+The interface should have a drag & drop area where i can place images.
+
+Also (not sure how it works) it would be nice to show the images i selected in the finder in a list in the app. add simple button to add selected images from finder. so i event dont need drag and drop
+
+also copy paste should obviously work
+
+I want a switch that allows to overwrite the image or save as new. but dont ask for a name, just save it in the same folder the images came from. 
+
+Common problem is that i might overwrite an image i then need back. give an option to recover the original image (maybe on hover in the images list.)
+
+Mark already edited images in the list. and “disable them for further editing” if new ones join.
+
+with easy checkmark on hover to reenable them. Put those in 2 sections. edited images & new images. if all are old, just apply edits to all images, if 1 or more are new only for new unless an old one is enabled. we can move images to the new area per drag and drop and by clicking the checkmark on hover. 
+
+We have a top row with all image tools. but we need to make it smart so it stays clean and easy.
+
+Generally the field dont need a title, they should be self explanatory.
+
+### Resize image
+
+(% or px) should be 1 field, by clicking it it changes to the other. depending on which is selected i can enter % or width/height.
+
+The goal is to have component that stays in size when switching modes
+
+we dont want a jumpy ui. It should be responsive when space gehts smaller.
+
+Also lets build own nice components not those ugly apples buttons.
+
+I want the % slider inside the button. Like a pill with a progress. Clicing on the pill enables manual number input. Update the progress of the pill based on the value put in. we have a range from 0 to 100
+
+besides is a little switch button to switch to pixel mode.
+
+there we just show 2 text fields (same size as the pill)
+
+pre fill the current pixel of 1 image. if there are multiple images only i all have the same size
+
+### Convert image
+
+is a dropdown with search (sort alphabetically but prioretize most recent, also preselect the most recent)
+
+### Compress image
+
+same as resize image
+
+### Rotate
+
+lets have a auto rotate button, bus also manually 90 degree steps both directions
+
+### Flip horizontal/vertical
+
+are just 2 buttons with icons - when enabled in primary color if not greyed
+
+### Remove background
+
+as well just a simple button.
+
+## Animations
+
+make sure to use spring animations when updating states. i like the slow and gentle one
+
+## Design
+
+Follow apples native human design guidelines, it should feel native
+
+### Image Processing
+
+Use Rust/Python
+
+### Multiplatform
+
+This app is going to be multiplatform
+
+concentrate on macos first.
+
+But especially for the mcp part it would be nice to have it for iphones etc as well.
+
+Also in the future as backend with api
+
+### Coding
+
+Make the code modular
+
+Create APIs for each image processing function
+
+Write Enterprise grade code (high maintainability)
+
+Use Model View ViewModel pattern (MVVM)
+
+### Libaries
+
+Use the Core Image library from apple

@@ -125,18 +125,13 @@ struct RemoveBackgroundOperation: ImageOperation {
 
 struct ImageExporter {
     static func export(ciImage: CIImage, originalURL: URL, format: ImageFormat?, compressionQuality: Double?) throws -> URL {
-        let destinationFormat: ImageFormat = format ?? inferFormat(from: originalURL) ?? .png
-        let ciContext = CIContext()
-        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
-        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent, format: .RGBA8, colorSpace: colorSpace) else {
-            throw ImageOperationError.exportFailed
-        }
-
-        let utType: UTType = {
-            switch destinationFormat {
+        // Decide format and UTType, honoring platform capabilities
+        let requestedFormat: ImageFormat = format ?? inferFormat(from: originalURL) ?? .png
+        let requestedUTI: UTType = {
+            switch requestedFormat {
             case .jpeg: return .jpeg
             case .png: return .png
-            case .heic: return UTType.heic ?? .jpeg
+            case .heic: return .heic
             case .tiff: return .tiff
             case .bmp: return .bmp
             case .gif: return .gif
@@ -144,15 +139,32 @@ struct ImageExporter {
             }
         }()
 
+        // Fallback chain: requested -> PNG -> JPEG
+        let caps = ImageIOCapabilities.shared
+        let actualUTI: UTType = {
+            if caps.supportsWriting(utType: requestedUTI) { return requestedUTI }
+            if caps.supportsWriting(utType: .png) { return .png }
+            return .jpeg
+        }()
+
+        let ciContext = CIContext()
+        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
+        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent, format: .RGBA8, colorSpace: colorSpace) else {
+            throw ImageOperationError.exportFailed
+        }
+
         let tempDir = FileManager.default.temporaryDirectory
-        let tempFilename = originalURL.deletingPathExtension().lastPathComponent + "_tmp_" + UUID().uuidString.prefix(8) + "." + destinationFormat.fileExtension
-        let outputURL = tempDir.appendingPathComponent(String(tempFilename))
-        guard let dest = CGImageDestinationCreateWithURL(outputURL as CFURL, utType.identifier as CFString, 1, nil) else {
+        let ext = ImageIOCapabilities.shared.preferredFilenameExtension(for: actualUTI)
+        let base = originalURL.deletingPathExtension().lastPathComponent
+        let tempFilename = base + "_tmp_" + String(UUID().uuidString.prefix(8)) + "." + ext
+        let outputURL = tempDir.appendingPathComponent(tempFilename)
+
+        guard let dest = CGImageDestinationCreateWithURL(outputURL as CFURL, actualUTI.identifier as CFString, 1, nil) else {
             throw ImageOperationError.exportFailed
         }
 
         var props: [CFString: Any] = [:]
-        if destinationFormat == .jpeg || destinationFormat == .heic || destinationFormat == .webp {
+        if actualUTI == .jpeg || actualUTI == UTType.heic {
             props[kCGImageDestinationLossyCompressionQuality] = compressionQuality ?? 0.9
         }
         CGImageDestinationAddImage(dest, cgImage, props as CFDictionary)
