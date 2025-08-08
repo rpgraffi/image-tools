@@ -3,7 +3,7 @@ import SwiftUI
 enum Theme {
     struct Metrics {
         static let controlHeight: CGFloat = 36
-        static let controlMinWidth: CGFloat = 100
+        static let controlMinWidth: CGFloat = 80
         static let controlMaxWidth: CGFloat = 220
 
         static func pillCornerRadius(forHeight height: CGFloat) -> CGFloat { height / 2 }

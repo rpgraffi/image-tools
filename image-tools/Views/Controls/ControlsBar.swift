@@ -24,11 +24,6 @@ struct ControlsBar: View {
                 // Rotate & Flip
                 RotationFlipControls(vm: vm)
 
-                // Remove background
-                Toggle(isOn: $vm.removeBackground) { Label("Remove BG", systemImage: "wand.and.stars") }
-                    .toggleStyle(.button)
-                    .tint(.accentColor)
-
                 Spacer()
 
                 Toggle(isOn: $vm.overwriteOriginals) { Text("Overwrite") }

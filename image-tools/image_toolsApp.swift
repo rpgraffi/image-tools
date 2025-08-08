@@ -13,5 +13,6 @@ struct image_toolsApp: App {
                     WindowGroup {
                 MainView()
             }
+            .windowStyle(.hiddenTitleBar)
     }
 }
