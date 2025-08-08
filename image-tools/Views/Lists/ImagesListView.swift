@@ -7,6 +7,10 @@ struct ImagesListView: View {
     let onPickFromFinder: () -> Void
     let onDrop: ([NSItemProvider]) -> Bool
 
+    // Grid config: adaptive columns with a max tile width
+    private let tileMaxWidth: CGFloat = 180
+    private var columns: [GridItem] { [GridItem(.adaptive(minimum: 120, maximum: tileMaxWidth), spacing: 12, alignment: .top)] }
+
     var body: some View {
         HStack(spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
@@ -47,9 +51,10 @@ struct ImagesListView: View {
                         .contentShape(Rectangle())
                         .padding(24)
                     } else {
-                        List {
-                            if !vm.newImages.isEmpty {
-                                Section("New Images") {
+                        ScrollView {
+                            LazyVGrid(columns: columns, spacing: 12) {
+                                if !vm.newImages.isEmpty {
+                                    SectionHeader("New Images")
                                     ForEach(vm.newImages) { asset in
                                         ImageRow(asset: asset, isEdited: false, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: nil)
                                             .contextMenu {
@@ -57,9 +62,8 @@ struct ImagesListView: View {
                                             }
                                     }
                                 }
-                            }
-                            if !vm.editedImages.isEmpty {
-                                Section("Edited Images") {
+                                if !vm.editedImages.isEmpty {
+                                    SectionHeader("Edited Images")
                                     ForEach(vm.editedImages) { asset in
                                         ImageRow(asset: asset, isEdited: true, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: { vm.recoverOriginal(asset) })
                                             .contextMenu {
@@ -72,8 +76,8 @@ struct ImagesListView: View {
                                     }
                                 }
                             }
+                            .padding(10)
                         }
-                        .listStyle(.inset)
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
                     }
@@ -101,5 +105,18 @@ struct ImagesListView: View {
         .padding(8)
         .frame(minWidth: 420)
         .onDrop(of: [UTType.fileURL.identifier, UTType.image.identifier], isTargeted: $isDropping, perform: onDrop)
+    }
+}
+
+private struct SectionHeader: View {
+    let title: String
+    init(_ title: String) { self.title = title }
+    var body: some View {
+        Text(title)
+            .font(.headline)
+            .foregroundStyle(.secondary)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.vertical, 6)
+            .gridCellColumns(1)
     }
 } 

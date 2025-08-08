@@ -5,7 +5,6 @@ struct CompressControlView: View {
     @ObservedObject var vm: ImageToolsViewModel
 
     @FocusState private var kbFieldFocused: Bool
-    @FocusState private var percentFieldFocused: Bool
 
     @State private var isEditingPercent: Bool = false
     @State private var percentString: String = "80"
@@ -45,19 +44,6 @@ struct CompressControlView: View {
         .onAppear {
             percentString = String(Int(vm.compressionPercent * 100))
         }
-        .onChange(of: percentFieldFocused) { _, focused in
-            if !focused && isEditingPercent {
-                commitPercentFromString()
-                isEditingPercent = false
-            }
-            if focused {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                    if percentFieldFocused && isEditingPercent {
-                        NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
-                    }
-                }
-            }
-        }
     }
 
     private func toggleMode() {
@@ -69,17 +55,9 @@ struct CompressControlView: View {
     private func percentPill(containerSize: CGSize) -> some View {
         let width = containerSize.width
         let corner = Theme.Metrics.pillCornerRadius(forHeight: containerSize.height)
-        let progress = CGFloat(min(max(vm.compressionPercent, 0.0), 1.0))
-        let fadeStart: CGFloat = 0.95
-        let fillOpacity: CGFloat = progress < fadeStart ? 1.0 : max(0.0, (1.0 - (progress - fadeStart) / (1.0 - fadeStart)))
+        let progress = Double(min(max(vm.compressionPercent, 0.0), 1.0))
         return ZStack(alignment: .leading) {
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(Theme.Colors.controlBackground)
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(LinearGradient(colors: [Theme.Colors.accentGradientStart, Theme.Colors.accentGradientEnd], startPoint: .leading, endPoint: .trailing))
-                .opacity(fillOpacity)
-                .frame(width: max(0, width * progress))
-                .animation(Theme.Animations.pillFill(), value: vm.compressionPercent)
+            PillBackground(containerSize: containerSize, cornerRadius: corner, progress: progress)
 
             HStack(spacing: 8) {
                 Text("Quality")
@@ -89,24 +67,12 @@ struct CompressControlView: View {
                 Spacer(minLength: 0)
 
                 if isEditingPercent {
-                    HStack(spacing: 2) {
-                        TextField("", text: $percentString)
-                            .textFieldStyle(.plain)
-                            .multilineTextAlignment(.trailing)
-                            .font(.headline)
-                            .focused($percentFieldFocused)
-                            .contentTransition(.numericText())
-                            .frame(minWidth: 28, maxWidth: 44)
-                            .onSubmit { commitPercentFromString(); isEditingPercent = false; percentFieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
-                            .onChange(of: percentString) { _, newValue in
-                                let digits = newValue.filter { $0.isNumber }
-                                if digits != percentString { percentString = digits }
-                            }
-                        Text("%")
-                            .font(.headline)
-                            .foregroundStyle(.primary)
-                    }
-                    .contentShape(Rectangle())
+                    InlinePercentEditor(
+                        isEditing: $isEditingPercent,
+                        text: $percentString,
+                        onCommit: { commitPercentFromString() },
+                        onChangeFilter: { newValue in newValue.filter { $0.isNumber } }
+                    )
                 } else {
                     Text("\(Int(vm.compressionPercent * 100))%")
                         .font(.headline)
@@ -118,7 +84,6 @@ struct CompressControlView: View {
                         .onTapGesture {
                             isEditingPercent = true
                             percentString = String(Int(vm.compressionPercent * 100))
-                            percentFieldFocused = true
                         }
                 }
             }
@@ -126,15 +91,14 @@ struct CompressControlView: View {
         }
         .contentShape(Rectangle())
         .onTapGesture {
-            if !isEditingPercent && !percentFieldFocused {
+            if !isEditingPercent {
                 isEditingPercent = true
                 percentString = String(Int(vm.compressionPercent * 100))
-                percentFieldFocused = true
             }
         }
         .gesture(DragGesture(minimumDistance: 2)
             .onChanged { value in
-                if isEditingPercent || percentFieldFocused { return }
+                if isEditingPercent { return }
                 let x = min(max(0, value.location.x), width)
                 let raw = Double(x / width)
                 let stepped = max(0.05, min(1.0, (raw * 20).rounded() / 20.0)) // 5% steps
