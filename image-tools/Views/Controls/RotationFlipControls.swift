@@ -40,7 +40,7 @@ struct RotationFlipControls: View {
             Button(action: { vm.flipH.toggle() }) {
                 Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right.fill")
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(vm.flipH ? Color.white : .primary)
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
@@ -67,7 +67,7 @@ struct RotationFlipControls: View {
             Button(action: { vm.flipV.toggle() }) {
                 Image(systemName: "arrow.up.and.down.righttriangle.up.righttriangle.down.fill")
                     .font(.headline)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(vm.flipV ? Color.white : .primary)
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())

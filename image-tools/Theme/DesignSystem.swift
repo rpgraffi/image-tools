@@ -20,6 +20,7 @@ enum Theme {
 
     struct Animations {
         static func spring() -> Animation { .spring(response: 0.6, dampingFraction: 0.85) }
+        static func fastSpring() -> Animation { .spring(response: 0.3, dampingFraction: 0.85) }
         static func pillFill() -> Animation { .spring(response: 0.7, dampingFraction: 0.85) }
     }
 } 

@@ -1,6 +1,26 @@
 import SwiftUI
 import AppKit
 
+// Add an entry type to represent either the special "Original" option or a concrete format
+fileprivate enum FormatDropdownEntry: Identifiable, Equatable {
+    case original
+    case format(ImageFormat)
+
+    var id: String {
+        switch self {
+        case .original: return "__original__"
+        case .format(let f): return f.id
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .original: return "Original"
+        case .format(let f): return f.displayName
+        }
+    }
+}
+
 struct FormatControlView: View {
     @ObservedObject var vm: ImageToolsViewModel
     @EnvironmentObject var dropdown: FormatDropdownController
@@ -31,7 +51,7 @@ struct FormatControlView: View {
                 .foregroundStyle(.secondary)
             ZStack(alignment: .leading) {
                 if (dropdown.query.isEmpty && !dropdown.isOpen) {
-                    Text(vm.selectedFormat?.displayName ?? "Format")
+                    Text(vm.selectedFormat == nil ? "Original" : (vm.selectedFormat?.displayName ?? "Format"))
                         .foregroundStyle(.primary)
                         .font(.headline)
                 }
@@ -68,7 +88,7 @@ struct FormatControlView: View {
     private func installKeyMonitor() {
         removeKeyMonitor()
         keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
-            let items = filteredAndSortedFormats()
+            let items = filteredAndSortedEntries()
             switch event.keyCode {
             case 125: // down
                 if !items.isEmpty { dropdown.highlightedIndex = min(dropdown.highlightedIndex + 1, items.count - 1) }
@@ -77,7 +97,15 @@ struct FormatControlView: View {
                 if !items.isEmpty { dropdown.highlightedIndex = max(dropdown.highlightedIndex - 1, 0) }
                 return nil
             case 36: // return
-                if !items.isEmpty { select(items[max(0, min(dropdown.highlightedIndex, items.count - 1))]); return nil }
+                if !items.isEmpty {
+                    let idx = max(0, min(dropdown.highlightedIndex, items.count - 1))
+                    let entry = items[idx]
+                    switch entry {
+                    case .original: select(nil)
+                    case .format(let f): select(f)
+                    }
+                    return nil
+                }
                 return event
             case 53: // esc
                 withAnimation(Theme.Animations.spring()) { dropdown.isOpen = false; searchFocused = false }
@@ -92,46 +120,56 @@ struct FormatControlView: View {
         if let monitor = keyEventMonitor { NSEvent.removeMonitor(monitor); keyEventMonitor = nil }
     }
 
-    fileprivate func select(_ fmt: ImageFormat) {
+    fileprivate func select(_ fmt: ImageFormat?) {
         vm.selectedFormat = fmt
-        vm.bumpRecentFormats(fmt)
+        if let f = fmt { vm.bumpRecentFormats(f) }
         withAnimation(Theme.Animations.spring()) { dropdown.isOpen = false; searchFocused = false }
         dropdown.query = ""
     }
 
     fileprivate func handleEnterSelection() {
-        let items = filteredAndSortedFormats()
-        if items.indices.contains(dropdown.highlightedIndex) { select(items[dropdown.highlightedIndex]) }
-        else if let first = items.first { select(first) }
+        let items = filteredAndSortedEntries()
+        if items.indices.contains(dropdown.highlightedIndex) {
+            let entry = items[dropdown.highlightedIndex]
+            switch entry { case .original: select(nil); case .format(let f): select(f) }
+        } else if let first = items.first {
+            switch first { case .original: select(nil); case .format(let f): select(f) }
+        }
     }
 
-    fileprivate func filteredAndSortedFormats() -> [ImageFormat] {
+    fileprivate func filteredAndSortedEntries() -> [FormatDropdownEntry] {
         let caps = ImageIOCapabilities.shared
-        let all = ImageFormat.allCases.filter { caps.supportsWriting(utType: $0.utType) }
+        let allFormats = ImageFormat.allCases.filter { caps.supportsWriting(utType: $0.utType) }
         let q = dropdown.query.trimmingCharacters(in: .whitespacesAndNewlines)
         if q.isEmpty {
-            return all.sorted(by: { a, b in
+            let sorted = allFormats.sorted(by: { a, b in
                 let ai = vm.recentFormats.firstIndex(of: a)
                 let bi = vm.recentFormats.firstIndex(of: b)
                 if ai != nil || bi != nil { return (ai ?? Int.max) < (bi ?? Int.max) }
                 return a.displayName < b.displayName
             })
+            return [.original] + sorted.map { .format($0) }
         }
         let lower = q.lowercased()
-        let scored: [(fmt: ImageFormat, score: Int, recentRank: Int)] = all.compactMap { fmt in
+        // Score formats
+        var entries: [(entry: FormatDropdownEntry, score: Int, recentRank: Int)] = []
+        for fmt in allFormats {
             let name = fmt.displayName.lowercased()
             if let s = fuzzyScore(query: lower, candidate: name) {
                 let recentRank = vm.recentFormats.firstIndex(of: fmt) ?? Int.max
-                return (fmt, s, recentRank)
+                entries.append((.format(fmt), s, recentRank))
             }
-            return nil
         }
-        .sorted { (l, r) in
+        // Consider Original as well
+        if let s = fuzzyScore(query: lower, candidate: "original") {
+            entries.append((.original, s, Int.max))
+        }
+        let sorted = entries.sorted { l, r in
             if l.recentRank != r.recentRank { return l.recentRank < r.recentRank }
             if l.score != r.score { return l.score > r.score }
-            return l.fmt.displayName < r.fmt.displayName
+            return l.entry.title < r.entry.title
         }
-        return scored.map { $0.fmt }
+        return sorted.map { $0.entry }
     }
 
     private func fuzzyScore(query: String, candidate: String) -> Int? {
@@ -154,11 +192,11 @@ struct FormatControlView: View {
 struct FormatDropdownList: View {
     @ObservedObject var vm: ImageToolsViewModel
     @EnvironmentObject var dropdown: FormatDropdownController
-    let onSelect: (ImageFormat) -> Void
+    let onSelect: (ImageFormat?) -> Void
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            let items = filteredAndSortedFormats()
+            let items = filteredAndSortedEntries()
             if items.isEmpty {
                 Text("No matches")
                     .foregroundStyle(.secondary)
@@ -184,15 +222,17 @@ struct FormatDropdownList: View {
     }
 
     @ViewBuilder
-    private func listContent(items: [ImageFormat]) -> some View {
+    private func listContent(items: [FormatDropdownEntry]) -> some View {
         VStack(spacing: 0) {
-            ForEach(Array(items.enumerated()), id: \.element) { idx, fmt in
-                Button(action: { onSelect(fmt) }) {
+            ForEach(Array(items.enumerated()), id: \.element.id) { idx, entry in
+                Button(action: {
+                    switch entry { case .original: onSelect(nil); case .format(let f): onSelect(f) }
+                }) {
                     HStack {
-                        Text(fmt.displayName)
+                        Text(entry.title)
                             .foregroundStyle(.primary)
                         Spacer()
-                        if vm.recentFormats.contains(fmt) {
+                        if case .format(let f) = entry, vm.recentFormats.contains(f) {
                             Text("recent")
                                 .font(.caption2)
                                 .foregroundStyle(.tertiary)
@@ -211,7 +251,12 @@ struct FormatDropdownList: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
                             .fill(Color.accentColor.opacity(0.08))
-                            .opacity(fmt == vm.selectedFormat && idx != dropdown.highlightedIndex ? 1 : 0)
+                            .opacity({
+                                switch entry {
+                                case .original: return vm.selectedFormat == nil && idx != dropdown.highlightedIndex
+                                case .format(let f): return vm.selectedFormat == f && idx != dropdown.highlightedIndex
+                                }
+                            }() ? 1 : 0)
                             .allowsHitTesting(false)
                     )
                 }
@@ -225,33 +270,37 @@ struct FormatDropdownList: View {
         .padding(6)
     }
 
-    private func filteredAndSortedFormats() -> [ImageFormat] {
+    private func filteredAndSortedEntries() -> [FormatDropdownEntry] {
         let caps = ImageIOCapabilities.shared
-        let all = ImageFormat.allCases.filter { caps.supportsWriting(utType: $0.utType) }
+        let allFormats = ImageFormat.allCases.filter { caps.supportsWriting(utType: $0.utType) }
         let q = dropdown.query.trimmingCharacters(in: .whitespacesAndNewlines)
         if q.isEmpty {
-            return all.sorted(by: { a, b in
+            let sorted = allFormats.sorted(by: { a, b in
                 let ai = vm.recentFormats.firstIndex(of: a)
                 let bi = vm.recentFormats.firstIndex(of: b)
                 if ai != nil || bi != nil { return (ai ?? Int.max) < (bi ?? Int.max) }
                 return a.displayName < b.displayName
             })
+            return [.original] + sorted.map { .format($0) }
         }
         let lower = q.lowercased()
-        let scored: [(fmt: ImageFormat, score: Int, recentRank: Int)] = all.compactMap { fmt in
+        var entries: [(entry: FormatDropdownEntry, score: Int, recentRank: Int)] = []
+        for fmt in allFormats {
             let name = fmt.displayName.lowercased()
             if let s = fuzzyScore(query: lower, candidate: name) {
                 let recentRank = vm.recentFormats.firstIndex(of: fmt) ?? Int.max
-                return (fmt, s, recentRank)
+                entries.append((.format(fmt), s, recentRank))
             }
-            return nil
         }
-        .sorted { (l, r) in
+        if let s = fuzzyScore(query: lower, candidate: "original") {
+            entries.append((.original, s, Int.max))
+        }
+        let sorted = entries.sorted { (l, r) in
             if l.recentRank != r.recentRank { return l.recentRank < r.recentRank }
             if l.score != r.score { return l.score > r.score }
-            return l.fmt.displayName < r.fmt.displayName
+            return l.entry.title < r.entry.title
         }
-        return scored.map { $0.fmt }
+        return sorted.map { $0.entry }
     }
 
     private func fuzzyScore(query: String, candidate: String) -> Int? {

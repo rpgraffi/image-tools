@@ -25,9 +25,9 @@ struct MainView: View {
                     let rect = proxy[a]
                     VStack(spacing: 0) {
                         Rectangle().fill(Color.black.opacity(0.06)).frame(height: 1)
-                        FormatDropdownList(vm: vm, onSelect: { fmt in
+                                                 FormatDropdownList(vm: vm, onSelect: { (fmt: ImageFormat?) in
                             vm.selectedFormat = fmt
-                            vm.bumpRecentFormats(fmt)
+                            if let f = fmt { vm.bumpRecentFormats(f) }
                             withAnimation(Theme.Animations.spring()) { formatDropdown.isOpen = false }
                             formatDropdown.query = ""
                         })

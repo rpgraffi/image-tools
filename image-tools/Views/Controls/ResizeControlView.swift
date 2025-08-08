@@ -148,6 +148,9 @@ struct ResizeControlView: View {
                 } else {
                     Text("\(localPercent)%")
                         .font(.headline)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(Theme.Animations.fastSpring(), value: localPercent)
                         .foregroundStyle(.primary)
                         .contentShape(Rectangle())
                         .onTapGesture {

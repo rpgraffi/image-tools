@@ -158,13 +158,19 @@ final class ImageToolsViewModel: ObservableObject {
             pipeline.add(ResizeOperation(mode: .pixels(width: Int(resizeWidth), height: Int(resizeHeight))))
         }
 
-        // Convert
+        // Convert (skip when Original is selected)
         if let fmt = selectedFormat { pipeline.add(ConvertOperation(format: fmt)); bumpRecentFormats(fmt) }
 
         // Compress
         switch compressionMode {
-        case .percent: if compressionPercent < 0.999 { pipeline.add(CompressOperation(mode: .percent(compressionPercent), formatHint: selectedFormat ?? .jpeg)) }
-        case .targetKB: if let kb = Int(compressionTargetKB), kb > 0 { pipeline.add(CompressOperation(mode: .targetKB(kb), formatHint: selectedFormat ?? .jpeg)) }
+        case .percent:
+            if compressionPercent < 0.999 {
+                pipeline.add(CompressOperation(mode: .percent(compressionPercent), formatHint: selectedFormat))
+            }
+        case .targetKB:
+            if let kb = Int(compressionTargetKB), kb > 0 {
+                pipeline.add(CompressOperation(mode: .targetKB(kb), formatHint: selectedFormat))
+            }
         }
 
         // Rotate

@@ -95,6 +95,7 @@ struct CompressControlView: View {
                             .multilineTextAlignment(.trailing)
                             .font(.headline)
                             .focused($percentFieldFocused)
+                            .contentTransition(.numericText())
                             .frame(minWidth: 28, maxWidth: 44)
                             .onSubmit { commitPercentFromString(); isEditingPercent = false; percentFieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
                             .onChange(of: percentString) { _, newValue in
@@ -110,6 +111,9 @@ struct CompressControlView: View {
                     Text("\(Int(vm.compressionPercent * 100))%")
                         .font(.headline)
                         .foregroundStyle(.primary)
+                        .monospacedDigit()
+                        .contentTransition(.numericText())
+                        .animation(Theme.Animations.fastSpring(), value: vm.compressionPercent)
                         .contentShape(Rectangle())
                         .onTapGesture {
                             isEditingPercent = true
