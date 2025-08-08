@@ -7,31 +7,8 @@ struct RotationFlipControls: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            autoRotatePill()
             flipPill()
         }
-    }
-
-    private func autoRotatePill() -> some View {
-        let corner = Theme.Metrics.pillCornerRadius(forHeight: controlHeight)
-        return Button(action: { vm.rotation = .r0 }) {
-            HStack(spacing: 6) {
-                Image(systemName: "arrow.triangle.2.circlepath")
-                Text("Auto")
-            }
-            .font(.headline)
-            .foregroundStyle(.primary)
-            .frame(height: controlHeight)
-            .padding(.horizontal, 12)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .help("Auto rotate (resets)")
-        .background(
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(Theme.Colors.controlBackground)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
     }
 
     private func flipPill() -> some View {

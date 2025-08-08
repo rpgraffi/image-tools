@@ -59,8 +59,11 @@ struct MainView: View {
                 window.styleMask.insert(.fullSizeContentView)
             }
         }
-        // Enable Edit > Paste and Cmd+V for images and file URLs
-        .onPasteCommand(of: [.fileURL, .image], perform: handlePaste(providers:))
+        // Make the view focusable so it can receive paste commands
+        .focusable()
+        .focusEffectDisabled()  // Remove the ugly blue focus ring
+        // Enable Edit > Paste and Cmd+V for images and file URLs  
+        .onPasteCommand(of: [.fileURL, .image], perform: handlePaste)
     }
 
     private func handlePaste(providers: [NSItemProvider]) {

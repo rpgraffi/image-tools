@@ -75,4 +75,23 @@ struct ProcessingPipeline {
         updated.isEdited = true
         return updated
     }
+
+    // Apply operations and return a temporary file URL for the processed image without committing to a destination
+    func renderTemporaryURL(on asset: ImageAsset) throws -> URL {
+        var currentURL = asset.workingURL
+
+        var didStartAccessing = false
+        if currentURL.startAccessingSecurityScopedResource() {
+            didStartAccessing = true
+        }
+        defer {
+            if didStartAccessing { currentURL.stopAccessingSecurityScopedResource() }
+        }
+
+        for op in operations {
+            currentURL = try op.apply(to: currentURL)
+        }
+
+        return currentURL
+    }
 } 

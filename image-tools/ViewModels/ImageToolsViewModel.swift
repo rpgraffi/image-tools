@@ -127,6 +127,17 @@ final class ImageToolsViewModel: ObservableObject {
         }
     }
 
+    // Remove an asset from whichever list it is in
+    func remove(_ asset: ImageAsset) {
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.9, blendDuration: 0.2)) {
+            if let idx = newImages.firstIndex(of: asset) {
+                newImages.remove(at: idx)
+            } else if let idx = editedImages.firstIndex(of: asset) {
+                editedImages.remove(at: idx)
+            }
+        }
+    }
+
     // MARK: - Prefill pixels based on selected images
     func prefillPixelsIfPossible() {
         let targets: [ImageAsset]

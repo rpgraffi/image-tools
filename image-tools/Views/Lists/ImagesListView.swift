@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import AppKit
 
 struct ImagesListView: View {
     @ObservedObject var vm: ImageToolsViewModel
@@ -8,8 +9,8 @@ struct ImagesListView: View {
     let onDrop: ([NSItemProvider]) -> Bool
 
     // Grid config: adaptive columns with a max tile width
-    private let tileMaxWidth: CGFloat = 180
-    private var columns: [GridItem] { [GridItem(.adaptive(minimum: 120, maximum: tileMaxWidth), spacing: 12, alignment: .top)] }
+    private let tileMaxWidth: CGFloat = 300
+    private var columns: [GridItem] { [GridItem(.adaptive(minimum: 220, maximum: tileMaxWidth), spacing: 12, alignment: .top)] }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -53,31 +54,22 @@ struct ImagesListView: View {
                     } else {
                         ScrollView {
                             LazyVGrid(columns: columns, spacing: 12) {
-                                if !vm.newImages.isEmpty {
-                                    SectionHeader("New Images")
-                                    ForEach(vm.newImages) { asset in
-                                        ImageRow(asset: asset, isEdited: false, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: nil)
-                                            .contextMenu {
-                                                Button("Enable/Disable") { vm.toggleEnable(asset) }
-                                            }
-                                    }
-                                }
-                                if !vm.editedImages.isEmpty {
-                                    SectionHeader("Edited Images")
-                                    ForEach(vm.editedImages) { asset in
-                                        ImageRow(asset: asset, isEdited: true, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: { vm.recoverOriginal(asset) })
-                                            .contextMenu {
-                                                Button("Enable/Disable") { vm.toggleEnable(asset) }
-                                                if asset.backupURL != nil {
-                                                    Button("Recover Original") { vm.recoverOriginal(asset) }
-                                                }
-                                                Button("Move to New") { vm.moveToNew(asset) }
-                                            }
+                                ForEach(vm.newImages + vm.editedImages) { asset in
+                                    ImageItem(
+                                        asset: asset,
+                                        vm: vm,
+                                        toggle: { vm.toggleEnable(asset) },
+                                        recover: asset.backupURL != nil ? { vm.recoverOriginal(asset) } : nil
+                                    )
+                                    .contextMenu {
+                                        Button("Enable/Disable") { vm.toggleEnable(asset) }
+                                        if asset.backupURL != nil { Button("Recover Original") { vm.recoverOriginal(asset) } }
                                     }
                                 }
                             }
                             .padding(10)
                         }
+                        .contentShape(Rectangle())
                         .scrollContentBackground(.hidden)
                         .background(Color.clear)
                     }
@@ -99,11 +91,38 @@ struct ImagesListView: View {
                             .foregroundStyle(isDropping ? Color.accentColor.opacity(0.8) : Color.gray.opacity(0.5))
                     }
                 }
+                .allowsHitTesting(false)
             )
             // .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
         }
         .padding(8)
         .frame(minWidth: 420)
+        .contentShape(Rectangle())
+        // New robust drop handling (macOS 13+)
+        .dropDestination(for: URL.self, action: { urls, _ in
+            vm.addURLs(urls)
+            return true
+        }, isTargeted: { hovering in
+            isDropping = hovering
+        })
+        .dropDestination(for: NSImage.self, action: { images, _ in
+            let tempDir = FileManager.default.temporaryDirectory
+            var urls: [URL] = []
+            for nsImage in images {
+                if let tiff = nsImage.tiffRepresentation,
+                   let rep = NSBitmapImageRep(data: tiff),
+                   let data = rep.representation(using: .png, properties: [:]) {
+                    let url = tempDir.appendingPathComponent("drop_" + UUID().uuidString + ".png")
+                    try? data.write(to: url)
+                    urls.append(url)
+                }
+            }
+            vm.addURLs(urls)
+            return true
+        }, isTargeted: { hovering in
+            isDropping = hovering
+        })
+        // Legacy fallback for older systems/providers
         .onDrop(of: [UTType.fileURL.identifier, UTType.image.identifier], isTargeted: $isDropping, perform: onDrop)
     }
 }

@@ -59,7 +59,7 @@ struct BottomRow: View {
                 .fill(Color.accentColor)
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
-        .disabled(vm.newImages.isEmpty)
+        .disabled(vm.newImages.isEmpty && vm.editedImages.isEmpty)
         .shadow(color: Color.accentColor.opacity(0.25), radius: 8, x: 0, y: 2)
         .help("Apply processing pipeline")
     }

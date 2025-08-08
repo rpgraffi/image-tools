@@ -60,6 +60,8 @@ struct FormatControlView: View {
                     .font(.headline)
                     .opacity(dropdown.isOpen ? 1 : 0.01)
                     .focused($searchFocused)
+                    .disabled(!dropdown.isOpen)
+                    .allowsHitTesting(dropdown.isOpen)
                     .onChange(of: searchFocused) { _, focused in
                         if !focused { withAnimation(Theme.Animations.spring()) { dropdown.isOpen = false } }
                     }
