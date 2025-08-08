@@ -15,7 +15,7 @@ struct CompressControlView: View {
     private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             ZStack {
                 GeometryReader { geo in
                     let size = geo.size

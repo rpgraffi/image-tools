@@ -8,16 +8,14 @@ struct MainView: View {
     @State private var isDropping: Bool = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Top toolbar of tools
-            ControlsBar(vm: vm)
-                .padding(12)
-                .background(.ultraThinMaterial)
+        ZStack {
+            VisualEffectView()
+                .ignoresSafeArea()
 
-            Divider()
-
-            HStack(spacing: 0) {
+            VStack(spacing: 0) {
+                ControlsBar(vm: vm)
                 ImagesListView(vm: vm, isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel, onDrop: handleDrop)
+                BottomRow(vm: vm, onPickFromFinder: pickFromOpenPanel)
             }
         }
         .environmentObject(formatDropdown)
@@ -52,31 +50,61 @@ struct MainView: View {
             }
         }
         .onAppear {
-            NSApp.windows.first?.title = "Image Tools"
+            if let window = NSApp.windows.first {
+                window.title = "Image Tools"
+                window.isOpaque = false
+                window.backgroundColor = .clear
+                window.titleVisibility = .hidden
+                window.titlebarAppearsTransparent = true
+                window.styleMask.insert(.fullSizeContentView)
+            }
         }
+        // Enable Edit > Paste and Cmd+V for images and file URLs
+        .onPasteCommand(of: [.fileURL, .image], perform: handlePaste(providers:))
     }
 
-
-
-
-
-
+    private func handlePaste(providers: [NSItemProvider]) {
+        _ = handleDrop(providers: providers)
+    }
 
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         var handled = false
         let group = DispatchGroup()
         var urls: [URL] = []
-        for provider in providers where provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-            group.enter()
-            provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                defer { group.leave() }
-                if let data = item as? Data, let url = URL(dataRepresentation: data, relativeTo: nil) {
-                    urls.append(url)
-                } else if let url = item as? URL {
-                    urls.append(url)
+        for provider in providers {
+            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
+                handled = true
+                group.enter()
+                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
+                    defer { group.leave() }
+                    if let data = item as? Data, let url = URL(dataRepresentation: data, relativeTo: nil) {
+                        urls.append(url)
+                    } else if let url = item as? URL {
+                        urls.append(url)
+                    }
+                }
+            } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
+                handled = true
+                group.enter()
+                provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { item, _ in
+                    defer { group.leave() }
+                    let tempDir = FileManager.default.temporaryDirectory
+                    func writeImage(_ nsImage: NSImage) {
+                        if let tiff = nsImage.tiffRepresentation,
+                           let rep = NSBitmapImageRep(data: tiff),
+                           let data = rep.representation(using: .png, properties: [:]) {
+                            let url = tempDir.appendingPathComponent("paste_" + UUID().uuidString + ".png")
+                            try? data.write(to: url)
+                            urls.append(url)
+                        }
+                    }
+                    if let data = item as? Data, let image = NSImage(data: data) {
+                        writeImage(image)
+                    } else if let image = item as? NSImage {
+                        writeImage(image)
+                    }
                 }
             }
-            handled = true
         }
         group.notify(queue: .main) {
             vm.addURLs(urls)
@@ -95,8 +123,6 @@ struct MainView: View {
         }
     }
 }
-
-
 
 #Preview {
     MainView()

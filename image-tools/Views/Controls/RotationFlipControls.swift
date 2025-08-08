@@ -38,12 +38,13 @@ struct RotationFlipControls: View {
         let corner = Theme.Metrics.pillCornerRadius(forHeight: controlHeight)
         return HStack(spacing: 0) {
             Button(action: { vm.flipH.toggle() }) {
-                Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right")
+                Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right.fill")
                     .font(.headline)
                     .foregroundStyle(.primary)
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
+                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: vm.flipH)
                     .help("Flip Horizontal")
             }
             .buttonStyle(.plain)
@@ -64,12 +65,13 @@ struct RotationFlipControls: View {
                 .padding(.vertical, 6)
 
             Button(action: { vm.flipV.toggle() }) {
-                Image(systemName: "arrow.up.and.down.righttriangle.up.righttriangle.down")
+                Image(systemName: "arrow.up.and.down.righttriangle.up.righttriangle.down.fill")
                     .font(.headline)
                     .foregroundStyle(.primary)
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
+                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: vm.flipV)
                     .help("Flip Vertical")
             }
             .buttonStyle(.plain)
@@ -91,4 +93,6 @@ struct RotationFlipControls: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
     }
-} 
+}
+
+ 

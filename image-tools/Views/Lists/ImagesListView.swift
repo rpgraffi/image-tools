@@ -8,42 +8,51 @@ struct ImagesListView: View {
     let onDrop: ([NSItemProvider]) -> Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            List {
-                if !vm.newImages.isEmpty {
-                    Section("New Images") {
-                        ForEach(vm.newImages) { asset in
-                            ImageRow(asset: asset, isEdited: false, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: nil)
-                                .contextMenu {
-                                    Button("Enable/Disable") { vm.toggleEnable(asset) }
-                                }
-                        }
-                    }
-                }
-                if !vm.editedImages.isEmpty {
-                    Section("Edited Images") {
-                        ForEach(vm.editedImages) { asset in
-                            ImageRow(asset: asset, isEdited: true, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: { vm.recoverOriginal(asset) })
-                                .contextMenu {
-                                    Button("Enable/Disable") { vm.toggleEnable(asset) }
-                                    if asset.backupURL != nil {
-                                        Button("Recover Original") { vm.recoverOriginal(asset) }
+        HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                List {
+                    if !vm.newImages.isEmpty {
+                        Section("New Images") {
+                            ForEach(vm.newImages) { asset in
+                                ImageRow(asset: asset, isEdited: false, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: nil)
+                                    .contextMenu {
+                                        Button("Enable/Disable") { vm.toggleEnable(asset) }
                                     }
-                                    Button("Move to New") { vm.moveToNew(asset) }
-                                }
+                            }
+                        }
+                    }
+                    if !vm.editedImages.isEmpty {
+                        Section("Edited Images") {
+                            ForEach(vm.editedImages) { asset in
+                                ImageRow(asset: asset, isEdited: true, vm: vm, toggle: { vm.toggleEnable(asset) }, recover: { vm.recoverOriginal(asset) })
+                                    .contextMenu {
+                                        Button("Enable/Disable") { vm.toggleEnable(asset) }
+                                        if asset.backupURL != nil {
+                                            Button("Recover Original") { vm.recoverOriginal(asset) }
+                                        }
+                                        Button("Move to New") { vm.moveToNew(asset) }
+                                    }
+                            }
                         }
                     }
                 }
+                .listStyle(.inset)
+                .scrollContentBackground(.hidden)
+                .background(Color.clear)
             }
-            .listStyle(.inset)
-
-            HStack(spacing: 8) {
-                Button { vm.addFromPasteboard() } label: { Label("Paste", systemImage: "doc.on.clipboard") }
-                Button { onPickFromFinder() } label: { Label("Add from Finder", systemImage: "folder.badge.plus") }
-            }
-            .padding(8)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Color.black.opacity(0.06))
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
+            )
+            // .shadow(color: Color.black.opacity(0.08), radius: 10, x: 0, y: 6)
         }
+        .padding(8)
         .frame(minWidth: 420)
-        .onDrop(of: [UTType.fileURL.identifier], isTargeted: $isDropping, perform: onDrop)
+        .onDrop(of: [UTType.fileURL.identifier, UTType.image.identifier], isTargeted: $isDropping, perform: onDrop)
     }
 } 

@@ -16,7 +16,7 @@ struct ResizeControlView: View {
     private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
 
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: 4) {
             // Main control (percent pill or pixel fields)
             ZStack { // fixed footprint for both modes
                 GeometryReader { geo in

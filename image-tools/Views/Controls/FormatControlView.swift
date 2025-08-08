@@ -52,7 +52,7 @@ struct FormatControlView: View {
         .onTapGesture { withAnimation(Theme.Animations.spring()) { dropdown.isOpen = true }; searchFocused = true; dropdown.highlightedIndex = 0 }
         .background(shape.fill(Theme.Colors.controlBackground))
         .clipShape(shape)
-        .frame(width: controlMaxWidth)
+        .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth)
         .animation(Theme.Animations.spring(), value: dropdown.isOpen)
         .onAppear { dropdown.query = "" }
         .onChange(of: dropdown.query) { _, _ in dropdown.highlightedIndex = 0 }

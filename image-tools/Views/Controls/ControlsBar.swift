@@ -5,20 +5,17 @@ struct ControlsBar: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            HStack(spacing: 2) {
-                // Resize
-                ResizeControlView(vm: vm)
-                    .frame(minWidth: 300)
-                    .transition(.opacity.combined(with: .scale))
-
+            HStack(spacing: 16) {
                 // Format
                 FormatControlView(vm: vm)
-                    .frame(minWidth: 160)
+                    .transition(.opacity.combined(with: .scale))
+
+                // Resize
+                ResizeControlView(vm: vm)
                     .transition(.opacity.combined(with: .scale))
 
                 // Compress
                 CompressControlView(vm: vm)
-                    .frame(minWidth: 300)
                     .transition(.opacity.combined(with: .scale))
 
                 // Rotate & Flip
@@ -39,5 +36,6 @@ struct ControlsBar: View {
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.sizeUnit)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.compressionMode)
         }
+        .padding(8)
     }
 } 

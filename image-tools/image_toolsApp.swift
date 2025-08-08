@@ -10,9 +10,11 @@ import SwiftUI
 @main
 struct image_toolsApp: App {
     var body: some Scene {
-                    WindowGroup {
-                MainView()
-            }
-            .windowStyle(.hiddenTitleBar)
+        WindowGroup {
+            MainView()
+                .background(.clear)
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
     }
 }

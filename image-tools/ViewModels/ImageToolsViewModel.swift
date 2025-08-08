@@ -236,4 +236,12 @@ final class ImageToolsViewModel: ObservableObject {
         recentFormats.insert(fmt, at: 0)
         if recentFormats.count > 3 { recentFormats = Array(recentFormats.prefix(3)) }
     }
+
+    // MARK: - Clear all images
+    func clearAll() {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.85, blendDuration: 0.3)) {
+            newImages.removeAll()
+            editedImages.removeAll()
+        }
+    }
 } 

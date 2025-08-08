@@ -4,7 +4,7 @@ enum Theme {
     struct Metrics {
         static let controlHeight: CGFloat = 36
         static let controlMinWidth: CGFloat = 80
-        static let controlMaxWidth: CGFloat = 220
+        static let controlMaxWidth: CGFloat = 200
 
         static func pillCornerRadius(forHeight height: CGFloat) -> CGFloat { height / 2 }
     }
