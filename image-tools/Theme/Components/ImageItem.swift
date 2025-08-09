@@ -76,7 +76,6 @@ private struct ImageThumbnail: View {
 private struct TwoLineOverlayBadge: View {
     let topText: String
     let bottomText: String
-    let animateFlag: Bool
     
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -106,8 +105,7 @@ private struct InfoOverlay: View {
                let targetFormat = changeInfo.targetFormat {
                 TwoLineOverlayBadge(
                     topText: originalFormat.displayName,
-                    bottomText: targetFormat.displayName,
-                    animateFlag: changeInfo.formatChanged
+                    bottomText: targetFormat.displayName
                 )
             }
             // Resolution change overlay
@@ -116,8 +114,7 @@ private struct InfoOverlay: View {
                let target = changeInfo.targetPixelSize {
                 TwoLineOverlayBadge(
                     topText: "\(Int(original.width))×\(Int(original.height))",
-                    bottomText: "\(Int(target.width))×\(Int(target.height))",
-                    animateFlag: changeInfo.resolutionChanged
+                    bottomText: "\(Int(target.width))×\(Int(target.height))"
                 )
             }
             
@@ -127,8 +124,7 @@ private struct InfoOverlay: View {
                let outputSize = changeInfo.estimatedOutputSize {
                 TwoLineOverlayBadge(
                     topText: "\(formatBytes(originalSize))",
-                    bottomText: "\(formatBytes(outputSize))",
-                    animateFlag: changeInfo.fileSizeChanged
+                    bottomText: "\(formatBytes(outputSize))"
                 )
             }
         }
@@ -178,26 +174,26 @@ private struct HoverControls: View {
             .symbolEffect(.bounce.down.wholeSymbol, options: .nonRepeating, value: animationTrigger)
             .help("Copy image to clipboard")
             
-            Toggle(isOn: .constant(asset.isEnabled)) {
-                EmptyView()
-            }
-            .toggleStyle(.checkbox)
-            .onChange(of: asset.isEnabled) { _, _ in toggle() }
-            .help("Enable/Disable for batch")
             
             if let recover = recover {
                 Button(action: recover) {
-                    Image(systemName: "clock.arrow.circlepath")
+                    Image(systemName: "clock.arrow.circlepath.fill")
                 }
                 .buttonStyle(.plain)
                 .help("Recover original")
             }
             
             Button(role: .destructive, action: { vm.remove(asset) }) {
-                Image(systemName: "trash")
+                Image(systemName: "minus.square.fill")
             }
             .buttonStyle(.plain)
             .help("Remove from list")
+
+            Toggle(isOn: Binding(get: { asset.isEnabled }, set: { _ in toggle() })) {
+                EmptyView()
+            }
+            .toggleStyle(.checkbox)
+            .help("Enable/Disable for batch")
         }
         .font(.system(size: 13))
         .foregroundStyle(.secondary)
