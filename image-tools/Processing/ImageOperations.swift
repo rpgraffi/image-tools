@@ -126,7 +126,7 @@ struct RemoveBackgroundOperation: ImageOperation {
 struct ImageExporter {
     static func export(ciImage: CIImage, originalURL: URL, format: ImageFormat?, compressionQuality: Double?) throws -> URL {
         // Decide format and UTType, honoring platform capabilities
-        let requestedFormat: ImageFormat = format ?? inferFormat(from: originalURL) ?? .png
+        let requestedFormat: ImageFormat = format ?? (inferFormat(from: originalURL) ?? ImageIOCapabilities.shared.format(forIdentifier: UTType.png.identifier)!)
         let requestedUTI: UTType = requestedFormat.utType
 
         // Fallback chain: requested -> PNG -> JPEG
@@ -154,6 +154,10 @@ struct ImageExporter {
         }
 
         var props: [CFString: Any] = [:]
+        if let src = CGImageSourceCreateWithURL(originalURL as CFURL, nil),
+           let meta = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any] {
+            for (k, v) in meta { props[k] = v }
+        }
         if actualUTI == .jpeg || actualUTI == UTType.heic {
             props[kCGImageDestinationLossyCompressionQuality] = compressionQuality ?? 0.9
         }
@@ -163,15 +167,6 @@ struct ImageExporter {
     }
 
     static func inferFormat(from url: URL) -> ImageFormat? {
-        switch url.pathExtension.lowercased() {
-            case "jpg", "jpeg": return .jpeg
-            case "png": return .png
-            case "heic": return .heic
-            case "tif", "tiff": return .tiff
-            case "bmp": return .bmp
-            case "gif": return .gif
-            case "webp": return .webp
-            default: return nil
-        }
+        return ImageIOCapabilities.shared.formatForURL(url)
     }
 } 

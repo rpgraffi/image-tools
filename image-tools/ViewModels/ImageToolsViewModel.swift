@@ -42,17 +42,18 @@ final class ImageToolsViewModel: ObservableObject {
 
     private func loadPersistedState() {
         if let raw = defaults.array(forKey: PersistenceKeys.recentFormats) as? [String] {
-            let mapped = raw.compactMap { ImageFormat(rawValue: $0) }
+            let mapped = raw.compactMap { ImageIOCapabilities.shared.format(forIdentifier: $0) }
             if !mapped.isEmpty { recentFormats = Array(mapped.prefix(3)) }
         }
-        if let selRaw = defaults.string(forKey: PersistenceKeys.selectedFormat), let fmt = ImageFormat(rawValue: selRaw) {
+        if let selRaw = defaults.string(forKey: PersistenceKeys.selectedFormat),
+           let fmt = ImageIOCapabilities.shared.format(forIdentifier: selRaw) {
             let caps = ImageIOCapabilities.shared
             if caps.supportsWriting(utType: fmt.utType) { selectedFormat = fmt }
         }
     }
 
-    private func persistRecentFormats() { defaults.set(recentFormats.map { $0.rawValue }, forKey: PersistenceKeys.recentFormats) }
-    private func persistSelectedFormat() { defaults.set(selectedFormat?.rawValue, forKey: PersistenceKeys.selectedFormat) }
+    private func persistRecentFormats() { defaults.set(recentFormats.map { $0.id }, forKey: PersistenceKeys.recentFormats) }
+    private func persistSelectedFormat() { defaults.set(selectedFormat?.id, forKey: PersistenceKeys.selectedFormat) }
 
     // MARK: - Preview calculations (reusable service-like helpers)
     struct PreviewInfo {
@@ -103,14 +104,13 @@ final class ImageToolsViewModel: ObservableObject {
 
     // MARK: - Ingestion
     func addURLs(_ urls: [URL]) {
-        let imageURLs = urls.filter { isSupportedImage($0) }
+        let imageURLs = urls.filter { ImageIOCapabilities.shared.isReadableURL($0) }
         let assets = imageURLs.map { ImageAsset(url: $0) }
         newImages.append(contentsOf: assets)
     }
 
     private func isSupportedImage(_ url: URL) -> Bool {
-        let ext = url.pathExtension.lowercased()
-        return ["jpg","jpeg","png","heic","tiff","tif","bmp","gif","webp"].contains(ext)
+        ImageIOCapabilities.shared.isReadableURL(url)
     }
 
     // MARK: - Enable/Disable & Move between sections

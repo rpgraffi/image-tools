@@ -31,8 +31,7 @@ final class FormatDropdownController: ObservableObject {
 // MARK: - Filtering & Ranking logic
 extension FormatDropdownController {
     func filteredAndSortedEntries(vm: ImageToolsViewModel) -> [FormatDropdownEntry] {
-        let caps = ImageIOCapabilities.shared
-        let allFormats = ImageFormat.allCases.filter { caps.supportsWriting(utType: $0.utType) }
+        let allFormats = ImageIOCapabilities.shared.writableFormats()
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines)
         if q.isEmpty {
             let sorted = allFormats.sorted(by: { a, b in

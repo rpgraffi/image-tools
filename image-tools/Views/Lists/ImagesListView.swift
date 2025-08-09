@@ -76,16 +76,16 @@ struct ImagesListView: View {
                 }
             }
             .background(
-                RoundedRectangle(cornerRadius: 32, style: .continuous)
+                RoundedRectangle(cornerRadius: 24, style: .continuous)
                     .fill(Color.black.opacity(0.06))
             )
-            .clipShape(RoundedRectangle(cornerRadius: 32, style: .continuous))
+            .clipShape(RoundedRectangle(cornerRadius: 24, style: .continuous))
             .overlay(
                 ZStack {
-                    RoundedRectangle(cornerRadius: 32, style: .continuous)
+                    RoundedRectangle(cornerRadius: 24, style: .continuous)
                         .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
                     if vm.newImages.isEmpty && vm.editedImages.isEmpty {
-                        RoundedRectangle(cornerRadius: 32, style: .continuous)
+                        RoundedRectangle(cornerRadius: 24, style: .continuous)
                             .inset(by: 16)
                             .stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 6]))
                             .foregroundStyle(isDropping ? Color.accentColor.opacity(0.8) : Color.gray.opacity(0.5))

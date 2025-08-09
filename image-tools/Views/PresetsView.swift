@@ -18,7 +18,7 @@ final class PresetsStore: ObservableObject {
             var resizePercent: Double
             var resizeWidth: String
             var resizeHeight: String
-            var selectedFormat: String?
+            var selectedFormatIdentifier: String?
             var compressionMode: String
             var compressionPercent: Double
             var compressionTargetKB: String
@@ -33,7 +33,7 @@ final class PresetsStore: ObservableObject {
             resizePercent: vm.resizePercent,
             resizeWidth: vm.resizeWidth,
             resizeHeight: vm.resizeHeight,
-            selectedFormat: vm.selectedFormat?.rawValue,
+            selectedFormatIdentifier: vm.selectedFormat?.id,
             compressionMode: vm.compressionMode == .percent ? "percent" : "targetKB",
             compressionPercent: vm.compressionPercent,
             compressionTargetKB: vm.compressionTargetKB,
@@ -56,7 +56,7 @@ final class PresetsStore: ObservableObject {
             var resizePercent: Double
             var resizeWidth: String
             var resizeHeight: String
-            var selectedFormat: String?
+            var selectedFormatIdentifier: String?
             var compressionMode: String
             var compressionPercent: Double
             var compressionTargetKB: String
@@ -71,7 +71,11 @@ final class PresetsStore: ObservableObject {
         vm.resizePercent = snap.resizePercent
         vm.resizeWidth = snap.resizeWidth
         vm.resizeHeight = snap.resizeHeight
-        vm.selectedFormat = snap.selectedFormat.flatMap { ImageFormat(rawValue: $0) }
+        if let id = snap.selectedFormatIdentifier {
+            vm.selectedFormat = ImageIOCapabilities.shared.format(forIdentifier: id)
+        } else {
+            vm.selectedFormat = nil
+        }
         vm.compressionMode = snap.compressionMode == "percent" ? .percent : .targetKB
         vm.compressionPercent = snap.compressionPercent
         vm.compressionTargetKB = snap.compressionTargetKB

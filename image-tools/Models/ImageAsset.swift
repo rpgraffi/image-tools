@@ -28,46 +28,27 @@ struct ImageAsset: Identifiable, Hashable {
     }
 }
 
-enum ImageFormat: String, CaseIterable, Identifiable {
-    case jpeg
-    case png
-    case heic
-    case tiff
-    case bmp
-    case gif
-    case webp // best effort via Core Image if supported on platform
+struct ImageFormat: Identifiable, Hashable, Equatable {
+    let utType: UTType
 
-    var id: String { rawValue }
+    var id: String { utType.identifier }
 
     var displayName: String {
-        rawValue.uppercased()
+        utType.localizedDescription ?? utType.identifier
     }
 
-    var utType: UTType {
-        switch self {
-        case .jpeg: return .jpeg
-        case .png: return .png
-        case .heic: return .heic
-        case .tiff: return .tiff
-        case .bmp: return .bmp
-        case .gif: return .gif
-        case .webp:
-            if let webp = UTType("org.webmproject.webp") { return webp }
-            return .png
-        }
+    var preferredFilenameExtension: String {
+        ImageIOCapabilities.shared.preferredFilenameExtension(for: utType)
     }
+}
 
-    var fileExtension: String {
-        switch self {
-        case .jpeg: return "jpg"
-        case .png: return "png"
-        case .heic: return "heic"
-        case .tiff: return "tiff"
-        case .bmp: return "bmp"
-        case .gif: return "gif"
-        case .webp: return "webp"
-        }
-    }
+struct FormatCapabilities {
+    let isReadable: Bool
+    let isWritable: Bool
+    let supportsLossless: Bool
+    let supportsQuality: Bool
+    let supportsMetadata: Bool
+    let resizeRestricted: Bool
 }
 
 enum SizeUnitToggle {
