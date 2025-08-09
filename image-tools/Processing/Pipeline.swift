@@ -1,8 +1,10 @@
 import Foundation
+import CoreImage
 
 struct ProcessingPipeline {
     var operations: [ImageOperation] = []
     var overwriteOriginals: Bool = false
+    var removeMetadata: Bool = false
 
     mutating func add(_ op: ImageOperation) {
         operations.append(op)
@@ -32,6 +34,13 @@ struct ProcessingPipeline {
 
         for op in operations {
             currentURL = try op.apply(to: currentURL)
+        }
+
+        // Apply metadata stripping if requested (re-encode without metadata, preserving format)
+        if removeMetadata {
+            if let ci = CIImage(contentsOf: currentURL) {
+                currentURL = try ImageExporter.export(ciImage: ci, originalURL: currentURL, format: ImageExporter.inferFormat(from: currentURL), compressionQuality: nil, stripMetadata: true)
+            }
         }
 
         // Decide destination

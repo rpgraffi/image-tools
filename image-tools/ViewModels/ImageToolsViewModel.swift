@@ -24,6 +24,7 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var flipH: Bool = false
     @Published var flipV: Bool = false
     @Published var removeBackground: Bool = false
+    @Published var removeMetadata: Bool = false
 
     // Recently used formats for prioritization
     @Published var recentFormats: [ImageFormat] = [] { didSet { persistRecentFormats() } }
@@ -164,6 +165,7 @@ final class ImageToolsViewModel: ObservableObject {
     func buildPipeline() -> ProcessingPipeline {
         var pipeline = ProcessingPipeline()
         pipeline.overwriteOriginals = overwriteOriginals
+        pipeline.removeMetadata = removeMetadata
 
         // Resize
         if sizeUnit == .percent, resizePercent != 1.0 {

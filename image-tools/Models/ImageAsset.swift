@@ -34,11 +34,21 @@ struct ImageFormat: Identifiable, Hashable, Equatable {
     var id: String { utType.identifier }
 
     var displayName: String {
-        utType.localizedDescription ?? utType.identifier
+        let ext = preferredFilenameExtension
+        if !ext.isEmpty && ext != "img" { return ext.uppercased() }
+        let id = utType.identifier
+        if let last = id.split(separator: ".").last, last.count <= 8 {
+            return last.uppercased()
+        }
+        return (utType.localizedDescription ?? id).uppercased()
     }
 
     var preferredFilenameExtension: String {
         ImageIOCapabilities.shared.preferredFilenameExtension(for: utType)
+    }
+
+    var fullName: String {
+        utType.localizedDescription ?? utType.identifier
     }
 }
 

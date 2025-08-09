@@ -161,14 +161,21 @@ struct FormatDropdownList: View {
                 Button(action: {
                     switch entry { case .original: onSelect(nil); case .format(let f): onSelect(f) }
                 }) {
-                    HStack {
+                    HStack(alignment: .firstTextBaseline, spacing: 8) {
                         Text(entry.title)
                             .foregroundStyle(.primary)
                         Spacer()
-                        if case .format(let f) = entry, vm.recentFormats.contains(f) {
-                            Text("recent")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
+                        if case .format(let f) = entry {
+                            if idx == dropdown.highlightedIndex {
+                                Text(f.fullName)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .transition(.opacity)
+                            } else if vm.recentFormats.contains(f) {
+                                Text("recent")
+                                    .font(.caption2)
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -192,6 +199,12 @@ struct FormatDropdownList: View {
                             }() ? 1 : 0)
                             .allowsHitTesting(false)
                     )
+                    .help({
+                        switch entry {
+                        case .original: return "Keep original format"
+                        case .format(let f): return f.fullName
+                        }
+                    }())
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: .infinity) // Expand button hit area to full row
