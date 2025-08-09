@@ -8,11 +8,16 @@
 import SwiftUI
 
 struct ContentView: View {
+    @StateObject private var vm = ImageToolsViewModel()
+    @StateObject private var formatDropdown = FormatDropdownController()
+
     var body: some View {
-        MainView()
+        MainView(vm: vm)
+            .environmentObject(formatDropdown)
     }
 }
 
 #Preview {
-    MainView()
+    MainView(vm: ImageToolsViewModel())
+        .environmentObject(FormatDropdownController())
 }

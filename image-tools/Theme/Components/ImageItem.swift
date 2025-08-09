@@ -83,7 +83,7 @@ private struct TwoLineOverlayBadge: View {
             Text(bottomText)
         }
         .font(.caption2)
-        .foregroundStyle(.white)
+        .foregroundStyle(.primary)
         .monospaced(true)
         .padding(6)
         .background(
@@ -215,11 +215,12 @@ private struct EditedBadge: View {
         if isEdited {
             Text("Edited")
                 .font(.caption2)
-                .foregroundStyle(.white)
+                .foregroundStyle(.secondary)
+                .monospaced(true)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
                 .background(
-                    Capsule(style: .continuous).fill(Color.black.opacity(0.6))
+                    Capsule(style: .continuous).fill(Material.ultraThin)
                 )
                 .padding(8)
                 .frame(maxWidth: .infinity, alignment: .bottomLeading)
@@ -242,10 +243,14 @@ struct ImageItem: View {
             // Background thumbnail
             ImageThumbnail(thumbnail: asset.thumbnail)
             
+            // Top Left overlay
+            ZStack(alignment: .topLeading) {
+                Color.clear
+                EditedBadge(isEdited: asset.isEdited)
+            }
             // Top right overlay
             ZStack(alignment: .topTrailing) {
                 Color.clear
-                
                 HoverControls(
                     asset: asset,
                     vm: vm,
@@ -258,16 +263,20 @@ struct ImageItem: View {
             // Bottom left overlay
             ZStack(alignment: .bottomLeading) {
                 Color.clear
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    InfoOverlay(changeInfo: changeInfo)
-                    EditedBadge(isEdited: asset.isEdited)
-                }
+                InfoOverlay(changeInfo: changeInfo)
             }
+
         }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
         .animation(.easeInOut(duration: 0.15), value: isHovering)
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .inset(by: isHovering ? -2 : 0)
+                .stroke(Color.secondary, lineWidth: 1.5)
+                .opacity(isHovering ? 0.6 : 0)
+                .animation(.easeInOut(duration: 0.15), value: isHovering)
+        }
     }
 }
 

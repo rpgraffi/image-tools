@@ -3,6 +3,9 @@ import SwiftUI
 struct RotationFlipControls: View {
     @ObservedObject var vm: ImageToolsViewModel
 
+    @State private var flipHActivationTick: Bool = false
+    @State private var flipVActivationTick: Bool = false
+
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
 
     var body: some View {
@@ -21,7 +24,7 @@ struct RotationFlipControls: View {
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
-                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: vm.flipH)
+                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: flipHActivationTick)
                     .help("Flip Horizontal")
             }
             .buttonStyle(.plain)
@@ -35,6 +38,9 @@ struct RotationFlipControls: View {
                 .fill(Color.accentColor)
                 .opacity(vm.flipH ? 1 : 0)
             )
+            .onChange(of: vm.flipH) { _, newValue in
+                if newValue { flipHActivationTick.toggle() }
+            }
 
             Rectangle()
                 .fill(Color.secondary.opacity(0.15))
@@ -48,7 +54,7 @@ struct RotationFlipControls: View {
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
-                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: vm.flipV)
+                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: flipVActivationTick)
                     .help("Flip Vertical")
             }
             .buttonStyle(.plain)
@@ -62,6 +68,9 @@ struct RotationFlipControls: View {
                 .fill(Color.accentColor)
                 .opacity(vm.flipV ? 1 : 0)
             )
+            .onChange(of: vm.flipV) { _, newValue in
+                if newValue { flipVActivationTick.toggle() }
+            }
         }
         .frame(height: controlHeight)
         .background(

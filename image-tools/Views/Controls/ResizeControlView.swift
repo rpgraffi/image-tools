@@ -4,10 +4,6 @@ import AppKit
 struct ResizeControlView: View {
     @ObservedObject var vm: ImageToolsViewModel
 
-    @State private var isEditingPercent: Bool = false
-    @State private var localPercent: Int = 100 // 0...100 UI value (rounded)
-    @State private var percentString: String = "100"
-    @State private var didHapticAtFullResize: Bool = false
     @FocusState private var widthFieldFocused: Bool
     @FocusState private var heightFieldFocused: Bool
 
@@ -23,8 +19,14 @@ struct ResizeControlView: View {
                     let size = geo.size
                     Group {
                         if vm.sizeUnit == .percent {
-                            percentPill(containerSize: size)
-                                .transition(.opacity)
+                            PercentPill(
+                                label: "Resize",
+                                value01: $vm.resizePercent,
+                                dragStep: 0.01,
+                                showsTenPercentHaptics: false,
+                                showsFullBoundaryHaptic: true
+                            )
+                            .transition(.opacity)
                         } else {
                             pixelFields(containerSize: size)
                                 .transition(.opacity)
@@ -41,10 +43,6 @@ struct ResizeControlView: View {
             }
             .frame(minHeight: controlHeight, maxHeight: controlHeight)
             .animation(Theme.Animations.spring(), value: vm.sizeUnit)
-        }
-        .onAppear {
-            localPercent = clampPercent(Int(round(vm.resizePercent * 100)))
-            percentString = String(localPercent)
         }
         .onChange(of: vm.sizeUnit) { _, newValue in
             withAnimation(Theme.Animations.spring()) {
@@ -73,8 +71,6 @@ struct ResizeControlView: View {
         }
     }
 
-
-
     private func toggleMode() {
         withAnimation(Theme.Animations.spring()) {
             if vm.sizeUnit == .percent {
@@ -82,74 +78,8 @@ struct ResizeControlView: View {
                 vm.prefillPixelsIfPossible()
             } else {
                 vm.sizeUnit = .percent
-                localPercent = clampPercent(Int(round(vm.resizePercent * 100)))
-                percentString = String(localPercent)
             }
         }
-    }
-
-    private func percentPill(containerSize: CGSize) -> some View {
-        let width = containerSize.width
-        let corner = Theme.Metrics.pillCornerRadius(forHeight: containerSize.height)
-        let progress = Double(localPercent) / 100.0
-        return ZStack(alignment: .leading) {
-            PillBackground(containerSize: containerSize, cornerRadius: corner, progress: progress)
-
-            HStack(spacing: 8) {
-                Text("Resize")
-                    .font(.headline)
-                    .foregroundColor(Color.secondary)
-
-                Spacer(minLength: 0)
-
-                if isEditingPercent {
-                    InlinePercentEditor(
-                        isEditing: $isEditingPercent,
-                        text: $percentString,
-                        onCommit: { commitPercentFromString() },
-                        onChangeFilter: { newValue in
-                            newValue.filter { $0.isNumber }
-                        }
-                    )
-                } else {
-                    Text("\(localPercent)%")
-                        .font(.headline)
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .animation(Theme.Animations.fastSpring(), value: localPercent)
-                        .foregroundStyle(.primary)
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            isEditingPercent = true
-                            percentString = String(localPercent)
-                        }
-                }
-            }
-            .padding(.horizontal, 12)
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if !isEditingPercent {
-                isEditingPercent = true
-                percentString = String(localPercent)
-            }
-        }
-        .gesture(DragGesture(minimumDistance: 2)
-            .onChanged { value in
-                if isEditingPercent { return }
-                let x = min(max(0, value.location.x), width)
-                let p = (x / width) * 100
-                let rounded = clampPercent(Int(round(p)))
-                localPercent = rounded
-                vm.resizePercent = Double(localPercent) / 100.0
-                if rounded >= 100 && !didHapticAtFullResize {
-                    NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
-                    didHapticAtFullResize = true
-                } else if rounded < 100 && didHapticAtFullResize {
-                    didHapticAtFullResize = false
-                }
-            }
-        )
     }
 
     private func pixelFields(containerSize: CGSize) -> some View {
@@ -220,14 +150,4 @@ struct ResizeControlView: View {
             }
         }
     }
-
-    private func commitPercentFromString() {
-        let parsed = Int(percentString) ?? localPercent
-        let clamped = clampPercent(parsed)
-        localPercent = clamped
-        percentString = String(clamped)
-        vm.resizePercent = Double(clamped) / 100.0
-    }
-
-    private func clampPercent(_ v: Int) -> Int { max(0, min(100, v)) }
 } 

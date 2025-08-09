@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		B77ECDFB2E47657100C28347 /* MediaToolSwift in Frameworks */ = {isa = PBXBuildFile; productRef = B77ECDFA2E47657100C28347 /* MediaToolSwift */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		B77ECCD32E45573400C28347 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B77ECDFB2E47657100C28347 /* MediaToolSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = "image-tools";
 			packageProductDependencies = (
+				B77ECDFA2E47657100C28347 /* MediaToolSwift */,
 			);
 			productName = "image-tools";
 			productReference = B77ECCC42E45573200C28347 /* image-tools.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = B77ECCBB2E45573200C28347;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				B77ECDF92E47657100C28347 /* XCRemoteSwiftPackageReference "MediaToolSwift" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B77ECCC52E45573200C28347 /* Products */;
 			projectDirPath = "";
@@ -593,6 +602,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		B77ECDF92E47657100C28347 /* XCRemoteSwiftPackageReference "MediaToolSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/starkdmi/MediaToolSwift.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		B77ECDFA2E47657100C28347 /* MediaToolSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = B77ECDF92E47657100C28347 /* XCRemoteSwiftPackageReference "MediaToolSwift" */;
+			productName = MediaToolSwift;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = B77ECCBC2E45573200C28347 /* Project object */;
 }

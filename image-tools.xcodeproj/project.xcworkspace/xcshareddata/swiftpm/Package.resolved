@@ -1,0 +1,15 @@
+{
+  "originHash" : "9d96cd5f3ec09d214bddff7bef80fa29e330d0976cf9193ed87c538095dbc6bd",
+  "pins" : [
+    {
+      "identity" : "mediatoolswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/starkdmi/MediaToolSwift.git",
+      "state" : {
+        "revision" : "6717979b66fda1228e45ea657eeb7357a559f648",
+        "version" : "1.2.0"
+      }
+    }
+  ],
+  "version" : 3
+}

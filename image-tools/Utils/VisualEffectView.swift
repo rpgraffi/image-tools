@@ -2,24 +2,26 @@ import SwiftUI
 import AppKit
 
 struct VisualEffectView: NSViewRepresentable {
-    var material: NSVisualEffectView.Material = .sidebar
-    var blendingMode: NSVisualEffectView.BlendingMode = .behindWindow
-    var state: NSVisualEffectView.State = .followsWindowActiveState
-    var emphasized: Bool = false
-
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = material
-        view.blendingMode = blendingMode
-        view.state = state
-        view.isEmphasized = emphasized
+        view.blendingMode = .behindWindow
+        view.material = .menu
+        view.state = .active
         return view
     }
 
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {
-        nsView.material = material
-        nsView.blendingMode = blendingMode
-        nsView.state = state
-        nsView.isEmphasized = emphasized
+    func updateNSView(_ nsView: NSVisualEffectView, context: Context) { }
+}
+
+// Keep window configuration centralized for reuse
+enum WindowConfigurator {
+    static func configureMainWindow() {
+        guard let window = NSApp.windows.first else { return }
+        window.title = "Image Tools"
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        window.titleVisibility = .hidden
+        window.titlebarAppearsTransparent = true
+        window.styleMask.insert(.fullSizeContentView)
     }
 } 

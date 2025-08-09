@@ -33,23 +33,26 @@ final class ImageToolsViewModel: ObservableObject {
         loadPersistedState()
     }
 
+    private enum PersistenceKeys {
+        static let recentFormats = "image_tools.recent_formats.v1"
+        static let selectedFormat = "image_tools.selected_format.v1"
+    }
+
     private let defaults = UserDefaults.standard
-    private let recentKey = "image_tools.recent_formats.v1"
-    private let selectedKey = "image_tools.selected_format.v1"
 
     private func loadPersistedState() {
-        if let raw = defaults.array(forKey: recentKey) as? [String] {
+        if let raw = defaults.array(forKey: PersistenceKeys.recentFormats) as? [String] {
             let mapped = raw.compactMap { ImageFormat(rawValue: $0) }
             if !mapped.isEmpty { recentFormats = Array(mapped.prefix(3)) }
         }
-        if let selRaw = defaults.string(forKey: selectedKey), let fmt = ImageFormat(rawValue: selRaw) {
+        if let selRaw = defaults.string(forKey: PersistenceKeys.selectedFormat), let fmt = ImageFormat(rawValue: selRaw) {
             let caps = ImageIOCapabilities.shared
             if caps.supportsWriting(utType: fmt.utType) { selectedFormat = fmt }
         }
     }
 
-    private func persistRecentFormats() { defaults.set(recentFormats.map { $0.rawValue }, forKey: recentKey) }
-    private func persistSelectedFormat() { defaults.set(selectedFormat?.rawValue, forKey: selectedKey) }
+    private func persistRecentFormats() { defaults.set(recentFormats.map { $0.rawValue }, forKey: PersistenceKeys.recentFormats) }
+    private func persistSelectedFormat() { defaults.set(selectedFormat?.rawValue, forKey: PersistenceKeys.selectedFormat) }
 
     // MARK: - Preview calculations (reusable service-like helpers)
     struct PreviewInfo {
@@ -234,18 +237,8 @@ final class ImageToolsViewModel: ObservableObject {
 
     // MARK: - Pasteboard / Finder add
     func addFromPasteboard() {
-        let pb = NSPasteboard.general
-        if let urls = pb.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] { addURLs(urls) }
-        else if let images = pb.readObjects(forClasses: [NSImage.self], options: nil) as? [NSImage] {
-            let dir = FileManager.default.temporaryDirectory
-            var urls: [URL] = []
-            for img in images {
-                if let tiff = img.tiffRepresentation, let rep = NSBitmapImageRep(data: tiff), let data = rep.representation(using: .png, properties: [:]) {
-                    let url = dir.appendingPathComponent("paste_" + UUID().uuidString + ".png"); try? data.write(to: url); urls.append(url)
-                }
-            }
-            addURLs(urls)
-        }
+        let urls = IngestionCoordinator.collectURLsFromPasteboard()
+        addURLs(urls)
     }
 
     func bumpRecentFormats(_ fmt: ImageFormat) {

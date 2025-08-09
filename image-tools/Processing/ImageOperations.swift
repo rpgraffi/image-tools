@@ -127,17 +127,7 @@ struct ImageExporter {
     static func export(ciImage: CIImage, originalURL: URL, format: ImageFormat?, compressionQuality: Double?) throws -> URL {
         // Decide format and UTType, honoring platform capabilities
         let requestedFormat: ImageFormat = format ?? inferFormat(from: originalURL) ?? .png
-        let requestedUTI: UTType = {
-            switch requestedFormat {
-            case .jpeg: return .jpeg
-            case .png: return .png
-            case .heic: return .heic
-            case .tiff: return .tiff
-            case .bmp: return .bmp
-            case .gif: return .gif
-            case .webp: return UTType("org.webmproject.webp") ?? .png
-            }
-        }()
+        let requestedUTI: UTType = requestedFormat.utType
 
         // Fallback chain: requested -> PNG -> JPEG
         let caps = ImageIOCapabilities.shared
