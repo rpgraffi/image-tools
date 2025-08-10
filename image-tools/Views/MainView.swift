@@ -14,8 +14,8 @@ struct MainView: View {
 
             VStack(spacing: 0) {
                 ControlsBar(vm: vm)
-                ImagesListView(vm: vm, isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel, onDrop: handleDrop)
-                BottomRow(vm: vm, onPickFromFinder: pickFromOpenPanel)
+                ImagesListView(vm: vm, isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
+                SecondaryBar(vm: vm, onPickFromFinder: pickFromOpenPanel)
             }
         }
         .overlayPreferenceValue(FormatDropdownAnchorKey.self) { anchor in

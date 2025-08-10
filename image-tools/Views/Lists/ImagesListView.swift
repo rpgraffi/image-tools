@@ -6,7 +6,6 @@ struct ImagesListView: View {
     @ObservedObject var vm: ImageToolsViewModel
     @Binding var isDropping: Bool
     let onPickFromFinder: () -> Void
-    let onDrop: ([NSItemProvider]) -> Bool
 
     // Grid config
     private let tileMaxWidth: CGFloat = 300

@@ -49,21 +49,13 @@ struct ImageChangeInfo {
 
 // MARK: - Subviews
 private struct ImageThumbnail: View {
-    let thumbnail: NSImage?
+    let thumbnail: NSImage
     
     var body: some View {
-        Group {
-            if let thumbnail = thumbnail {
-                Image(nsImage: thumbnail)
+            Image(nsImage: thumbnail)
                     .resizable()
                     .scaledToFit()
-                    .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            } else {
-                Rectangle()
-                    .fill(Color.gray.opacity(0.15))
-                    .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
-            }
-        }
+                    .mask(RoundedRectangle(cornerRadius: 6, style: .continuous))
     }
 }
 
@@ -194,7 +186,7 @@ private struct HoverControls: View {
         .foregroundStyle(.secondary)
         .padding(6)
         .background(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .fill(Material.ultraThin)
         )
         .padding(6)
@@ -236,7 +228,7 @@ struct ImageItem: View {
         
         ZStack {
             // Background thumbnail
-            ImageThumbnail(thumbnail: asset.thumbnail)
+            ImageThumbnail(thumbnail: asset.thumbnail!)
             
             // Top Left overlay
             ZStack(alignment: .topLeading) {

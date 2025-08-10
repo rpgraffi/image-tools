@@ -22,11 +22,15 @@ struct ControlsBar: View {
 
                 RotationFlipControls(vm: vm)
 
-                Spacer(minLength: 8)
 
-                // Right controls
                 if shouldShowMetadata { MetadataControlView(vm: vm) }
-                overwriteTogglePill()
+                Spacer(minLength: 8)
+                
+                // Right controls
+                PrimaryApplyButton(
+                    isDisabled: vm.newImages.isEmpty && vm.editedImages.isEmpty,
+                    perform: { vm.applyPipeline() }
+                )
             }
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.sizeUnit)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.compressionMode)
@@ -66,24 +70,4 @@ struct ControlsBar: View {
         return true
     }
 
-    private func overwriteTogglePill() -> some View {
-        let height: CGFloat = Theme.Metrics.controlHeight
-        let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
-        return Button(action: { vm.overwriteOriginals.toggle() }) {
-            Text("Overwrite")
-                .font(.headline)
-                .foregroundStyle(vm.overwriteOriginals ? Color.white : .primary)
-                .frame(height: height)
-                .padding(.horizontal, 12)
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(vm.overwriteOriginals ? Color.accentColor : Theme.Colors.controlBackground)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
-        .animation(Theme.Animations.pillFill(), value: vm.overwriteOriginals)
-        .help("Overwrite originals on save")
-    }
 } 
