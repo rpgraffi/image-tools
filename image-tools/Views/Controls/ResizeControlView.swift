@@ -90,7 +90,7 @@ struct ResizeControlView: View {
                 TextField("", text: $vm.resizeWidth)
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.center)
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .padding(.horizontal, 8)
                     .frame(width: fieldWidth, height: containerSize.height)
                     .background(
@@ -111,7 +111,7 @@ struct ResizeControlView: View {
                     }
 
                 Text(String(localized: "W"))
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .foregroundColor(Color.secondary)
                     .padding(.trailing, 8)
             }
@@ -122,7 +122,7 @@ struct ResizeControlView: View {
                 TextField("", text: $vm.resizeHeight)
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.center)
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .padding(.horizontal, 8)
                     .frame(width: fieldWidth, height: containerSize.height)
                     .background(
@@ -143,7 +143,7 @@ struct ResizeControlView: View {
                     }
 
                 Text(String(localized: "H"))
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .foregroundColor(Color.secondary)
                     .padding(.trailing, 8)
             }

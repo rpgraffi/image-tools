@@ -19,7 +19,7 @@ struct RotationFlipControls: View {
         return HStack(spacing: 0) {
             Button(action: { vm.flipH.toggle() }) {
                 Image(systemName: "arrow.left.and.right.righttriangle.left.righttriangle.right.fill")
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .foregroundStyle(vm.flipH ? Color.white : .primary)
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
@@ -53,7 +53,7 @@ struct RotationFlipControls: View {
 
             Button(action: { vm.flipV.toggle() }) {
                 Image(systemName: "arrow.up.and.down.righttriangle.up.righttriangle.down.fill")
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .foregroundStyle(vm.flipV ? Color.white : .primary)
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)

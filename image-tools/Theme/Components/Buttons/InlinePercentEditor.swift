@@ -8,7 +8,7 @@ struct InlinePercentEditor: View {
 
     var minWidth: CGFloat = 28
     var maxWidth: CGFloat = 44
-    var font: Font = .headline
+    var font: Font = Theme.Fonts.button
     var onCommit: (() -> Void)?
     var onChangeFilter: ((String) -> String)?
 

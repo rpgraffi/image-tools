@@ -10,13 +10,13 @@ struct ExportDirectoryPill: View {
         let isOn = directory != nil
         HStack(spacing: 8) {
             Label(directoryLabel, systemImage: "folder.fill")
-                .font(.headline)
+                .font(Theme.Fonts.button)
                 .foregroundStyle(isOn ? Color.white : .primary)
                 .frame(height: height)
             if isOn {
                 Button(action: { withAnimation(Theme.Animations.spring()) { directory = nil } }) {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.headline)
+                        .font(Theme.Fonts.button)
                         .foregroundStyle(Color.white.opacity(0.9))
                 }
                 .buttonStyle(.plain)

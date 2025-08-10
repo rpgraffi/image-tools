@@ -19,7 +19,7 @@ struct PillToggle<LabelContent: View>: View {
         Button(action: { withAnimation(Theme.Animations.spring()) { isOn.toggle() } }) {
             ZStack {
                 label()
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .foregroundStyle(isOn ? Color.white : .primary)
                     .frame(height: height)
                     .padding(.horizontal, 12)

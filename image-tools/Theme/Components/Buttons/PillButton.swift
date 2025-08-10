@@ -19,7 +19,7 @@ struct PillButton<LabelContent: View>: View {
         let destructiveActive = (role == .destructive && isHovering)
         Button(role: role, action: action) {
             label()
-                .font(.headline)
+                .font(Theme.Fonts.button)
                 .foregroundStyle(destructiveActive ? Color.white : .primary)
                 .frame(height: height)
                 .padding(.horizontal, 12)

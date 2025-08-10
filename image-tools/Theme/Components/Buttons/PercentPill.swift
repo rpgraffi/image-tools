@@ -27,7 +27,7 @@ struct PercentPill: View {
                 PillBackground(containerSize: container, cornerRadius: corner, progress: progress)
                 HStack(spacing: 8) {
                     Text(label)
-                        .font(.headline)
+                        .font(Theme.Fonts.button)
                         .foregroundColor(Color.secondary)
                     Spacer(minLength: 0)
                     if isEditing {
@@ -39,7 +39,7 @@ struct PercentPill: View {
                         )
                     } else {
                         Text("\(Int(clamped * 100))%")
-                            .font(.headline)
+                            .font(Theme.Fonts.button)
                             .foregroundStyle(.primary)
                             .monospacedDigit()
                             .contentTransition(.numericText())

@@ -57,7 +57,7 @@ struct CompressControlView: View {
                 TextField(String(localized: "Target"), text: $vm.compressionTargetKB)
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.center)
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .padding(.horizontal, 8)
                     .focused($kbFieldFocused)
                     .onSubmit { NSApp.keyWindow?.endEditing(for: nil); kbFieldFocused = false }
@@ -66,7 +66,7 @@ struct CompressControlView: View {
                         if digits != vm.compressionTargetKB { vm.compressionTargetKB = digits }
                     }
                 Text(String(localized: "KB"))
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .foregroundColor(Color.secondary)
             }
             .padding(.horizontal, 12)

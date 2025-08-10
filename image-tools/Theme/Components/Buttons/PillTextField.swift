@@ -11,7 +11,7 @@ struct PillTextField: View {
             TextField(placeholder, text: $text)
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.center)
-                .font(.headline)
+                .font(Theme.Fonts.button)
                 .padding(.horizontal, 8)
         }
     }

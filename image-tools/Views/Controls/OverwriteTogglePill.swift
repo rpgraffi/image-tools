@@ -8,7 +8,7 @@ struct OverwriteTogglePill: View {
         let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
         return Button(action: { isOn.toggle() }) {
             Text(String(localized: "Overwrite"))
-                .font(.headline)
+                .font(Theme.Fonts.button)
                 .foregroundStyle(isOn ? Color.white : .primary)
                 .frame(height: height)
                 .padding(.horizontal, 12)

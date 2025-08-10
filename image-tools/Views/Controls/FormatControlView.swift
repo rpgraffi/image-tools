@@ -41,45 +41,32 @@ struct FormatControlView: View {
     }
 
     var body: some View {
-        let topCorner = controlHeight / 2
-        let shape = UnevenRoundedRectangle(
-            cornerRadii: .init(
-                topLeading: topCorner,
-                bottomLeading: topCorner,
-                bottomTrailing: topCorner,
-                topTrailing: topCorner
-            ),
-            style: .continuous
-        )
+        let shape = Capsule()
 
-        // Pill with Menu inside
-        HStack(spacing: 8) {
-            Image(systemName: "photo.on.rectangle.angled.fill")
-                .font(.headline)
-                .foregroundStyle(vm.selectedFormat != nil ? Color.accentColor : .primary)
+        Menu {
+            originalItem()
+            recentSection()
+            pinnedSection()
+            moreSection()
+        } label: {
+            HStack(spacing: 12) {
+                Image(systemName: "photo.on.rectangle.angled.fill")
+                    .font(Theme.Fonts.button)
+                    .foregroundStyle(vm.selectedFormat != nil ? Color.accentColor : .primary)
 
-            Menu {
-                originalItem()
-                recentSection()
-                pinnedSection()
-                moreSection()
-            } label: {
                 Text(selectedLabel)
                     .foregroundStyle(.primary)
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
             }
-            .menuStyle(.borderlessButton)
-            .help(vm.selectedFormat?.fullName ?? String(localized: "Keep original format"))
         }
+        .menuStyle(.borderlessButton)
+        .help(vm.selectedFormat?.fullName ?? String(localized: "Keep original format"))
         .frame(height: controlHeight)
-        .padding(.horizontal, 12)
-        .contentShape(Rectangle())
+        .padding(.horizontal, 8)
         .background(shape.fill(Theme.Colors.controlBackground))
-        .clipShape(shape)
         .fixedSize(horizontal: true, vertical: false)
         .onAppear { installKeyMonitor() }
         .onDisappear { removeKeyMonitor() }
-        .animation(.spring(response: 0.6, dampingFraction: 0.85), value: selectedLabel)
     }
 }
 
@@ -168,5 +155,29 @@ private extension FormatControlView {
 
     func removeKeyMonitor() {
         if let monitor = keyEventMonitor { NSEvent.removeMonitor(monitor); keyEventMonitor = nil }
+    }
+}
+
+struct FormatControlView_Previews: PreviewProvider {
+    static var previews: some View {
+        let vmDefault = ImageToolsViewModel()
+        let vmPNG: ImageToolsViewModel = {
+            let v = ImageToolsViewModel()
+            v.selectedFormat = ImageFormat(utType: .png)
+            return v
+        }()
+        let vmJPEG: ImageToolsViewModel = {
+            let v = ImageToolsViewModel()
+            v.selectedFormat = ImageFormat(utType: .jpeg)
+            return v
+        }()
+
+        return VStack(alignment: .leading, spacing: 16) {
+            FormatControlView(vm: vmDefault)
+            FormatControlView(vm: vmPNG)
+            FormatControlView(vm: vmJPEG)
+        }
+        .padding()
+        .frame(width: 360)
     }
 } 

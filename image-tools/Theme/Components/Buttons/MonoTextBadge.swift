@@ -7,7 +7,7 @@ struct MonoTextBadge: View {
 
     var body: some View {
         Text(text)
-            .font(.headline).monospaced(true)
+            .font(Theme.Fonts.button).monospaced(true)
             .foregroundStyle(.primary)
             .padding(.horizontal, 12)
             .padding(.vertical, 6)

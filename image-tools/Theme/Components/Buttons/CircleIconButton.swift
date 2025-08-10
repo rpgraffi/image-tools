@@ -10,7 +10,7 @@ struct CircleIconButton<Label: View>: View {
                 Circle()
                     .fill(Theme.Colors.iconBackground)
                 label()
-                    .font(.headline)
+                    .font(Theme.Fonts.button)
                     .foregroundStyle(Theme.Colors.iconForeground)
             }
         }

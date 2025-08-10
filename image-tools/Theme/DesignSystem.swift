@@ -23,4 +23,8 @@ enum Theme {
         static func fastSpring() -> Animation { .spring(response: 0.3, dampingFraction: 0.85) }
         static func pillFill() -> Animation { .spring(response: 0.7, dampingFraction: 0.85) }
     }
-} 
+    
+    struct Fonts {
+        static let button: Font = .system(size: 14, weight: .medium, design: .default)
+    }
+}

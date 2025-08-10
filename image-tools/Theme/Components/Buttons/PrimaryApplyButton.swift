@@ -11,7 +11,7 @@ struct PrimaryApplyButton: View {
             perform()
         } label: {
             Label(String(localized: "Apply"), systemImage: "play.fill")
-                .font(.headline)
+                .font(Theme.Fonts.button)
                 .foregroundStyle(Color.white)
                 .frame(minWidth: 120, minHeight: height)
                 .padding(.horizontal, 20)
