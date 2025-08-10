@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B77ECDFB2E47657100C28347 /* MediaToolSwift in Frameworks */ = {isa = PBXBuildFile; productRef = B77ECDFA2E47657100C28347 /* MediaToolSwift */; };
+		B77ECE102E480BA500C28347 /* libwebp in Frameworks */ = {isa = PBXBuildFile; productRef = B77ECE0F2E480BA500C28347 /* libwebp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -56,7 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B77ECDFB2E47657100C28347 /* MediaToolSwift in Frameworks */,
+				B77ECE102E480BA500C28347 /* libwebp in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -117,7 +117,7 @@
 			);
 			name = "image-tools";
 			packageProductDependencies = (
-				B77ECDFA2E47657100C28347 /* MediaToolSwift */,
+				B77ECE0F2E480BA500C28347 /* libwebp */,
 			);
 			productName = "image-tools";
 			productReference = B77ECCC42E45573200C28347 /* image-tools.app */;
@@ -202,7 +202,7 @@
 			mainGroup = B77ECCBB2E45573200C28347;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				B77ECDF92E47657100C28347 /* XCRemoteSwiftPackageReference "MediaToolSwift" */,
+				B77ECE0E2E480BA500C28347 /* XCRemoteSwiftPackageReference "libwebp-Xcode" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B77ECCC52E45573200C28347 /* Products */;
@@ -406,6 +406,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Image Convert & Compress";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -445,6 +447,8 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "Image Convert & Compress";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -604,21 +608,21 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		B77ECDF92E47657100C28347 /* XCRemoteSwiftPackageReference "MediaToolSwift" */ = {
+		B77ECE0E2E480BA500C28347 /* XCRemoteSwiftPackageReference "libwebp-Xcode" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/starkdmi/MediaToolSwift.git";
+			repositoryURL = "https://github.com/SDWebImage/libwebp-Xcode";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.2.0;
+				minimumVersion = 1.5.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		B77ECDFA2E47657100C28347 /* MediaToolSwift */ = {
+		B77ECE0F2E480BA500C28347 /* libwebp */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B77ECDF92E47657100C28347 /* XCRemoteSwiftPackageReference "MediaToolSwift" */;
-			productName = MediaToolSwift;
+			package = B77ECE0E2E480BA500C28347 /* XCRemoteSwiftPackageReference "libwebp-Xcode" */;
+			productName = libwebp;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

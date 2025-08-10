@@ -1,13 +1,13 @@
 {
-  "originHash" : "9d96cd5f3ec09d214bddff7bef80fa29e330d0976cf9193ed87c538095dbc6bd",
+  "originHash" : "a13aeff60672af1174419249348c20e5fc4151e105396a72824601fa77652467",
   "pins" : [
     {
-      "identity" : "mediatoolswift",
+      "identity" : "libwebp-xcode",
       "kind" : "remoteSourceControl",
-      "location" : "https://github.com/starkdmi/MediaToolSwift.git",
+      "location" : "https://github.com/SDWebImage/libwebp-Xcode",
       "state" : {
-        "revision" : "6717979b66fda1228e45ea657eeb7357a559f648",
-        "version" : "1.2.0"
+        "revision" : "0d60654eeefd5d7d2bef3835804892c40225e8b2",
+        "version" : "1.5.0"
       }
     }
   ],
