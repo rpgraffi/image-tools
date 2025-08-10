@@ -11,7 +11,7 @@ struct SecondaryBar: View {
                 PillButton {
                     vm.addFromPasteboard()
                 } label: {
-                    Label("Paste", systemImage: "doc.on.clipboard")
+                    Label(String(localized: "Paste"), systemImage: "doc.on.clipboard")
                 }
                 CircleIconButton(action: onPickFromFinder) {
                     Image(systemName: "folder.badge.plus")
@@ -19,7 +19,7 @@ struct SecondaryBar: View {
                 PillButton(role: .destructive) {
                     vm.clearAll()
                 } label: {
-                    Text("Clear")
+                    Text(String(localized: "Clear"))
                 }
                 .disabled(vm.newImages.isEmpty && vm.editedImages.isEmpty)
             }

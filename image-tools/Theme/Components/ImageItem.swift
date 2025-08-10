@@ -135,7 +135,7 @@ private struct HoverControls: View {
                 Image(systemName: "folder.fill")
             }
             .buttonStyle(.plain)
-            .help("Reveal in Finder")
+            .help(String(localized: "Reveal in Finder"))
             
             Button(action: {
                 Task {
@@ -159,7 +159,7 @@ private struct HoverControls: View {
             }
             .buttonStyle(.plain)
             .symbolEffect(.bounce.down.wholeSymbol, options: .nonRepeating, value: animationTrigger)
-            .help("Copy image to clipboard")
+            .help(String(localized: "Copy image to clipboard"))
             
             
             if let recover = recover {
@@ -167,14 +167,14 @@ private struct HoverControls: View {
                     Image(systemName: "clock.arrow.circlepath.fill")
                 }
                 .buttonStyle(.plain)
-                .help("Recover original")
+                .help(String(localized: "Recover original"))
             }
             
             Button(role: .destructive, action: { vm.remove(asset) }) {
                 Image(systemName: "xmark.circle.fill")
             }
             .buttonStyle(.plain)
-            .help("Remove from list")
+            .help(String(localized: "Remove from list"))
 
             // Toggle(isOn: Binding(get: { asset.isEnabled }, set: { _ in toggle() })) {
             //     EmptyView()
@@ -200,7 +200,7 @@ private struct EditedBadge: View {
     
     var body: some View {
         if isEdited {
-            Text("Edited")
+            Text(String(localized: "Edited"))
                 .font(.caption2)
                 .foregroundStyle(.secondary)
                 .monospaced(true)

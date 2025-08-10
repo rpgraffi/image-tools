@@ -29,7 +29,7 @@ struct InlinePercentEditor: View {
                                 if filtered != text { text = filtered }
                             }
                         }
-                    Text("%")
+                    Text(String(localized: "%"))
                         .font(font)
                         .foregroundStyle(.primary)
                 }

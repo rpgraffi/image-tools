@@ -8,22 +8,22 @@ struct ImagesListEmptyState: View {
         VStack(spacing: 12) {
             VStack(spacing: 6) {
                 HStack(spacing: 0) {
-                    Text("Drag or ")
+                    Text(String(localized: "Drag or "))
                     Button(action: onPaste) {
-                        Text("Paste").underline()
+                        Text(String(localized: "Paste")).underline()
                     }
                     .buttonStyle(.plain)
                     Text(" ")
                     Text("`⌘+V`").monospaced(true)
-                    Text(" your images here.")
+                    Text(String(localized: " your images here."))
                 }
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
 
                 HStack(spacing: 0) {
-                    Text("Or select ")
+                    Text(String(localized: "Or select "))
                     Button(action: onPickFromFinder) {
-                        Text("Folder").underline()
+                        Text(String(localized: "Folder")).underline()
                     }
                     .buttonStyle(.plain)
                 }

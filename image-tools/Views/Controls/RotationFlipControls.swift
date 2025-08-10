@@ -25,7 +25,7 @@ struct RotationFlipControls: View {
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
                     .rotation3DEffect(.degrees(hFlipRotation), axis: (x: 0, y: 1, z: 0), perspective: 0.7)
-                    .help("Flip Horizontal")
+                    .help(String(localized: "Flip Horizontal"))
             }
             .buttonStyle(.plain)
             .background(
@@ -59,7 +59,7 @@ struct RotationFlipControls: View {
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
                     .rotation3DEffect(.degrees(vFlipRotation), axis: (x: 1, y: 0, z: 0), perspective: 0.7)
-                    .help("Flip Vertical")
+                    .help(String(localized: "Flip Vertical"))
             }
             .buttonStyle(.plain)
             .background(

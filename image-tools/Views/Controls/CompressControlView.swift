@@ -19,7 +19,7 @@ struct CompressControlView: View {
                         switch vm.compressionMode {
                         case .percent:
                             PercentPill(
-                                label: "Quality",
+                                label: String(localized: "Quality"),
                                 value01: $vm.compressionPercent,
                                 dragStep: 0.05,
                                 showsTenPercentHaptics: true,
@@ -36,7 +36,7 @@ struct CompressControlView: View {
             .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, minHeight: controlHeight, maxHeight: controlHeight)
 
             CircleIconButton(action: toggleMode) {
-                Text(vm.compressionMode == .percent ? "KB" : "%")
+                Text(vm.compressionMode == .percent ? String(localized: "KB") : String(localized: "%"))
             }
             .animation(Theme.Animations.spring(), value: vm.compressionMode)
         }
@@ -54,7 +54,7 @@ struct CompressControlView: View {
             RoundedRectangle(cornerRadius: corner, style: .continuous)
                 .fill(Theme.Colors.controlBackground)
             HStack(spacing: 6) {
-                TextField("Target", text: $vm.compressionTargetKB)
+                TextField(String(localized: "Target"), text: $vm.compressionTargetKB)
                     .textFieldStyle(.plain)
                     .multilineTextAlignment(.center)
                     .font(.headline)
@@ -65,7 +65,7 @@ struct CompressControlView: View {
                         let digits = newValue.filter { $0.isNumber }
                         if digits != vm.compressionTargetKB { vm.compressionTargetKB = digits }
                     }
-                Text("KB")
+                Text(String(localized: "KB"))
                     .font(.headline)
                     .foregroundColor(Color.secondary)
             }

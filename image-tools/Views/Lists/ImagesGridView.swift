@@ -18,8 +18,8 @@ struct ImagesGridView: View {
                     )
                     .aspectRatio(1, contentMode: .fit)
                     .contextMenu {
-                        Button("Enable/Disable") { vm.toggleEnable(asset) }
-                        if asset.backupURL != nil { Button("Recover Original") { vm.recoverOriginal(asset) } }
+                        Button(String(localized: "Enable/Disable")) { vm.toggleEnable(asset) }
+                        if asset.backupURL != nil { Button(String(localized: "Recover original")) { vm.recoverOriginal(asset) } }
                     }
                 }
             }

@@ -20,7 +20,7 @@ struct ResizeControlView: View {
                     Group {
                         if vm.sizeUnit == .percent {
                             PercentPill(
-                                label: "Resize",
+                                label: String(localized: "Resize"),
                                 value01: $vm.resizePercent,
                                 dragStep: 0.01,
                                 showsTenPercentHaptics: false,
@@ -39,7 +39,7 @@ struct ResizeControlView: View {
 
             // Single switch button showing only the alternative mode
             CircleIconButton(action: toggleMode) {
-                Text(vm.sizeUnit == .percent ? "px" : "%")
+                Text(vm.sizeUnit == .percent ? String(localized: "px") : String(localized: "%"))
             }
             .animation(Theme.Animations.spring(), value: vm.sizeUnit)
         }
@@ -110,7 +110,7 @@ struct ResizeControlView: View {
                         if digits != vm.resizeWidth { vm.resizeWidth = digits }
                     }
 
-                Text("W")
+                Text(String(localized: "W"))
                     .font(.headline)
                     .foregroundColor(Color.secondary)
                     .padding(.trailing, 8)
@@ -142,7 +142,7 @@ struct ResizeControlView: View {
                         if digits != vm.resizeHeight { vm.resizeHeight = digits }
                     }
 
-                Text("H")
+                Text(String(localized: "H"))
                     .font(.headline)
                     .foregroundColor(Color.secondary)
                     .padding(.trailing, 8)

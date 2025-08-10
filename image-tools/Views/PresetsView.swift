@@ -93,14 +93,14 @@ struct PresetsView: View {
     var body: some View {
         VStack(alignment: .leading) {
             HStack {
-                Text("Presets").font(.headline)
+                Text(String(localized: "Presets")).font(.headline)
                 Spacer()
             }
             List(store.presets) { preset in
                 HStack {
                     Text(preset.name)
                     Spacer()
-                    Button("Apply") { onApply(preset) }
+                    Button(String(localized: "Apply")) { onApply(preset) }
                 }
             }
         }

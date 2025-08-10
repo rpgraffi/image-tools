@@ -23,7 +23,7 @@ struct FormatControlView: View {
     }
 
     private var selectedLabel: String {
-        vm.selectedFormat?.displayName ?? "Original"
+        vm.selectedFormat?.displayName ?? String(localized: "Original")
     }
 
     private func shortcutFor(format: ImageFormat) -> String? {
@@ -69,7 +69,7 @@ struct FormatControlView: View {
                     .font(.headline)
             }
             .menuStyle(.borderlessButton)
-            .help(vm.selectedFormat?.fullName ?? "Keep original format")
+            .help(vm.selectedFormat?.fullName ?? String(localized: "Keep original format"))
         }
         .frame(height: controlHeight)
         .padding(.horizontal, 12)
@@ -87,8 +87,8 @@ struct FormatControlView: View {
 private extension FormatControlView {
     @ViewBuilder
     func originalItem() -> some View {
-        Button("Original") { selectFormat(nil) }
-            .help("Keep original format")
+        Button(String(localized: "Original")) { selectFormat(nil) }
+            .help(String(localized: "Keep original format"))
     }
 
     @ViewBuilder
@@ -96,7 +96,7 @@ private extension FormatControlView {
         let pinnedIds = Set(pinnedFormats.map { $0.id })
         let recents = vm.recentFormats.filter { !pinnedIds.contains($0.id) }.prefix(3)
         if !recents.isEmpty {
-            Section("Recent") {
+            Section(String(localized: "Recent")) {
                 ForEach(Array(recents), id: \.id) { f in
                     Button(f.displayName) { selectFormat(f) }
                         .help(f.fullName)
@@ -117,7 +117,7 @@ private extension FormatControlView {
     @ViewBuilder
     func moreSection() -> some View {
         if !otherFormats.isEmpty {
-            Menu("More") {
+            Menu(String(localized: "More")) {
                 ForEach(otherFormats, id: \.id) { f in
                     Button(f.displayName) { selectFormat(f) }
                         .help(f.fullName)

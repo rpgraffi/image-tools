@@ -7,7 +7,7 @@ struct OverwriteTogglePill: View {
         let height: CGFloat = Theme.Metrics.controlHeight
         let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
         return Button(action: { isOn.toggle() }) {
-            Text("Overwrite")
+            Text(String(localized: "Overwrite"))
                 .font(.headline)
                 .foregroundStyle(isOn ? Color.white : .primary)
                 .frame(height: height)
@@ -21,6 +21,6 @@ struct OverwriteTogglePill: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
         .animation(Theme.Animations.pillFill(), value: isOn)
-        .help("Overwrite originals on save")
+        .help(String(localized: "Overwrite originals on save"))
     }
 } 

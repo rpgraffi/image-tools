@@ -5,7 +5,7 @@ struct MetadataControlView: View {
 
     var body: some View {
         PillToggle(isOn: $vm.removeMetadata) {
-            Text("Metadata")
+            Text(String(localized: "Metadata"))
                 .overlay(
                     Rectangle()
                         .fill(vm.removeMetadata ? Color.white.opacity(0.9) : Color.clear)
@@ -15,6 +15,6 @@ struct MetadataControlView: View {
                         .animation(Theme.Animations.spring(), value: vm.removeMetadata)
                 )
         }
-        .help(vm.removeMetadata ? "Metadata will be removed" : "Preserve metadata")
+        .help(String(localized: vm.removeMetadata ? "Metadata will be removed" : "Preserve metadata"))
     }
 } 
