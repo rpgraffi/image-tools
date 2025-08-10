@@ -3,8 +3,8 @@ import SwiftUI
 struct RotationFlipControls: View {
     @ObservedObject var vm: ImageToolsViewModel
 
-    @State private var flipHActivationTick: Bool = false
-    @State private var flipVActivationTick: Bool = false
+    @State private var hFlipRotation: Double = 0
+    @State private var vFlipRotation: Double = 0
 
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
 
@@ -24,7 +24,7 @@ struct RotationFlipControls: View {
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
-                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: flipHActivationTick)
+                    .rotation3DEffect(.degrees(hFlipRotation), axis: (x: 0, y: 1, z: 0), perspective: 0.7)
                     .help("Flip Horizontal")
             }
             .buttonStyle(.plain)
@@ -39,7 +39,11 @@ struct RotationFlipControls: View {
                 .opacity(vm.flipH ? 1 : 0)
             )
             .onChange(of: vm.flipH) { _, newValue in
-                if newValue { flipHActivationTick.toggle() }
+                guard newValue else { return }
+                withAnimation(.none) { hFlipRotation = 0 }
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: 0.45)) { hFlipRotation = 180 }
+                }
             }
 
             Rectangle()
@@ -54,7 +58,7 @@ struct RotationFlipControls: View {
                     .frame(height: controlHeight)
                     .padding(.horizontal, 12)
                     .contentShape(Rectangle())
-                    .symbolEffect(.wiggle.byLayer, options: .nonRepeating, value: flipVActivationTick)
+                    .rotation3DEffect(.degrees(vFlipRotation), axis: (x: 1, y: 0, z: 0), perspective: 0.7)
                     .help("Flip Vertical")
             }
             .buttonStyle(.plain)
@@ -69,7 +73,11 @@ struct RotationFlipControls: View {
                 .opacity(vm.flipV ? 1 : 0)
             )
             .onChange(of: vm.flipV) { _, newValue in
-                if newValue { flipVActivationTick.toggle() }
+                guard newValue else { return }
+                withAnimation(.none) { vFlipRotation = 0 }
+                DispatchQueue.main.async {
+                    withAnimation(.easeInOut(duration: 0.45)) { vFlipRotation = 180 }
+                }
             }
         }
         .frame(height: controlHeight)
@@ -79,6 +87,11 @@ struct RotationFlipControls: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
     }
+}
+
+#Preview {
+    RotationFlipControls(vm: ImageToolsViewModel())
+        .padding()
 }
 
  
