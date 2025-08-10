@@ -14,7 +14,7 @@ struct ImagesListEmptyState: View {
                     }
                     .buttonStyle(.plain)
                     Text(" ")
-                    Text("`Cmd+V`").monospaced(true)
+                    Text("`⌘+V`").monospaced(true)
                     Text(" your images here.")
                 }
                 .multilineTextAlignment(.center)

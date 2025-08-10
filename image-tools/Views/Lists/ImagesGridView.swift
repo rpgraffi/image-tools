@@ -16,6 +16,7 @@ struct ImagesGridView: View {
                         toggle: { vm.toggleEnable(asset) },
                         recover: asset.backupURL != nil ? { vm.recoverOriginal(asset) } : nil
                     )
+                    .aspectRatio(1, contentMode: .fit)
                     .contextMenu {
                         Button("Enable/Disable") { vm.toggleEnable(asset) }
                         if asset.backupURL != nil { Button("Recover Original") { vm.recoverOriginal(asset) } }
@@ -24,7 +25,7 @@ struct ImagesGridView: View {
             }
             .padding(10)
         }
-        .scrollContentBackground(.hidden)
+        .scrollContentBackground(.visible)
     }
 }
 

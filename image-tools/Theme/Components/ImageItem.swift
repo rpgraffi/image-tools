@@ -57,15 +57,10 @@ private struct ImageThumbnail: View {
                 Image(nsImage: thumbnail)
                     .resizable()
                     .scaledToFit()
-                    .frame(maxWidth: .infinity)
-                    .aspectRatio(1, contentMode: .fill)
-                    .compositingGroup()
                     .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.15))
-                    .frame(maxWidth: .infinity)
-                    .aspectRatio(1, contentMode: .fill)
                     .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
             }
         }
@@ -184,16 +179,16 @@ private struct HoverControls: View {
             }
             
             Button(role: .destructive, action: { vm.remove(asset) }) {
-                Image(systemName: "minus.square.fill")
+                Image(systemName: "xmark.circle.fill")
             }
             .buttonStyle(.plain)
             .help("Remove from list")
 
-            Toggle(isOn: Binding(get: { asset.isEnabled }, set: { _ in toggle() })) {
-                EmptyView()
-            }
-            .toggleStyle(.checkbox)
-            .help("Enable/Disable for batch")
+            // Toggle(isOn: Binding(get: { asset.isEnabled }, set: { _ in toggle() })) {
+            //     EmptyView()
+            // }
+            // .toggleStyle(.checkbox)
+            // .help("Enable/Disable for batch")
         }
         .font(.system(size: 13))
         .foregroundStyle(.secondary)
