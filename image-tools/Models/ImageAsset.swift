@@ -81,17 +81,3 @@ enum ImageRotation: Int, CaseIterable, Identifiable {
     var id: Int { rawValue }
 }
 
-struct ThumbnailGenerator {
-    static func generateThumbnail(for url: URL, maxSize: CGFloat = 128) -> NSImage? {
-        guard let img = NSImage(contentsOf: url) else { return nil }
-        let longest = max(img.size.width, img.size.height)
-        guard longest > 0 else { return img }
-        let ratio = maxSize / longest
-        let newSize = NSSize(width: img.size.width * ratio, height: img.size.height * ratio)
-        let newImage = NSImage(size: newSize)
-        newImage.lockFocus()
-        img.draw(in: NSRect(origin: .zero, size: newSize), from: .zero, operation: .copy, fraction: 1.0)
-        newImage.unlockFocus()
-        return newImage
-    }
-} 

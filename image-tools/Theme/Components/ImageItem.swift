@@ -67,10 +67,9 @@ private struct TwoLineOverlayBadge: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(topText).foregroundStyle(.secondary)
-            Text(bottomText)
+            Text(bottomText).foregroundStyle(.primary)
         }
-        .font(.caption2)
-        .foregroundStyle(.primary)
+        .font(Theme.Fonts.captionMono)
         .monospaced(true)
         .padding(6)
         .background(

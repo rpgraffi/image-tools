@@ -25,6 +25,7 @@ enum Theme {
     }
     
     struct Fonts {
-        static let button: Font = .system(size: 14, weight: .medium, design: .default)
+        static let button: Font = .system(size: 14, weight: .medium)
+        static let captionMono: Font = .system(size: 10, weight: .regular).monospaced()
     }
 }

@@ -10,7 +10,7 @@ struct ImagesListView: View {
     // Grid config
     private let tileMaxWidth: CGFloat = 300
     private var columns: [GridItem] { [GridItem(.adaptive(minimum: 220, maximum: tileMaxWidth), spacing: 12, alignment: .top)] }
-    private var cornerRadius: CGFloat { 24 }
+    private var cornerRadius: CGFloat { 20 }
 
     private var allImages: [ImageAsset] { vm.newImages + vm.editedImages }
     private var isEmpty: Bool { allImages.isEmpty }
