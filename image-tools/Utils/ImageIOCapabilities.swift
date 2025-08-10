@@ -78,7 +78,7 @@ final class ImageIOCapabilities {
         let isWritable = supportsWriting(utType: utType)
         let supportsQuality = (utType == .jpeg) || (utType == UTType.heic)
         let supportsLossless = (utType == .png) || (utType == .tiff) || (utType == .bmp) || (utType == .gif)
-        let supportsMetadata = isWritable // ImageIO can generally write metadata for common writable types
+        let supportsMetadata = supportsPrivacySensitiveMetadata(utType: utType)
         let resizeRestricted = false // For Apple-native formats we consider resizing unrestricted
         return FormatCapabilities(
             isReadable: isReadable,
@@ -88,6 +88,47 @@ final class ImageIOCapabilities {
             supportsMetadata: supportsMetadata,
             resizeRestricted: resizeRestricted
         )
+    }
+
+    // MARK: - Privacy-sensitive metadata detection
+    
+    /// Determines if a format supports privacy-sensitive metadata like EXIF data
+    /// This is used to show/hide the metadata removal control appropriately
+    private func supportsPrivacySensitiveMetadata(utType: UTType) -> Bool {
+        // Only check writable formats since we can't remove metadata from formats we can't write
+        guard supportsWriting(utType: utType) else { return false }
+        
+        // Common formats that support EXIF and other privacy-sensitive metadata
+        let privacyMetadataFormats: Set<String> = [
+            UTType.jpeg.identifier,     // JPEG - full EXIF support
+            UTType.tiff.identifier,     // TIFF - full EXIF support  
+            UTType.heic.identifier,     // HEIC - full EXIF support
+            UTType.heif.identifier,     // HEIF - full EXIF support
+        ]
+        
+        // Check if it's a known privacy-sensitive format
+        if privacyMetadataFormats.contains(utType.identifier) {
+            return true
+        }
+        
+        // For other formats, check if they conform to formats that typically have EXIF
+        // Most camera/photo formats support EXIF
+        if let cameraRawType = UTType("public.camera-raw-image"), utType.conforms(to: cameraRawType) {
+            return true
+        }
+        if let adobeRawType = UTType("com.adobe.raw-image"), utType.conforms(to: adobeRawType) {
+            return true
+        }
+        
+        // Additional check for formats that might support EXIF but aren't in our main list
+        // This covers various RAW formats and other photo formats
+        let identifier = utType.identifier.lowercased()
+        let photoFormatHints = ["raw", "dng", "cr2", "nef", "orf", "arw", "rw2"]
+        if photoFormatHints.contains(where: { identifier.contains($0) }) {
+            return true
+        }
+        
+        return false
     }
 
     // MARK: - URL helpers

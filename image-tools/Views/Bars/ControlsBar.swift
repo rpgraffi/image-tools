@@ -21,21 +21,18 @@ struct ControlsBar: View {
                 }
 
                 RotationFlipControls(vm: vm)
-
-
-                if shouldShowMetadata { MetadataControlView(vm: vm) }
-                Spacer(minLength: 8)
-                
-                // Right controls
-                PrimaryApplyButton(
-                    isDisabled: vm.newImages.isEmpty && vm.editedImages.isEmpty,
-                    perform: { vm.applyPipeline() }
-                )
+                if shouldShowMetadata {
+                    MetadataControlView(vm: vm)
+                        .transition(.opacity.combined(with: .scale))
+                }
             }
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.sizeUnit)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.compressionMode)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.overwriteOriginals)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.removeMetadata)
+            .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowResize)
+            .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowCompression)
+            .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowMetadata)
         }
         .padding(8)
     }

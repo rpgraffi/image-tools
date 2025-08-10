@@ -5,6 +5,8 @@ struct PillButton<LabelContent: View>: View {
     let action: () -> Void
     let label: () -> LabelContent
 
+    @State private var isHovering: Bool = false
+
     init(role: ButtonRole? = nil, action: @escaping () -> Void, @ViewBuilder label: @escaping () -> LabelContent) {
         self.role = role
         self.action = action
@@ -14,10 +16,11 @@ struct PillButton<LabelContent: View>: View {
     var body: some View {
         let height: CGFloat = Theme.Metrics.controlHeight
         let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
+        let destructiveActive = (role == .destructive && isHovering)
         Button(role: role, action: action) {
             label()
                 .font(.headline)
-                .foregroundStyle(role == .destructive ? Color.white : .primary)
+                .foregroundStyle(destructiveActive ? Color.white : .primary)
                 .frame(height: height)
                 .padding(.horizontal, 12)
                 .contentShape(Rectangle())
@@ -25,8 +28,12 @@ struct PillButton<LabelContent: View>: View {
         .buttonStyle(.plain)
         .background(
             RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(role == .destructive ? Color.red : Theme.Colors.controlBackground)
+                .fill(destructiveActive ? Color.red : Theme.Colors.controlBackground)
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+        .onHover { hovering in
+            withAnimation(Theme.Animations.pillFill()) { isHovering = hovering }
+        }
+        .animation(Theme.Animations.pillFill(), value: destructiveActive)
     }
 } 

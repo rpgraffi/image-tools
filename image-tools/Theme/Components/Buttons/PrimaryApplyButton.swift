@@ -13,7 +13,7 @@ struct PrimaryApplyButton: View {
             Label("Apply", systemImage: "play.fill")
                 .font(.headline)
                 .foregroundStyle(Color.white)
-                .frame(minHeight: height)
+                .frame(minWidth: 120, minHeight: height)
                 .padding(.horizontal, 20)
                 .contentShape(Rectangle())
         }

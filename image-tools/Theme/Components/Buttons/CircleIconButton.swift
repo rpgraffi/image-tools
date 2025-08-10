@@ -16,5 +16,7 @@ struct CircleIconButton<Label: View>: View {
         }
         .buttonStyle(.plain)
         .contentShape(Circle())
+        .frame(height: Theme.Metrics.controlHeight)
+        .aspectRatio(1, contentMode: .fit)
     }
 } 

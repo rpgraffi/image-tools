@@ -10,12 +10,10 @@ import SwiftUI
 @main
 struct ImageToolsApp: App {
     @StateObject private var vm = ImageToolsViewModel()
-    @StateObject private var formatDropdown = FormatDropdownController()
 
     var body: some Scene {
         WindowGroup {
             MainView(vm: vm)
-                .environmentObject(formatDropdown)
                 .background(.clear)
         }
         .windowStyle(.hiddenTitleBar)

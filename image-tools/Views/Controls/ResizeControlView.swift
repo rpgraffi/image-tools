@@ -41,7 +41,6 @@ struct ResizeControlView: View {
             CircleIconButton(action: toggleMode) {
                 Text(vm.sizeUnit == .percent ? "px" : "%")
             }
-            .frame(minHeight: controlHeight, maxHeight: controlHeight)
             .animation(Theme.Animations.spring(), value: vm.sizeUnit)
         }
         .onChange(of: vm.sizeUnit) { _, newValue in

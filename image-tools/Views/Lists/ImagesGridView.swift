@@ -25,7 +25,7 @@ struct ImagesGridView: View {
             }
             .padding(10)
         }
-        .scrollContentBackground(.visible)
+        .scrollContentBackground(.hidden)
     }
 }
 

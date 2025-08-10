@@ -7,6 +7,7 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var editedImages: [ImageAsset] = []
 
     @Published var overwriteOriginals: Bool = false
+    @Published var exportDirectory: URL? = nil
 
     // UI toggles/state
     @Published var sizeUnit: SizeUnitToggle = .percent
@@ -166,6 +167,7 @@ final class ImageToolsViewModel: ObservableObject {
         var pipeline = ProcessingPipeline()
         pipeline.overwriteOriginals = overwriteOriginals
         pipeline.removeMetadata = removeMetadata
+        pipeline.exportDirectory = exportDirectory
 
         // Resize
         if sizeUnit == .percent, resizePercent != 1.0 {
@@ -189,8 +191,8 @@ final class ImageToolsViewModel: ObservableObject {
             }
         }
 
-        // Rotate
-        if rotation != .r0 { pipeline.add(RotateOperation(rotation: rotation)) }
+        // // Rotate
+        // if rotation != .r0 { pipeline.add(RotateOperation(rotation: rotation)) }
 
         // Flip
         if flipH { pipeline.add(FlipOperation(direction: .horizontal)) }

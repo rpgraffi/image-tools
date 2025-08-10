@@ -31,7 +31,6 @@ struct CompressControlView: View {
                                 .transition(.opacity)
                         }
                     }
-                    .frame(width: size.width, height: size.height)
                 }
             }
             .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, minHeight: controlHeight, maxHeight: controlHeight)
@@ -39,7 +38,6 @@ struct CompressControlView: View {
             CircleIconButton(action: toggleMode) {
                 Text(vm.compressionMode == .percent ? "KB" : "%")
             }
-            .frame(minHeight: controlHeight, maxHeight: controlHeight)
             .animation(Theme.Animations.spring(), value: vm.compressionMode)
         }
     }

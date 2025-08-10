@@ -5,6 +5,7 @@ struct ProcessingPipeline {
     var operations: [ImageOperation] = []
     var overwriteOriginals: Bool = false
     var removeMetadata: Bool = false
+    var exportDirectory: URL? = nil
 
     mutating func add(_ op: ImageOperation) {
         operations.append(op)
@@ -48,14 +49,18 @@ struct ProcessingPipeline {
         let tempDirPath = FileManager.default.temporaryDirectory.standardizedFileURL.path
         let isTempSource = result.originalURL.standardizedFileURL.path.hasPrefix(tempDirPath)
 
-        if isTempSource {
+        if overwriteOriginals {
+            destinationURL = result.originalURL
+        } else if let exportDir = exportDirectory {
+            let base = result.originalURL.deletingPathExtension().lastPathComponent
+            let ext = currentURL.pathExtension
+            destinationURL = exportDir.appendingPathComponent(base + "_edited." + ext)
+        } else if isTempSource {
             // Pasted images saved into temp should end up in Downloads upon apply
             let downloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser
             let base = result.originalURL.deletingPathExtension().lastPathComponent
             let ext = currentURL.pathExtension
             destinationURL = downloadsDir.appendingPathComponent(base + "_edited." + ext)
-        } else if overwriteOriginals {
-            destinationURL = result.originalURL
         } else {
             let dir = result.originalURL.deletingLastPathComponent()
             let base = result.originalURL.deletingPathExtension().lastPathComponent

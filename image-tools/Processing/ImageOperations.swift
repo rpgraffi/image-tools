@@ -15,12 +15,21 @@ protocol ImageOperation {
     func apply(to url: URL) throws -> URL
 }
 
+// Load a CIImage while applying EXIF/TIFF orientation so pixels are normalized to 'up'
+private func loadCIImageApplyingOrientation(from url: URL) throws -> CIImage {
+    let options: [CIImageOption: Any] = [
+        .applyOrientationProperty: true
+    ]
+    if let ci = CIImage(contentsOf: url, options: options) { return ci }
+    throw ImageOperationError.loadFailed
+}
+
 struct ResizeOperation: ImageOperation {
     enum Mode { case percent(Double); case pixels(width: Int?, height: Int?) }
     let mode: Mode
 
     func apply(to url: URL) throws -> URL {
-        guard let ciImage = CIImage(contentsOf: url) else { throw ImageOperationError.loadFailed }
+        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else { throw ImageOperationError.loadFailed }
         let originalExtent = ciImage.extent
         let targetSize: CGSize
         switch mode {
@@ -48,7 +57,7 @@ struct ResizeOperation: ImageOperation {
 struct ConvertOperation: ImageOperation {
     let format: ImageFormat
     func apply(to url: URL) throws -> URL {
-        guard let ciImage = CIImage(contentsOf: url) else { throw ImageOperationError.loadFailed }
+        let ciImage = try loadCIImageApplyingOrientation(from: url)
         return try ImageExporter.export(ciImage: ciImage, originalURL: url, format: format, compressionQuality: nil)
     }
 }
@@ -59,7 +68,7 @@ struct CompressOperation: ImageOperation {
     let formatHint: ImageFormat? // to guide lossy export like JPEG/HEIC
 
     func apply(to url: URL) throws -> URL {
-        guard let ciImage = CIImage(contentsOf: url) else { throw ImageOperationError.loadFailed }
+        let ciImage = try loadCIImageApplyingOrientation(from: url)
         switch mode {
         case .percent(let p):
             let q = max(min(p, 1.0), 0.01)
@@ -92,7 +101,7 @@ struct RotateOperation: ImageOperation {
     let rotation: ImageRotation
     func apply(to url: URL) throws -> URL {
         let angle = Double(rotation.rawValue) * Double.pi / 180.0
-        guard let ciImage = CIImage(contentsOf: url) else { throw ImageOperationError.loadFailed }
+        let ciImage = try loadCIImageApplyingOrientation(from: url)
         let transform = CGAffineTransform(rotationAngle: angle)
         let output = ciImage.transformed(by: transform)
         return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
@@ -102,7 +111,7 @@ struct RotateOperation: ImageOperation {
 struct FlipOperation: ImageOperation {
     let direction: HorizontalVertical
     func apply(to url: URL) throws -> URL {
-        guard let ciImage = CIImage(contentsOf: url) else { throw ImageOperationError.loadFailed }
+        let ciImage = try loadCIImageApplyingOrientation(from: url)
         let extent = ciImage.extent
         let transform: CGAffineTransform
         switch direction {
@@ -118,57 +127,9 @@ struct FlipOperation: ImageOperation {
 
 struct RemoveBackgroundOperation: ImageOperation {
     func apply(to url: URL) throws -> URL {
-        guard let ciImage = CIImage(contentsOf: url) else { throw ImageOperationError.loadFailed }
+        let ciImage = try loadCIImageApplyingOrientation(from: url)
         return try ImageExporter.export(ciImage: ciImage, originalURL: url, format: nil, compressionQuality: nil)
     }
 }
 
-struct ImageExporter {
-    static func export(ciImage: CIImage, originalURL: URL, format: ImageFormat?, compressionQuality: Double?, stripMetadata: Bool = false) throws -> URL {
-        // Decide format and UTType, honoring platform capabilities
-        let requestedFormat: ImageFormat = format ?? (inferFormat(from: originalURL) ?? ImageIOCapabilities.shared.format(forIdentifier: UTType.png.identifier)!)
-        let requestedUTI: UTType = requestedFormat.utType
-
-        // Fallback chain: requested -> PNG -> JPEG
-        let caps = ImageIOCapabilities.shared
-        let actualUTI: UTType = {
-            if caps.supportsWriting(utType: requestedUTI) { return requestedUTI }
-            if caps.supportsWriting(utType: .png) { return .png }
-            return .jpeg
-        }()
-
-        let ciContext = CIContext()
-        let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
-        guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent, format: .RGBA8, colorSpace: colorSpace) else {
-            throw ImageOperationError.exportFailed
-        }
-
-        let tempDir = FileManager.default.temporaryDirectory
-        let ext = ImageIOCapabilities.shared.preferredFilenameExtension(for: actualUTI)
-        let base = originalURL.deletingPathExtension().lastPathComponent
-        let tempFilename = base + "_tmp_" + String(UUID().uuidString.prefix(8)) + "." + ext
-        let outputURL = tempDir.appendingPathComponent(tempFilename)
-
-        guard let dest = CGImageDestinationCreateWithURL(outputURL as CFURL, actualUTI.identifier as CFString, 1, nil) else {
-            throw ImageOperationError.exportFailed
-        }
-
-        var props: [CFString: Any] = [:]
-        if !stripMetadata {
-            if let src = CGImageSourceCreateWithURL(originalURL as CFURL, nil),
-               let meta = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any] {
-                for (k, v) in meta { props[k] = v }
-            }
-        }
-        if actualUTI == .jpeg || actualUTI == UTType.heic {
-            props[kCGImageDestinationLossyCompressionQuality] = compressionQuality ?? 0.9
-        }
-        CGImageDestinationAddImage(dest, cgImage, props as CFDictionary)
-        guard CGImageDestinationFinalize(dest) else { throw ImageOperationError.exportFailed }
-        return outputURL
-    }
-
-    static func inferFormat(from url: URL) -> ImageFormat? {
-        return ImageIOCapabilities.shared.formatForURL(url)
-    }
-} 
+ 
