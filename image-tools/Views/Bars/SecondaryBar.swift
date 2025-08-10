@@ -8,14 +8,14 @@ struct SecondaryBar: View {
         HStack(spacing: 8) {
             // Left column
             HStack(spacing: 8) {
-                PillButton {
-                    vm.addFromPasteboard()
-                } label: {
-                    Label(String(localized: "Paste"), systemImage: "doc.on.clipboard")
-                }
-                CircleIconButton(action: onPickFromFinder) {
-                    Image(systemName: "folder.badge.plus")
-                }
+                // PillButton {
+                //     vm.addFromPasteboard()
+                // } label: {
+                //     Label(String(localized: "Paste"), systemImage: "doc.on.clipboard")
+                // }
+                // CircleIconButton(action: onPickFromFinder) {
+                //     Image(systemName: "folder.badge.plus")
+                // }
                 PillButton(role: .destructive) {
                     vm.clearAll()
                 } label: {
