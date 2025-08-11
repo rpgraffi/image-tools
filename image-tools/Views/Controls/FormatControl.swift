@@ -23,7 +23,7 @@ struct FormatControl: View {
     }
 
     private var selectedLabel: String {
-        vm.selectedFormat?.displayName ?? String(localized: "Original")
+        vm.selectedFormat?.displayName ?? String(localized: "Format")
     }
 
     private func shortcutFor(format: ImageFormat) -> String? {
@@ -44,7 +44,6 @@ struct FormatControl: View {
         let shape = Capsule()
 
         Menu {
-            originalItem()
             recentSection()
             pinnedSection()
             moreSection()
@@ -60,7 +59,7 @@ struct FormatControl: View {
             }
         }
         .menuStyle(.borderlessButton)
-        .help(vm.selectedFormat?.fullName ?? String(localized: "Keep original format"))
+        .help(vm.selectedFormat?.fullName ?? "")
         .frame(height: controlHeight)
         .padding(.horizontal, 8)
         .background(shape.fill(Theme.Colors.controlBackground))
@@ -72,12 +71,6 @@ struct FormatControl: View {
 
 // MARK: - Menu Builders
 private extension FormatControl {
-    @ViewBuilder
-    func originalItem() -> some View {
-        Button(String(localized: "Original")) { selectFormat(nil) }
-            .help(String(localized: "Keep original format"))
-    }
-
     @ViewBuilder
     func recentSection() -> some View {
         let pinnedIds = Set(pinnedFormats.map { $0.id })

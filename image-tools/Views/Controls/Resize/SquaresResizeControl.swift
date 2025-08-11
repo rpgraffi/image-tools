@@ -41,7 +41,13 @@ struct SquaresResizeControl: View {
     private func discretePercentPill(containerSize: CGSize, corner: CGFloat, sizes: [Int]) -> some View {
         let progress = valueToProgress(sizes: sizes)
         return ZStack(alignment: .leading) {
-            PillBackground(containerSize: containerSize, cornerRadius: corner, progress: progress)
+            PillBackground(
+                containerSize: containerSize,
+                cornerRadius: corner,
+                progress: progress,
+                // For fixed-size controls we always want the pill filled; never fade out at max
+                fadeStart: 2.0
+            )
             HStack(spacing: 8) {
                 Text(String(localized: "Resize"))
                     .font(Theme.Fonts.button)

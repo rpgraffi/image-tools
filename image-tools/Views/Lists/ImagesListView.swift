@@ -101,7 +101,10 @@ struct ImagesListView: View {
 
     private func handleURLDrop(_ urls: [URL]) -> Bool {
         guard !urls.isEmpty else { return false }
-        vm.addURLs(urls)
+        // Expand any dropped directories into supported image files
+        let expanded = urls.flatMap { IngestionCoordinator.expandToSupportedImageURLs(from: $0, recursive: true) }
+        guard !expanded.isEmpty else { return false }
+        vm.addURLs(expanded)
         return true
     }
 

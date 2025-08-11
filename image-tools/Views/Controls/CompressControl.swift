@@ -35,10 +35,10 @@ struct CompressControl: View {
             }
             .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, minHeight: controlHeight, maxHeight: controlHeight)
 
-            CircleIconButton(action: toggleMode) {
-                Text(vm.compressionMode == .percent ? String(localized: "KB") : String(localized: "%"))
-            }
-            .animation(Theme.Animations.spring(), value: vm.compressionMode)
+            // CircleIconButton(action: toggleMode) {
+            //     Text(vm.compressionMode == .percent ? String(localized: "KB") : String(localized: "%"))
+            // }
+            // .animation(Theme.Animations.spring(), value: vm.compressionMode)
         }
     }
 
