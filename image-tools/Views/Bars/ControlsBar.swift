@@ -7,22 +7,22 @@ struct ControlsBar: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 16) {
                 // Left controls
-                FormatControlView(vm: vm)
+                FormatControl(vm: vm)
                     .transition(.opacity.combined(with: .scale))
 
                 if shouldShowResize {
-                    ResizeControlView(vm: vm)
+                    ResizeControl(vm: vm)
                         .transition(.opacity.combined(with: .scale))
                 }
 
                 if shouldShowCompression {
-                    CompressControlView(vm: vm)
+                    CompressControl(vm: vm)
                         .transition(.opacity.combined(with: .scale))
                 }
 
-                RotationFlipControls(vm: vm)
+                FlipControl(vm: vm)
                 if shouldShowMetadata {
-                    MetadataControlView(vm: vm)
+                    MetadataControl(vm: vm)
                         .transition(.opacity.combined(with: .scale))
                 }
             }

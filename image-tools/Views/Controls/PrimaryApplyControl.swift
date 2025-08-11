@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct PrimaryApplyButton: View {
+struct PrimaryApplyControl: View {
     let isDisabled: Bool
     let perform: () -> Void
 

@@ -4,9 +4,6 @@
     "" : {
 
     },
-    " " : {
-
-    },
     " your images here." : {
       "extractionState" : "manual",
       "localizations" : {
@@ -488,6 +485,9 @@
           }
         }
       }
+    },
+    "Paste  " : {
+
     },
     "Preserve metadata" : {
       "extractionState" : "manual",

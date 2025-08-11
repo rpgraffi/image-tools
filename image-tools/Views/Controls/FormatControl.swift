@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
 
-struct FormatControlView: View {
+struct FormatControl: View {
     @ObservedObject var vm: ImageToolsViewModel
 
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
@@ -71,7 +71,7 @@ struct FormatControlView: View {
 }
 
 // MARK: - Menu Builders
-private extension FormatControlView {
+private extension FormatControl {
     @ViewBuilder
     func originalItem() -> some View {
         Button(String(localized: "Original")) { selectFormat(nil) }
@@ -132,7 +132,7 @@ private extension FormatControlView {
 }
 
 // MARK: - Keyboard Handling
-private extension FormatControlView {
+private extension FormatControl {
     func installKeyMonitor() {
         removeKeyMonitor()
         keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
@@ -173,9 +173,9 @@ struct FormatControlView_Previews: PreviewProvider {
         }()
 
         return VStack(alignment: .leading, spacing: 16) {
-            FormatControlView(vm: vmDefault)
-            FormatControlView(vm: vmPNG)
-            FormatControlView(vm: vmJPEG)
+            FormatControl(vm: vmDefault)
+            FormatControl(vm: vmPNG)
+            FormatControl(vm: vmJPEG)
         }
         .padding()
         .frame(width: 360)

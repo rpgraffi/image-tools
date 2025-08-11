@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-struct ResizeControlView: View {
+struct ResizeControl: View {
     @ObservedObject var vm: ImageToolsViewModel
 
     @FocusState private var widthFieldFocused: Bool

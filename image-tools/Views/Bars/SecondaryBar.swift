@@ -25,14 +25,14 @@ struct SecondaryBar: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
-            PrimaryApplyButton(
+            PrimaryApplyControl(
                 isDisabled: vm.newImages.isEmpty && vm.editedImages.isEmpty,
                 perform: { vm.applyPipeline() }
             ).frame(maxWidth: .infinity)
 
             // Right column
             HStack(spacing: 8) {
-                OverwriteTogglePill(isOn: $vm.overwriteOriginals)
+                OverwriteToggleControl(isOn: $vm.overwriteOriginals)
                 ExportDirectoryPill(directory: $vm.exportDirectory)
             }
             .frame(maxWidth: .infinity, alignment: .trailing)

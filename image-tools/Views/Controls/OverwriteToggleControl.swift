@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct OverwriteTogglePill: View {
+struct OverwriteToggleControl: View {
     @Binding var isOn: Bool
 
     var body: some View {
@@ -13,6 +13,8 @@ struct OverwriteTogglePill: View {
                 .frame(height: height)
                 .padding(.horizontal, 12)
                 .contentShape(Rectangle())
+                .lineLimit(1)
+                .truncationMode(.tail)
         }
         .buttonStyle(.plain)
         .background(

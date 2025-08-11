@@ -10,10 +10,9 @@ struct ImagesListEmptyState: View {
                 HStack(spacing: 0) {
                     Text(String(localized: "Drag or "))
                     Button(action: onPaste) {
-                        Text(String(localized: "Paste")).underline()
+                        Text(String(localized: "Paste  ")).underline()
                     }
                     .buttonStyle(.plain)
-                    Text(" ")
                     Text("`⌘+V`").monospaced(true)
                     Text(String(localized: " your images here."))
                 }

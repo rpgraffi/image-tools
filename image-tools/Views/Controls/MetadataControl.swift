@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct MetadataControlView: View {
+struct MetadataControl: View {
     @ObservedObject var vm: ImageToolsViewModel
 
     var body: some View {

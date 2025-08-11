@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct RotationFlipControls: View {
+struct FlipControl: View {
     @ObservedObject var vm: ImageToolsViewModel
 
     @State private var hFlipRotation: Double = 0
@@ -90,7 +90,7 @@ struct RotationFlipControls: View {
 }
 
 #Preview {
-    RotationFlipControls(vm: ImageToolsViewModel())
+    FlipControl(vm: ImageToolsViewModel())
         .padding()
 }
 

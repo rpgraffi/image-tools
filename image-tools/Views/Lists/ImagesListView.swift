@@ -7,13 +7,19 @@ struct ImagesListView: View {
     @Binding var isDropping: Bool
     let onPickFromFinder: () -> Void
 
-    // Grid config
+    // Layout
     private let tileMaxWidth: CGFloat = 300
-    private var columns: [GridItem] { [GridItem(.adaptive(minimum: 220, maximum: tileMaxWidth), spacing: 12, alignment: .top)] }
-    private var cornerRadius: CGFloat { 20 }
+    private let gridSpacing: CGFloat = 12
+    private let cornerRadius: CGFloat = 20
+
+    private var columns: [GridItem] {
+        [GridItem(.adaptive(minimum: 220, maximum: tileMaxWidth), spacing: gridSpacing, alignment: .top)]
+    }
 
     private var allImages: [ImageAsset] { vm.newImages + vm.editedImages }
     private var isEmpty: Bool { allImages.isEmpty }
+
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         ZStack { content }
@@ -23,12 +29,12 @@ struct ImagesListView: View {
             .dropDestination(for: URL.self, action: { urls, _ in
                 handleURLDrop(urls)
             }, isTargeted: { hovering in
-                isDropping = hovering
+                handleDropHoverChange(hovering)
             })
             .dropDestination(for: NSImage.self, action: { images, _ in
                 handleImageDrop(images)
             }, isTargeted: { hovering in
-                isDropping = hovering
+                handleDropHoverChange(hovering)
             })
     }
 
@@ -47,12 +53,14 @@ struct ImagesListView: View {
                 )
             }
         }
-        .background(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(Color.black.opacity(0.06))
-        )
+        .background(containerBackground())
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(containerOverlay())
+    }
+
+    private func containerBackground() -> some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Color.black.opacity(colorScheme == .dark ? 0.15 : 0.06))
     }
 
     private func containerOverlay() -> some View {
@@ -60,22 +68,32 @@ struct ImagesListView: View {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
 
-            if isEmpty {
+            if isEmpty || isDropping {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .inset(by: 16)
+                    .inset(by: 8)
                     .stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 6]))
-                    .foregroundStyle(isDropping ? Color.accentColor.opacity(0.8) : Color.gray.opacity(0.5))
+                    .foregroundStyle(isDropping ? Color.accentColor.blendMode(.normal) : colorScheme == .dark ?  Color.white.opacity(0.25).blendMode(.lighten) : Color.black.opacity(0.20).blendMode(.darken))
             }
         }
         .allowsHitTesting(false)
     }
 
+    private func handleDropHoverChange(_ hovering: Bool) {
+        if hovering && !isDropping {
+            performHapticFeedback()
+        }
+        isDropping = hovering
+    }
+
     private func handleURLDrop(_ urls: [URL]) -> Bool {
+        guard !urls.isEmpty else { return false }
         vm.addURLs(urls)
         return true
     }
 
     private func handleImageDrop(_ images: [NSImage]) -> Bool {
+        guard !images.isEmpty else { return false }
+
         let tempDir = FileManager.default.temporaryDirectory
         var urls: [URL] = []
         for nsImage in images {
@@ -89,7 +107,12 @@ struct ImagesListView: View {
             try? data.write(to: url)
             urls.append(url)
         }
+        guard !urls.isEmpty else { return false }
         vm.addURLs(urls)
         return true
+    }
+
+    private func performHapticFeedback() {
+        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
     }
 } 
