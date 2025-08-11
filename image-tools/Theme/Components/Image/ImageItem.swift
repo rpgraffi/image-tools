@@ -55,7 +55,7 @@ private struct ImageThumbnail: View {
             Image(nsImage: thumbnail)
                     .resizable()
                     .scaledToFit()
-                    .mask(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                    .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 
@@ -63,7 +63,7 @@ private struct ImageThumbnail: View {
 private struct TwoLineOverlayBadge: View {
     let topText: String
     let bottomText: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(topText).foregroundStyle(.secondary)
@@ -75,6 +75,10 @@ private struct TwoLineOverlayBadge: View {
         .background(
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .fill(Material.ultraThin)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
+                )
         )
     }
 }
@@ -127,6 +131,7 @@ private struct HoverControls: View {
     let isVisible: Bool
     
     @State private var animationTrigger: Int = 0
+    private let cornerRadius: CGFloat = 6
     
     var body: some View {
         HStack(spacing: 10) {
@@ -157,6 +162,7 @@ private struct HoverControls: View {
                 Image(systemName: "doc.on.doc.fill")
             }
             .buttonStyle(.plain)
+
             .symbolEffect(.bounce.down.wholeSymbol, options: .nonRepeating, value: animationTrigger)
             .help(String(localized: "Copy image to clipboard"))
             
@@ -185,8 +191,12 @@ private struct HoverControls: View {
         .foregroundStyle(.secondary)
         .padding(6)
         .background(
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                 .fill(Material.ultraThin)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
         )
         .padding(6)
         .frame(maxWidth: .infinity, alignment: .bottomTrailing)

@@ -1,6 +1,6 @@
 import SwiftUI
 
-struct StylizedTooltip: View {
+struct Tooltip: View {
     let text: String
 
     var body: some View {
@@ -21,7 +21,7 @@ struct StylizedTooltip: View {
     }
 }
 
-private struct StylizedTooltipModifier: ViewModifier {
+private struct TooltipModifier: ViewModifier {
     let text: String
     let placement: Alignment
     let yOffset: CGFloat
@@ -44,7 +44,7 @@ private struct StylizedTooltipModifier: ViewModifier {
             }
             .overlay(alignment: placement) {
                 if shouldShow {
-                    StylizedTooltip(text: text)
+                    Tooltip(text: text)
                         .transition(.scale.combined(with: .opacity))
                         .offset(y: yOffset)
                 }
@@ -54,11 +54,11 @@ private struct StylizedTooltipModifier: ViewModifier {
 }
 
 extension View {
-    func stylizedTooltip(_ text: String,
+    func Tooltip(_ text: String,
                          placement: Alignment = .top,
                          yOffset: CGFloat = -8,
                          showDelay: TimeInterval = 0.35) -> some View {
-        modifier(StylizedTooltipModifier(text: text,
+        modifier(TooltipModifier(text: text,
                                          placement: placement,
                                          yOffset: yOffset,
                                          showDelay: showDelay))

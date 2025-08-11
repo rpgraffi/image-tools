@@ -64,9 +64,23 @@ struct ImagesListView: View {
     }
 
     private func containerOverlay() -> some View {
-        ZStack {
+        let strokeColorDark = LinearGradient(colors: [Color.white.opacity(0.08), Color.white.opacity(0.15)], startPoint: .top, endPoint: .bottom)
+        let strokeColorLight = LinearGradient(colors: [Color.black.opacity(0.08), Color.white.opacity(0.32)], startPoint: .top, endPoint: .bottom)
+        return ZStack {
             RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .stroke(Color.black.opacity(0.06), lineWidth: 0.5)
+                .stroke(colorScheme == .dark ? strokeColorDark : strokeColorLight, lineWidth: 0.8)
+
+            // Inner shadow: bottom shade
+            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                .stroke(Color.black.opacity(colorScheme == .dark ? 0.60 : 0.20), lineWidth: 1.5)
+                .blur(radius: 6)
+                .offset(y: 3)
+                .mask(
+                    RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                        // .fill(
+                        //     LinearGradient(colors: [Color.black, Color.clear], startPoint: .center, endPoint: .bottom)
+                        // )
+                )
 
             if isEmpty || isDropping {
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
@@ -116,3 +130,68 @@ struct ImagesListView: View {
         NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
     }
 } 
+
+struct ImagesListView_Previews: PreviewProvider {
+    static var previews: some View {
+        Group {
+            // Empty state
+            ImagesListView(
+                vm: demoVMEmpty(),
+                isDropping: .constant(false),
+                onPickFromFinder: {}
+            )
+            .frame(width: 900, height: 600)
+            .padding()
+
+            // With images
+            ImagesListView(
+                vm: demoVMWithImages(),
+                isDropping: .constant(false),
+                onPickFromFinder: {}
+            )
+            .frame(width: 900, height: 600)
+            .padding()
+
+            // Dropping state + dark mode
+            ImagesListView(
+                vm: demoVMWithImages(),
+                isDropping: .constant(true),
+                onPickFromFinder: {}
+            )
+            .frame(width: 900, height: 600)
+            .padding()
+            .preferredColorScheme(.dark)
+        }
+    }
+
+    private static func demoVMEmpty() -> ImageToolsViewModel {
+        ImageToolsViewModel()
+    }
+
+    private static func demoVMWithImages() -> ImageToolsViewModel {
+        let vm = ImageToolsViewModel()
+        let urls: [URL] = [
+            makeTempImageURL(size: NSSize(width: 640, height: 360), color: .systemBlue),
+            makeTempImageURL(size: NSSize(width: 800, height: 800), color: .systemGreen),
+            makeTempImageURL(size: NSSize(width: 600, height: 1200), color: .systemOrange)
+        ]
+        vm.newImages = urls.map { ImageAsset(url: $0) }
+        return vm
+    }
+
+    private static func makeTempImageURL(size: NSSize, color: NSColor) -> URL {
+        let image = NSImage(size: size)
+        image.lockFocus()
+        color.setFill()
+        NSBezierPath(rect: NSRect(origin: .zero, size: size)).fill()
+        image.unlockFocus()
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let data = rep.representation(using: .png, properties: [:]) else {
+            return FileManager.default.temporaryDirectory.appendingPathComponent("preview_\(UUID().uuidString).png")
+        }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("preview_\(UUID().uuidString).png")
+        try? data.write(to: url)
+        return url
+    }
+}

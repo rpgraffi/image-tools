@@ -25,7 +25,7 @@ struct PrimaryApplyControl: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
         .disabled(isDisabled)
-        .shadow(color: Color.accentColor.opacity(0.25), radius: 8, x: 0, y: 2)
-        .help(String(localized: "Apply processing pipeline"))
+        .shadow(color: Color.accentColor.opacity(isDisabled ? 0 : 0.25), radius: 8, x: 0, y: 2)
+        .help(String(localized: "Apply changes"))
     }
 } 

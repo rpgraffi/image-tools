@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "BDF9E3FA-419D-48AF-B94A-EFB34764CF26",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:image-tools.xcodeproj",
+        "identifier" : "B77ECCD12E45573400C28347",
+        "name" : "image-toolsTests"
+      }
+    }
+  ],
+  "version" : 1
+}
