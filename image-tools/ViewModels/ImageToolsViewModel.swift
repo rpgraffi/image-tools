@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import SwiftUI
+import ImageIO
 
 final class ImageToolsViewModel: ObservableObject {
     @Published var newImages: [ImageAsset] = []
@@ -58,50 +59,17 @@ final class ImageToolsViewModel: ObservableObject {
     private func persistSelectedFormat() { defaults.set(selectedFormat?.id, forKey: PersistenceKeys.selectedFormat) }
 
     // MARK: - Preview calculations (reusable service-like helpers)
-    struct PreviewInfo {
-        let targetPixelSize: CGSize?
-        let estimatedOutputBytes: Int?
-    }
-
     func previewInfo(for asset: ImageAsset) -> PreviewInfo {
-        // Pixel size
-        let baseSize: CGSize? = asset.originalPixelSize
-        let targetSize: CGSize? = {
-            guard let base = baseSize else { return nil }
-            switch sizeUnit {
-            case .percent:
-                let scale = resizePercent
-                return CGSize(width: base.width * scale, height: base.height * scale)
-            case .pixels:
-                let w = Int(resizeWidth)
-                let h = Int(resizeHeight)
-                let width = CGFloat(w ?? Int(base.width))
-                let height = CGFloat(h ?? Int(base.height))
-                return CGSize(width: max(1, width), height: max(1, height))
-            }
-        }()
-
-        // Estimate output size in bytes (rough heuristic)
-        // Use original bytes and scale by pixel area ratio, then apply compression factor if any
-        let estimatedBytes: Int? = {
-            guard let origBytes = asset.originalFileSizeBytes,
-                  let base = baseSize,
-                  let target = targetSize,
-                  base.width > 0, base.height > 0 else { return asset.originalFileSizeBytes }
-            let areaRatio = (target.width * target.height) / (base.width * base.height)
-            var bytes = Int(CGFloat(origBytes) * areaRatio)
-            switch compressionMode {
-            case .percent:
-                bytes = Int(CGFloat(bytes) * CGFloat(compressionPercent))
-            case .targetKB:
-                if let kb = Int(compressionTargetKB), kb > 0 {
-                    bytes = kb * 1024
-                }
-            }
-            return max(1, bytes)
-        }()
-
-        return PreviewInfo(targetPixelSize: targetSize, estimatedOutputBytes: estimatedBytes)
+        PreviewEstimator().estimate(
+            for: asset,
+            sizeUnit: sizeUnit,
+            resizePercent: resizePercent,
+            resizeWidth: resizeWidth,
+            resizeHeight: resizeHeight,
+            compressionMode: compressionMode,
+            compressionPercent: compressionPercent,
+            compressionTargetKB: compressionTargetKB
+        )
     }
 
     // MARK: - Ingestion
@@ -161,11 +129,11 @@ final class ImageToolsViewModel: ObservableObject {
         let targets: [ImageAsset]
         if newImages.isEmpty { targets = editedImages } else { targets = newImages }
         guard let first = (targets.first { $0.isEnabled }) ?? targets.first else { return }
-        if let size = pixelSizeForURL(first.workingURL) {
+        if let size = ImageMetadata.pixelSize(for: first.workingURL) {
             let w = Int(size.width.rounded())
             let h = Int(size.height.rounded())
             let same = targets.filter { $0.isEnabled }.allSatisfy { asset in
-                if let other = pixelSizeForURL(asset.workingURL) {
+                if let other = ImageMetadata.pixelSize(for: asset.workingURL) {
                     return Int(other.width.rounded()) == w && Int(other.height.rounded()) == h
                 }
                 return false
@@ -174,55 +142,25 @@ final class ImageToolsViewModel: ObservableObject {
         }
     }
 
-    private func pixelSizeForURL(_ url: URL) -> CGSize? {
-        if let src = CGImageSourceCreateWithURL(url as CFURL, nil),
-           let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
-           let wNum = props[kCGImagePropertyPixelWidth] as? NSNumber,
-           let hNum = props[kCGImagePropertyPixelHeight] as? NSNumber {
-            return CGSize(width: CGFloat(truncating: wNum), height: CGFloat(truncating: hNum))
-        }
-        return nil
-    }
-
     // MARK: - Processing
     func buildPipeline() -> ProcessingPipeline {
-        var pipeline = ProcessingPipeline()
-        pipeline.overwriteOriginals = overwriteOriginals
-        pipeline.removeMetadata = removeMetadata
-        pipeline.exportDirectory = exportDirectory
-
-        // Resize
-        if sizeUnit == .percent, resizePercent != 1.0 {
-            pipeline.add(ResizeOperation(mode: .percent(resizePercent)))
-        } else if sizeUnit == .pixels, (Int(resizeWidth) != nil || Int(resizeHeight) != nil) {
-            pipeline.add(ResizeOperation(mode: .pixels(width: Int(resizeWidth), height: Int(resizeHeight))))
-        }
-
-        // Convert (skip when Original is selected)
-        if let fmt = selectedFormat { pipeline.add(ConvertOperation(format: fmt)); bumpRecentFormats(fmt) }
-
-        // Compress
-        switch compressionMode {
-        case .percent:
-            if compressionPercent < 0.999 {
-                pipeline.add(CompressOperation(mode: .percent(compressionPercent), formatHint: selectedFormat))
-            }
-        case .targetKB:
-            if let kb = Int(compressionTargetKB), kb > 0 {
-                pipeline.add(CompressOperation(mode: .targetKB(kb), formatHint: selectedFormat))
-            }
-        }
-
-        // // Rotate
-        // if rotation != .r0 { pipeline.add(RotateOperation(rotation: rotation)) }
-
-        // Flip
-        if flipH { pipeline.add(FlipOperation(direction: .horizontal)) }
-        if flipV { pipeline.add(FlipOperation(direction: .vertical)) }
-
-        // Remove background
-        if removeBackground { pipeline.add(RemoveBackgroundOperation()) }
-
+        let pipeline = PipelineBuilder().build(
+            sizeUnit: sizeUnit,
+            resizePercent: resizePercent,
+            resizeWidth: resizeWidth,
+            resizeHeight: resizeHeight,
+            selectedFormat: selectedFormat,
+            compressionMode: compressionMode,
+            compressionPercent: compressionPercent,
+            compressionTargetKB: compressionTargetKB,
+            flipH: flipH,
+            flipV: flipV,
+            removeBackground: removeBackground,
+            overwriteOriginals: overwriteOriginals,
+            removeMetadata: removeMetadata,
+            exportDirectory: exportDirectory
+        )
+        if let fmt = selectedFormat { bumpRecentFormats(fmt) }
         return pipeline
     }
 
