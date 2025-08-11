@@ -27,6 +27,14 @@ struct PipelineBuilder {
             pipeline.add(ResizeOperation(mode: .pixels(width: Int(resizeWidth), height: Int(resizeHeight))))
         }
 
+        // Enforce format-specific size constraints before conversion
+        if let fmt = selectedFormat {
+            let caps = ImageIOCapabilities.shared
+            if caps.sizeRestrictions(forUTType: fmt.utType) != nil {
+                pipeline.add(ConstrainSizeOperation(targetFormat: fmt))
+            }
+        }
+
         // Convert (skip when Original is selected)
         if let fmt = selectedFormat { pipeline.add(ConvertOperation(format: fmt)) }
 

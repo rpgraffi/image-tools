@@ -54,6 +54,39 @@ struct ResizeOperation: ImageOperation {
     }
 }
 
+/// Ensures the image matches the size restrictions of a target format by resizing when necessary.
+/// Typically injected by the pipeline right before conversion for constrained formats.
+struct ConstrainSizeOperation: ImageOperation {
+    let targetFormat: ImageFormat
+
+    func apply(to url: URL) throws -> URL {
+        let caps = ImageIOCapabilities.shared
+        guard let restrictions = caps.sizeRestrictions(forUTType: targetFormat.utType) else {
+            return url
+        }
+        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else {
+            throw ImageOperationError.loadFailed
+        }
+        let current = ciImage.extent.size
+        if caps.isValidPixelSize(current, for: targetFormat.utType) {
+            return url
+        }
+        // Suggest a square side and resize accordingly
+        guard let side = caps.suggestedSquareSide(for: targetFormat.utType, source: current) else {
+            return url
+        }
+        let target = CGSize(width: side, height: side)
+        let scaleX = target.width / current.width
+        let scaleY = target.height / current.height
+        let lanczos = CIFilter.lanczosScaleTransform()
+        lanczos.inputImage = ciImage
+        lanczos.scale = Float(min(scaleX, scaleY))
+        lanczos.aspectRatio = Float(scaleX / scaleY)
+        guard let output = lanczos.outputImage else { throw ImageOperationError.exportFailed }
+        return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
+    }
+}
+
 struct ConvertOperation: ImageOperation {
     let format: ImageFormat
     func apply(to url: URL) throws -> URL {

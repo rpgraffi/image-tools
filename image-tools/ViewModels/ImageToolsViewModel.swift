@@ -16,7 +16,9 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var resizeWidth: String = ""
     @Published var resizeHeight: String = ""
 
-    @Published var selectedFormat: ImageFormat? = nil { didSet { persistSelectedFormat() } }
+    @Published var selectedFormat: ImageFormat? = nil { didSet { persistSelectedFormat(); onSelectedFormatChanged() } }
+    @Published var activeRestrictions: ResizeRestrictions? = nil
+    @Published var restrictionHint: String? = nil
 
     @Published var compressionMode: CompressionModeToggle = .percent
     @Published var compressionPercent: Double = 0.8
@@ -53,10 +55,23 @@ final class ImageToolsViewModel: ObservableObject {
             let caps = ImageIOCapabilities.shared
             if caps.supportsWriting(utType: fmt.utType) { selectedFormat = fmt }
         }
+        // Initialize restrictions after selectedFormat restoration
+        updateRestrictions()
     }
 
     private func persistRecentFormats() { defaults.set(recentFormats.map { $0.id }, forKey: PersistenceKeys.recentFormats) }
     private func persistSelectedFormat() { defaults.set(selectedFormat?.id, forKey: PersistenceKeys.selectedFormat) }
+
+    private func updateRestrictions() {
+        let caps = ImageIOCapabilities.shared
+        if let fmt = selectedFormat, let res = caps.sizeRestrictions(forUTType: fmt.utType) {
+            activeRestrictions = res
+            restrictionHint = res.hintText(for: selectedFormat?.displayName)
+        } else {
+            activeRestrictions = nil
+            restrictionHint = nil
+        }
+    }
 
     // MARK: - Preview calculations (reusable service-like helpers)
     func previewInfo(for asset: ImageAsset) -> PreviewInfo {
@@ -70,6 +85,26 @@ final class ImageToolsViewModel: ObservableObject {
             compressionPercent: compressionPercent,
             compressionTargetKB: compressionTargetKB
         )
+    }
+
+    // React to format selection to prefill/switch resize inputs when required
+    func onSelectedFormatChanged() {
+        updateRestrictions()
+        guard let restrictions = activeRestrictions else { return }
+        // Choose a reference size from first enabled asset
+        let targets: [ImageAsset]
+        if newImages.isEmpty { targets = editedImages } else { targets = newImages }
+        guard let first = (targets.first { $0.isEnabled }) ?? targets.first else { return }
+        let srcSize = ImageMetadata.pixelSize(for: first.workingURL) ?? first.originalPixelSize ?? .zero
+        let caps = ImageIOCapabilities.shared
+        if let fmt = selectedFormat, !caps.isValidPixelSize(srcSize, for: fmt.utType) {
+            // Force pixel mode and prefill suggestion
+            sizeUnit = .pixels
+            if let side = caps.suggestedSquareSide(for: fmt.utType, source: srcSize) {
+                resizeWidth = String(side)
+                resizeHeight = String(side)
+            }
+        }
     }
 
     // MARK: - Ingestion

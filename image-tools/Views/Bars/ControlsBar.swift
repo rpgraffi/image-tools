@@ -53,10 +53,6 @@ struct ControlsBar: View {
     }
 
     private var shouldShowResize: Bool {
-        // For Apple-native formats resizing is unrestricted in our capabilities model
-        if let f = vm.selectedFormat {
-            return !ImageIOCapabilities.shared.capabilities(for: f).resizeRestricted
-        }
         return true
     }
 
