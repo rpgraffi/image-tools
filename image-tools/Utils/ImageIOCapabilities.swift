@@ -153,76 +153,49 @@ final class ImageIOCapabilities {
 
     // MARK: - Size restrictions for formats
 
-    /// Returns resize restrictions for the given UTType, if any.
-    /// Known cases: ICNS (fixed square set), ICO (fixed square set), PVR (power of two square)
-    func sizeRestrictions(forUTType utType: UTType) -> ResizeRestrictions? {
+    /// Returns the allowed square sizes for the given UTType, if any.
+    /// Known cases: ICNS (fixed square set), ICO (fixed square set), PVR/PowerVR (fixed square set)
+    func sizeRestrictions(forUTType utType: UTType) -> Set<Int>? {
         // ICNS
         if utType == UTType.icns {
-            // Common ICNS pixel variants (backed by Apple's icon sizes; include high resolutions)
-            return .fixedSquares([16, 32, 64, 128, 256, 512, 1024])
+            // Common ICNS pixel variants (backed by Apple's icon sizes)
+            return Set([16, 32, 64, 128, 256, 512])
         }
         // ICO – identifier varies; resolve via extension when possible
         if utType.identifier.lowercased().contains("ico") || utType.preferredFilenameExtension == "ico" {
-            return .fixedSquares([16, 32, 48, 128, 256])
+            return Set([16, 32, 48, 128, 256])
         }
-        // PVR – depends on ImageIO; heuristic match by identifier
+        // PVR/PowerVR – treat as fixed square sizes for simplicity
         let id = utType.identifier.lowercased()
         if id.contains("pvr") || id.contains("powervr") {
-            return .powerOfTwo(squareRequired: true, min: 16, max: 4096)
+            return Set([16, 32, 64, 128, 256, 512, 1024, 2048, 4096])
         }
         return nil
     }
 
     /// Validate a CGSize against format restrictions
     func isValidPixelSize(_ size: CGSize, for utType: UTType) -> Bool {
-        guard let restrictions = sizeRestrictions(forUTType: utType) else { return true }
+        guard let allowed = sizeRestrictions(forUTType: utType) else { return true }
         let w = Int(size.width.rounded())
         let h = Int(size.height.rounded())
-        switch restrictions {
-        case .fixedSquares(let allowed):
-            return w == h && allowed.contains(w)
-        case .powerOfTwo(let squareRequired, let minSide, let maxSide):
-            if squareRequired && w != h { return false }
-            func isPOT(_ v: Int) -> Bool { v > 0 && (v & (v - 1)) == 0 }
-            if squareRequired {
-                return isPOT(w) && w >= minSide && w <= maxSide
-            } else {
-                return isPOT(w) && isPOT(h) && w >= minSide && h >= minSide && w <= maxSide && h <= maxSide
-            }
-        }
+        return w == h && allowed.contains(w)
     }
 
     /// Suggest a square side length that satisfies restrictions, closest to the given source size
     func suggestedSquareSide(for utType: UTType, source: CGSize) -> Int? {
         let base = Int(min(source.width, source.height).rounded())
-        guard let restrictions = sizeRestrictions(forUTType: utType) else { return base }
-        switch restrictions {
-        case .fixedSquares(let allowed):
-            // pick nearest allowed side; prefer upscaling to next allowed if equidistant
-            let sorted = allowed.sorted()
-            var best: Int = sorted.first ?? base
-            var bestDist = Int.max
-            for s in sorted {
-                let d = abs(s - base)
-                if d < bestDist || (d == bestDist && s >= base) {
-                    best = s
-                    bestDist = d
-                }
+        guard let allowed = sizeRestrictions(forUTType: utType) else { return base }
+        // pick nearest allowed side; prefer upscaling to next allowed if equidistant
+        let sorted = allowed.sorted()
+        var best: Int = sorted.first ?? base
+        var bestDist = Int.max
+        for s in sorted {
+            let d = abs(s - base)
+            if d < bestDist || (d == bestDist && s >= base) {
+                best = s
+                bestDist = d
             }
-            return best
-        case .powerOfTwo(let squareRequired, let minSide, let maxSide):
-            let clampedBase = Swift.max(minSide, Swift.min(base, maxSide))
-            // round to nearest power of two
-            func nearestPOT(_ v: Int) -> Int {
-                if v < 1 { return 1 }
-                var p = 1
-                while p < v { p <<= 1 }
-                let lower = p >> 1
-                if lower == 0 { return p }
-                return (v - lower) <= (p - v) ? lower : p
-            }
-            let s = Swift.max(minSide, Swift.min(nearestPOT(clampedBase), maxSide))
-            return squareRequired ? s : s // for now UI/pipeline use square
         }
+        return best
     }
 } 

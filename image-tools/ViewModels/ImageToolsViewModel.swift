@@ -17,7 +17,7 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var resizeHeight: String = ""
 
     @Published var selectedFormat: ImageFormat? = nil { didSet { persistSelectedFormat(); onSelectedFormatChanged() } }
-    @Published var activeRestrictions: ResizeRestrictions? = nil
+    @Published var allowedSquareSizes: [Int]? = nil
     @Published var restrictionHint: String? = nil
 
     @Published var compressionMode: CompressionModeToggle = .percent
@@ -64,11 +64,17 @@ final class ImageToolsViewModel: ObservableObject {
 
     private func updateRestrictions() {
         let caps = ImageIOCapabilities.shared
-        if let fmt = selectedFormat, let res = caps.sizeRestrictions(forUTType: fmt.utType) {
-            activeRestrictions = res
-            restrictionHint = res.hintText(for: selectedFormat?.displayName)
+        if let fmt = selectedFormat, let set = caps.sizeRestrictions(forUTType: fmt.utType) {
+            let sizes = set.sorted()
+            allowedSquareSizes = sizes
+            let sizesText = sizes.map { String($0) }.joined(separator: ", ")
+            if let name = selectedFormat?.displayName {
+                restrictionHint = "\(name) requires square sizes: \(sizesText)."
+            } else {
+                restrictionHint = "Requires square sizes: \(sizesText)."
+            }
         } else {
-            activeRestrictions = nil
+            allowedSquareSizes = nil
             restrictionHint = nil
         }
     }
@@ -83,14 +89,15 @@ final class ImageToolsViewModel: ObservableObject {
             resizeHeight: resizeHeight,
             compressionMode: compressionMode,
             compressionPercent: compressionPercent,
-            compressionTargetKB: compressionTargetKB
+            compressionTargetKB: compressionTargetKB,
+            selectedFormat: selectedFormat
         )
     }
 
     // React to format selection to prefill/switch resize inputs when required
     func onSelectedFormatChanged() {
         updateRestrictions()
-        guard let restrictions = activeRestrictions else { return }
+        guard allowedSquareSizes != nil else { return }
         // Choose a reference size from first enabled asset
         let targets: [ImageAsset]
         if newImages.isEmpty { targets = editedImages } else { targets = newImages }

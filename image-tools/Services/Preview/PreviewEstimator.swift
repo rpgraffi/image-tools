@@ -13,15 +13,23 @@ struct PreviewEstimator {
                   resizeHeight: String,
                   compressionMode: CompressionModeToggle,
                   compressionPercent: Double,
-                  compressionTargetKB: String) -> PreviewInfo {
+                  compressionTargetKB: String,
+                  selectedFormat: ImageFormat?) -> PreviewInfo {
 
         let baseSize: CGSize? = asset.originalPixelSize
         let targetSize: CGSize? = {
-            guard let base = baseSize else { return nil }
+            guard let base = baseSize else { return CGSize(width: 0, height: 0) }
             switch sizeUnit {
             case .percent:
                 let scale = resizePercent
-                return CGSize(width: base.width * scale, height: base.height * scale)
+                var w = base.width * scale
+                var h = base.height * scale
+                // If a restricted format is selected and expects square, reflect square in preview
+                if let selected = selectedFormat, ImageIOCapabilities.shared.sizeRestrictions(forUTType: selected.utType) != nil {
+                    let side = min(w, h)
+                    w = side; h = side
+                }
+                return CGSize(width: w, height: h)
             case .pixels:
                 let w = Int(resizeWidth)
                 let h = Int(resizeHeight)

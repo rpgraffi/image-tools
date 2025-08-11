@@ -30,6 +30,7 @@ struct ControlsBar: View {
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.compressionMode)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.overwriteOriginals)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.removeMetadata)
+            .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.allowedSquareSizes)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowResize)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowCompression)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowMetadata)
