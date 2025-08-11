@@ -24,7 +24,7 @@ struct ImagesListView: View {
     var body: some View {
         ZStack { content }
             .padding(8)
-            .frame(minWidth: 420)
+            .frame(minWidth: 420, minHeight: 260)
             .contentShape(Rectangle())
             .dropDestination(for: URL.self, action: { urls, _ in
                 handleURLDrop(urls)

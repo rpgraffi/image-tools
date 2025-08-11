@@ -31,7 +31,6 @@
 		B77ECCC42E45573200C28347 /* image-tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "image-tools.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B77ECCD22E45573400C28347 /* image-toolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B77ECCDC2E45573400C28347 /* image-toolsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B7F73DBC2E4A0FF800B697B4 /* image-tools.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; name = "image-tools.xctestplan"; path = "image-toolsTests/image-tools.xctestplan"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -81,7 +80,6 @@
 		B77ECCBB2E45573200C28347 = {
 			isa = PBXGroup;
 			children = (
-				B7F73DBC2E4A0FF800B697B4 /* image-tools.xctestplan */,
 				B77ECCC62E45573200C28347 /* image-tools */,
 				B77ECCD52E45573400C28347 /* image-toolsTests */,
 				B77ECCDF2E45573400C28347 /* image-toolsUITests */,

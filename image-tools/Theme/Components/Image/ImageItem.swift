@@ -231,13 +231,20 @@ struct ImageItem: View {
     let toggle: () -> Void
     let recover: (() -> Void)?
     @State private var isHovering: Bool = false
+    @State private var isVisible: Bool = false
+    @State private var localThumbnail: NSImage? = nil
     
     var body: some View {
         let changeInfo = ImageChangeInfo(asset: asset, vm: vm)
         
         ZStack {
-            // Background thumbnail
-            ImageThumbnail(thumbnail: asset.thumbnail!)
+            // Background thumbnail (lazy)
+            if let thumb = localThumbnail {
+                ImageThumbnail(thumbnail: thumb)
+            } else {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(.quaternary)
+            }
             
             // Top Left overlay
             ZStack(alignment: .topLeading) {
@@ -265,6 +272,17 @@ struct ImageItem: View {
         }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
+        .onAppear {
+            isVisible = true
+            localThumbnail = asset.thumbnail
+        }
+        .onDisappear {
+            isVisible = false
+            localThumbnail = nil
+        }
+        .onChange(of: asset.workingURL) { _ in
+            if isVisible { localThumbnail = asset.thumbnail }
+        }
         .animation(.easeInOut(duration: 0.15), value: isHovering)
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .continuous)

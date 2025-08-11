@@ -24,16 +24,12 @@ struct MainView: View {
     }
 
     private func handlePaste(providers: [NSItemProvider]) {
-        IngestionCoordinator.collectURLs(from: providers) { urls in
-            vm.addURLs(urls)
-        }
+        vm.addProvidersStreaming(providers, batchSize: 16)
     }
 
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
         guard IngestionCoordinator.canHandle(providers: providers) else { return false }
-        IngestionCoordinator.collectURLs(from: providers) { urls in
-            vm.addURLs(urls)
-        }
+        vm.addProvidersStreaming(providers, batchSize: 16)
         return true
     }
 

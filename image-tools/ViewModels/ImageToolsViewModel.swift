@@ -107,8 +107,21 @@ final class ImageToolsViewModel: ObservableObject {
     // MARK: - Ingestion
     func addURLs(_ urls: [URL]) {
         let imageURLs = urls.filter { ImageIOCapabilities.shared.isReadableURL($0) }
-        let assets = imageURLs.map { ImageAsset(url: $0) }
-        newImages.append(contentsOf: assets)
+        guard !imageURLs.isEmpty else { return }
+
+        // Append in batches to keep UI responsive
+        let batchSize = 16
+        Task { @MainActor in
+            var startIndex = 0
+            while startIndex < imageURLs.count {
+                let endIndex = min(startIndex + batchSize, imageURLs.count)
+                let batch = Array(imageURLs[startIndex..<endIndex])
+                let assets = batch.map { ImageAsset(url: $0) }
+                newImages.append(contentsOf: assets)
+                startIndex = endIndex
+                await Task.yield()
+            }
+        }
     }
 
     private func isSupportedImage(_ url: URL) -> Bool {
@@ -148,18 +161,27 @@ final class ImageToolsViewModel: ObservableObject {
         let targets: [ImageAsset]
         if newImages.isEmpty { targets = editedImages } else { targets = newImages }
         guard let first = (targets.first { $0.isEnabled }) ?? targets.first else { return }
-        if let img = NSImage(contentsOf: first.workingURL) {
-            let size = img.size
+        if let size = pixelSizeForURL(first.workingURL) {
             let w = Int(size.width.rounded())
             let h = Int(size.height.rounded())
             let same = targets.filter { $0.isEnabled }.allSatisfy { asset in
-                if let other = NSImage(contentsOf: asset.workingURL) {
-                    return Int(other.size.width.rounded()) == w && Int(other.size.height.rounded()) == h
+                if let other = pixelSizeForURL(asset.workingURL) {
+                    return Int(other.width.rounded()) == w && Int(other.height.rounded()) == h
                 }
                 return false
             }
             if same { resizeWidth = String(w); resizeHeight = String(h) } else { resizeWidth = ""; resizeHeight = "" }
         }
+    }
+
+    private func pixelSizeForURL(_ url: URL) -> CGSize? {
+        if let src = CGImageSourceCreateWithURL(url as CFURL, nil),
+           let props = CGImageSourceCopyPropertiesAtIndex(src, 0, nil) as? [CFString: Any],
+           let wNum = props[kCGImagePropertyPixelWidth] as? NSNumber,
+           let hNum = props[kCGImagePropertyPixelHeight] as? NSNumber {
+            return CGSize(width: CGFloat(truncating: wNum), height: CGFloat(truncating: hNum))
+        }
+        return nil
     }
 
     // MARK: - Processing
@@ -243,6 +265,23 @@ final class ImageToolsViewModel: ObservableObject {
     func addFromPasteboard() {
         let urls = IngestionCoordinator.collectURLsFromPasteboard()
         addURLs(urls)
+    }
+
+    // MARK: - Streaming ingestion for drag & drop / paste providers
+    @MainActor
+    func addProvidersStreaming(_ providers: [NSItemProvider], batchSize: Int = 32) {
+        let stream = IngestionCoordinator.streamURLs(from: providers, batchSize: batchSize)
+        Task {
+            for await urls in stream {
+                let filtered = urls.filter { ImageIOCapabilities.shared.isReadableURL($0) }
+                guard !filtered.isEmpty else { continue }
+                // Must create AppKit-backed assets on main actor
+                await MainActor.run {
+                    let assets = filtered.map { ImageAsset(url: $0) }
+                    newImages.append(contentsOf: assets)
+                }
+            }
+        }
     }
 
     func bumpRecentFormats(_ fmt: ImageFormat) {
