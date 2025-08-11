@@ -4,25 +4,11 @@ struct OverwriteToggleControl: View {
     @Binding var isOn: Bool
 
     var body: some View {
-        let height: CGFloat = Theme.Metrics.controlHeight
-        let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
-        return Button(action: { isOn.toggle() }) {
+        PillToggle(isOn: $isOn) {
             Text(String(localized: "Overwrite"))
-                .font(Theme.Fonts.button)
-                .foregroundStyle(isOn ? Color.white : .primary)
-                .frame(height: height)
-                .padding(.horizontal, 12)
-                .contentShape(Rectangle())
                 .lineLimit(1)
                 .truncationMode(.tail)
         }
-        .buttonStyle(.plain)
-        .background(
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(isOn ? Color.accentColor : Theme.Colors.controlBackground)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
-        .animation(Theme.Animations.pillFill(), value: isOn)
         .help(String(localized: "Overwrite originals on save"))
     }
 } 

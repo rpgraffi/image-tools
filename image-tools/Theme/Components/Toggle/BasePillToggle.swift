@@ -1,16 +1,21 @@
 import SwiftUI
 
-struct PillToggle<LabelContent: View>: View {
+struct BasePillToggle<Content: View>: View {
     @Binding var isOn: Bool
-    let label: () -> LabelContent
-    var highlightedFill: Color = .accentColor
-    var normalFill: Color = Theme.Colors.controlBackground
+    var highlightedFill: Color
+    var normalFill: Color
+    let content: (_ isOn: Bool) -> Content
 
-    init(isOn: Binding<Bool>, highlightedFill: Color = .accentColor, normalFill: Color = Theme.Colors.controlBackground, @ViewBuilder label: @escaping () -> LabelContent) {
+    init(
+        isOn: Binding<Bool>,
+        highlightedFill: Color = .accentColor,
+        normalFill: Color = Theme.Colors.controlBackground,
+        @ViewBuilder content: @escaping (_ isOn: Bool) -> Content
+    ) {
         self._isOn = isOn
         self.highlightedFill = highlightedFill
         self.normalFill = normalFill
-        self.label = label
+        self.content = content
     }
 
     var body: some View {
@@ -18,11 +23,8 @@ struct PillToggle<LabelContent: View>: View {
         let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
         Button(action: { withAnimation(Theme.Animations.spring()) { isOn.toggle() } }) {
             ZStack {
-                label()
-                    .font(Theme.Fonts.button)
-                    .foregroundStyle(isOn ? Color.white : .primary)
+                content(isOn)
                     .frame(height: height)
-                    .padding(.horizontal, 12)
                     .contentShape(Rectangle())
             }
         }
@@ -34,4 +36,6 @@ struct PillToggle<LabelContent: View>: View {
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
         .animation(Theme.Animations.pillFill(), value: isOn)
     }
-} 
+}
+
+
