@@ -247,23 +247,6 @@
         }
       }
     },
-    "Enable/Disable" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Aktivieren/Deaktivieren"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enable/Disable"
-          }
-        }
-      }
-    },
     "Flip Horizontal" : {
       "extractionState" : "manual",
       "localizations" : {

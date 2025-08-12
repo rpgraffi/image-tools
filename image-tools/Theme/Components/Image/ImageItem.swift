@@ -73,14 +73,34 @@ private struct TwoLineOverlayBadge: View {
         .font(Theme.Fonts.captionMono)
         .monospaced(true)
         .padding(6)
-        .background(
-            RoundedRectangle(cornerRadius: 6, style: .continuous)
-                .fill(Material.ultraThin)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6, style: .continuous)
-                        .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
-                )
-        )
+        .background(OverlayBackground(cornerRadius: 6))
+    }
+}
+
+// Shared overlay background (fill + stroke) for all overlay chips/containers
+private struct OverlayBackground: View {
+    let cornerRadius: CGFloat
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+            .fill(Material.ultraThin)
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+                    .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
+            )
+    }
+}
+
+// Single-line badge using the shared overlay background
+private struct SingleLineOverlayBadge: View {
+    let text: String
+
+    var body: some View {
+        Text(text)
+            .font(Theme.Fonts.captionMono)
+            .monospaced(true)
+            .padding(6)
+            .background(OverlayBackground(cornerRadius: 6))
     }
 }
 
@@ -125,7 +145,6 @@ private struct InfoOverlay: View {
 private struct HoverControls: View {
     let asset: ImageAsset
     let vm: ImageToolsViewModel
-    let toggle: () -> Void
     let recover: (() -> Void)?
     let isVisible: Bool
     
@@ -179,47 +198,14 @@ private struct HoverControls: View {
             }
             .buttonStyle(.plain)
             .help(String(localized: "Remove from list"))
-
-            // Toggle(isOn: Binding(get: { asset.isEnabled }, set: { _ in toggle() })) {
-            //     EmptyView()
-            // }
-            // .toggleStyle(.checkbox)
-            // .help("Enable/Disable for batch")
         }
         .font(.system(size: 13))
         .foregroundStyle(.secondary)
         .padding(6)
-        .background(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .fill(Material.ultraThin)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
-        )
+        .background(OverlayBackground(cornerRadius: cornerRadius))
         .padding(6)
         .frame(maxWidth: .infinity, alignment: .bottomTrailing)
         .opacity(isVisible ? 1 : 0)
-    }
-}
-
-private struct EditedBadge: View {
-    let isEdited: Bool
-    
-    var body: some View {
-        if isEdited {
-            Text(String(localized: "Edited"))
-                .font(.caption2)
-                .foregroundStyle(.secondary)
-                .monospaced(true)
-                .padding(.horizontal, 6)
-                .padding(.vertical, 2)
-                .background(
-                    Capsule(style: .continuous).fill(Material.ultraThin)
-                )
-                .padding(8)
-                .frame(maxWidth: .infinity, alignment: .bottomLeading)
-        }
     }
 }
 
@@ -227,11 +213,11 @@ private struct EditedBadge: View {
 struct ImageItem: View {
     let asset: ImageAsset
     @ObservedObject var vm: ImageToolsViewModel
-    let toggle: () -> Void
     let recover: (() -> Void)?
     @State private var isHovering: Bool = false
     @State private var isVisible: Bool = false
     @State private var localThumbnail: NSImage? = nil
+    private var fileName: String { asset.workingURL.lastPathComponent }
     
     var body: some View {
         let changeInfo = ImageChangeInfo(asset: asset, vm: vm)
@@ -248,7 +234,10 @@ struct ImageItem: View {
             // Top Left overlay
             ZStack(alignment: .topLeading) {
                 Color.clear
-                EditedBadge(isEdited: asset.isEdited)
+                if !isHovering {
+                    SingleLineOverlayBadge(text: fileName)
+                        .padding(8)
+                }
             }
             // Top right overlay
             ZStack(alignment: .topTrailing) {
@@ -256,7 +245,6 @@ struct ImageItem: View {
                 HoverControls(
                     asset: asset,
                     vm: vm,
-                    toggle: toggle,
                     recover: recover,
                     isVisible: isHovering
                 )
@@ -279,20 +267,20 @@ struct ImageItem: View {
             isVisible = false
             localThumbnail = nil
         }
-        .onChange(of: asset.workingURL) { _ in
+        .onChange(of: asset.workingURL) {
             if isVisible { localThumbnail = asset.thumbnail }
         }
         .animation(.easeInOut(duration: 0.15), value: isHovering)
         // Re-estimate on relevant control changes for this visible item
-        .onChange(of: vm.sizeUnit) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.resizePercent) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.resizeWidth) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.resizeHeight) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.selectedFormat) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.compressionMode) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.compressionPercent) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.compressionTargetKB) { _ in vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.removeMetadata) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.sizeUnit) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizePercent) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizeWidth) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizeHeight) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.selectedFormat) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.compressionMode) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.compressionPercent) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.compressionTargetKB) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.removeMetadata) { vm.triggerEstimationForVisible([asset]) }
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .inset(by: isHovering ? -2 : 0)
@@ -343,7 +331,6 @@ private func formatBytes(_ bytes: Int) -> String {
     ImageItem(
         asset: PreviewData.newImageAsset,
         vm: PreviewData.mockViewModel,
-        toggle: {},
         recover: nil
     )
     .frame(width: 200, height: 200)
@@ -354,7 +341,6 @@ private func formatBytes(_ bytes: Int) -> String {
     ImageItem(
         asset: PreviewData.editedImageAsset,
         vm: PreviewData.mockViewModel,
-        toggle: {},
         recover: {}
     )
     .frame(width: 200, height: 200)
@@ -365,7 +351,6 @@ private func formatBytes(_ bytes: Int) -> String {
     ImageItem(
         asset: PreviewData.noThumbnailAsset,
         vm: PreviewData.mockViewModel,
-        toggle: {},
         recover: nil
     )
     .frame(width: 200, height: 200)

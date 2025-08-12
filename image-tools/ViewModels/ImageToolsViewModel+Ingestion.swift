@@ -32,11 +32,6 @@ extension ImageToolsViewModel {
         ImageIOCapabilities.shared.isReadableURL(url)
     }
 
-    // Enable/Disable & Move between sections
-    func toggleEnable(_ asset: ImageAsset) {
-        if let idx = images.firstIndex(of: asset) { images[idx].isEnabled.toggle() }
-    }
-
     // Remove an asset
     func remove(_ asset: ImageAsset) {
         withAnimation(.spring(response: 0.45, dampingFraction: 0.9, blendDuration: 0.2)) {

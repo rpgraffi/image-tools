@@ -25,14 +25,9 @@ struct ImagesGridView: View {
                     ImageItem(
                         asset: asset,
                         vm: vm,
-                        toggle: { vm.toggleEnable(asset) },
                         recover: asset.backupURL != nil ? { vm.recoverOriginal(asset) } : nil
                     )
                     .aspectRatio(1, contentMode: .fit)
-                    .contextMenu {
-                        Button(String(localized: "Enable/Disable")) { vm.toggleEnable(asset) }
-                        if asset.backupURL != nil { Button(String(localized: "Recover original")) { vm.recoverOriginal(asset) } }
-                    }
                     .onAppear { visibleIds.insert(asset.id); scheduleEstimation() }
                     .onDisappear { visibleIds.remove(asset.id); scheduleEstimation() }
                 }

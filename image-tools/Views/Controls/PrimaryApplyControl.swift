@@ -94,8 +94,8 @@ struct PrimaryApplyControl: View {
         .allowsHitTesting(!isInProgress)
         .shadow(color: Color.accentColor.opacity((isDisabled || isInProgress) ? 0 : 0.25), radius: 8, x: 0, y: 2)
         .help(String(localized: "Save images"))
-        .onChange(of: isInProgress) { newValue in
-            if newValue == false {
+        .onChange(of: isInProgress) { _, isNowInProgress in
+            if isNowInProgress == false {
                 // Show "Done" briefly when progress finishes
                 withAnimation(Theme.Animations.spring()) {
                     showDoneText = true
