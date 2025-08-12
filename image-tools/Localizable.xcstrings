@@ -70,7 +70,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Starten"
+            "value" : "Speichern"
           }
         },
         "en" : {
@@ -80,9 +80,6 @@
           }
         }
       }
-    },
-    "Apply changes" : {
-
     },
     "Apply processing pipeline" : {
       "extractionState" : "manual",
@@ -670,6 +667,12 @@
           }
         }
       }
+    },
+    "Save" : {
+
+    },
+    "Save images" : {
+
     },
     "Target" : {
       "extractionState" : "manual",

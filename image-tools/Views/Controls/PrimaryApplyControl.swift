@@ -10,7 +10,7 @@ struct PrimaryApplyControl: View {
         Button(role: .none) {
             perform()
         } label: {
-            Label(String(localized: "Apply"), systemImage: "play.fill")
+            Label(String(localized: "Save"), systemImage: "play.fill")
                 .font(Theme.Fonts.button)
                 .foregroundStyle(Color.white)
                 .frame(minWidth: 120, minHeight: height)
@@ -26,6 +26,6 @@ struct PrimaryApplyControl: View {
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
         .disabled(isDisabled)
         .shadow(color: Color.accentColor.opacity(isDisabled ? 0 : 0.25), radius: 8, x: 0, y: 2)
-        .help(String(localized: "Apply changes"))
+        .help(String(localized: "Save images"))
     }
 } 

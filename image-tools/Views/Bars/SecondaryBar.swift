@@ -32,10 +32,18 @@ struct SecondaryBar: View {
 
             // Right column
             HStack(spacing: 8) {
-                OverwriteToggleControl(isOn: $vm.overwriteOriginals)
-                ExportDirectoryPill(directory: $vm.exportDirectory)
+                if vm.isExportingToSource {
+                    OverwriteToggleControl(isOn: $vm.overwriteOriginals)
+                        .transition(.opacity.combined(with: .move(edge: .trailing)))
+                }
+                ExportDirectoryPill(
+                    directory: $vm.exportDirectory,
+                    sourceDirectory: vm.sourceDirectory,
+                    hasActiveImages: !(vm.newImages.isEmpty && vm.editedImages.isEmpty)
+                )
             }
             .frame(maxWidth: .infinity, alignment: .trailing)
+            .animation(Theme.Animations.spring(), value: vm.isExportingToSource)
         }
         .padding(8)
     }

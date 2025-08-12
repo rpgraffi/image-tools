@@ -3,23 +3,28 @@ import AppKit
 
 struct ExportDirectoryPill: View {
     @Binding var directory: URL?
+    var sourceDirectory: URL?
+    var hasActiveImages: Bool
 
     var body: some View {
         let height: CGFloat = Theme.Metrics.controlHeight
         let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
+        // Highlight only when user explicitly chose a destination dir
         let isOn = directory != nil
         HStack(spacing: 8) {
             if isOn {
-                Label(directoryLabel, systemImage: "folder.fill")
+                Label(currentLabel, systemImage: "folder.fill")
                     .font(Theme.Fonts.button)
                     .foregroundStyle(Color.white)
                     .lineLimit(1)
                     .truncationMode(.tail)
                     .frame(height: height)
             } else {
-                Image(systemName: "folder.fill")
+                Label(currentLabel, systemImage: "folder.fill")
                     .font(Theme.Fonts.button)
                     .foregroundStyle(.primary)
+                    .lineLimit(1)
+                    .truncationMode(.tail)
                     .frame(height: height)
             }
             if isOn {
@@ -41,12 +46,19 @@ struct ExportDirectoryPill: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
         .animation(Theme.Animations.pillFill(), value: isOn)
-        .help(isOn ? (directory?.path ?? "") : String(localized: "Choose export folder"))
+        .help(isOn ? (directory?.path ?? "") : (currentTooltip))
     }
 
-    private var directoryLabel: String {
+    private var currentLabel: String {
         if let dir = directory { return dir.lastPathComponent }
+        if hasActiveImages, let src = sourceDirectory { return src.lastPathComponent }
         return String(localized: "Origin")
+    }
+
+    private var currentTooltip: String {
+        if let dir = directory { return dir.path }
+        if let src = sourceDirectory { return src.path }
+        return String(localized: "Choose export folder")
     }
 
     private func pickDirectory() {
@@ -54,6 +66,7 @@ struct ExportDirectoryPill: View {
         panel.allowsMultipleSelection = false
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
+        panel.canCreateDirectories = true
         panel.prompt = String(localized: "Choose")
         if panel.runModal() == .OK {
             directory = panel.urls.first

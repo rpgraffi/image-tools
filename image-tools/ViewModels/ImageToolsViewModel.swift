@@ -8,7 +8,15 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var editedImages: [ImageAsset] = []
 
     @Published var overwriteOriginals: Bool = false
-    @Published var exportDirectory: URL? = nil
+    // Persist selected export directory between sessions
+    @Published var exportDirectory: URL? = nil { didSet { persistExportDirectory() } }
+    // Last detected source directory from most recent import
+    @Published var sourceDirectory: URL? = nil
+    var isExportingToSource: Bool {
+        guard let source = sourceDirectory?.standardizedFileURL else { return false }
+        let export = exportDirectory?.standardizedFileURL
+        return export == nil || export == source
+    }
 
     // UI toggles/state
     @Published var sizeUnit: SizeUnitToggle = .percent
@@ -45,6 +53,7 @@ final class ImageToolsViewModel: ObservableObject {
     private enum PersistenceKeys {
         static let recentFormats = "image_tools.recent_formats.v1"
         static let selectedFormat = "image_tools.selected_format.v1"
+        static let exportDirectory = "image_tools.export_directory.v1"
     }
 
     private let defaults = UserDefaults.standard
@@ -59,12 +68,22 @@ final class ImageToolsViewModel: ObservableObject {
             let caps = ImageIOCapabilities.shared
             if caps.supportsWriting(utType: fmt.utType) { selectedFormat = fmt }
         }
+        if let exportPath = defaults.string(forKey: PersistenceKeys.exportDirectory) {
+            exportDirectory = URL(fileURLWithPath: exportPath)
+        }
         // Initialize restrictions after selectedFormat restoration
         updateRestrictions()
     }
 
     private func persistRecentFormats() { defaults.set(recentFormats.map { $0.id }, forKey: PersistenceKeys.recentFormats) }
     private func persistSelectedFormat() { defaults.set(selectedFormat?.id, forKey: PersistenceKeys.selectedFormat) }
+    private func persistExportDirectory() {
+        if let dir = exportDirectory {
+            defaults.set(dir.path, forKey: PersistenceKeys.exportDirectory)
+        } else {
+            defaults.removeObject(forKey: PersistenceKeys.exportDirectory)
+        }
+    }
 
     private func updateRestrictions() {
         let caps = ImageIOCapabilities.shared
@@ -159,6 +178,11 @@ final class ImageToolsViewModel: ObservableObject {
     func addURLs(_ urls: [URL]) {
         let imageURLs = urls.filter { ImageIOCapabilities.shared.isReadableURL($0) }
         guard !imageURLs.isEmpty else { return }
+
+        // Track source directory based on first image URL
+        if let firstDir = imageURLs.first?.deletingLastPathComponent() {
+            sourceDirectory = firstDir
+        }
 
         // Append in batches to keep UI responsive
         let batchSize = 16
@@ -303,6 +327,11 @@ final class ImageToolsViewModel: ObservableObject {
             for await urls in stream {
                 let filtered = urls.filter { ImageIOCapabilities.shared.isReadableURL($0) }
                 guard !filtered.isEmpty else { continue }
+                if let firstDir = filtered.first?.deletingLastPathComponent() {
+                    await MainActor.run {
+                        sourceDirectory = firstDir
+                    }
+                }
                 // Must create AppKit-backed assets on main actor
                 await MainActor.run {
                     let assets = filtered.map { ImageAsset(url: $0) }
@@ -323,6 +352,10 @@ final class ImageToolsViewModel: ObservableObject {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.85, blendDuration: 0.3)) {
             newImages.removeAll()
             editedImages.removeAll()
+        }
+        // Reset automatic source-based destination only if no explicit export directory is set
+        if exportDirectory == nil {
+            sourceDirectory = nil
         }
     }
 } 
