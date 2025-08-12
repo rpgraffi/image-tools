@@ -16,7 +16,7 @@ protocol ImageOperation {
 }
 
 // Load a CIImage while applying EXIF/TIFF orientation so pixels are normalized to 'up'
-private func loadCIImageApplyingOrientation(from url: URL) throws -> CIImage {
+func loadCIImageApplyingOrientation(from url: URL) throws -> CIImage {
     let options: [CIImageOption: Any] = [
         .applyOrientationProperty: true
     ]
@@ -28,9 +28,9 @@ struct ResizeOperation: ImageOperation {
     enum Mode { case percent(Double); case pixels(width: Int?, height: Int?) }
     let mode: Mode
 
-    func apply(to url: URL) throws -> URL {
-        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else { throw ImageOperationError.loadFailed }
-        let originalExtent = ciImage.extent
+    // Reusable pixel transform for in-memory pipelines
+    func transformed(_ input: CIImage) throws -> CIImage {
+        let originalExtent = input.extent
         let targetSize: CGSize
         switch mode {
         case .percent(let p):
@@ -45,11 +45,16 @@ struct ResizeOperation: ImageOperation {
         let scaleX = targetSize.width / originalExtent.width
         let scaleY = targetSize.height / originalExtent.height
         let lanczos = CIFilter.lanczosScaleTransform()
-        lanczos.inputImage = ciImage
+        lanczos.inputImage = input
         lanczos.scale = Float(min(scaleX, scaleY))
         lanczos.aspectRatio = Float(scaleX / scaleY)
         guard let output = lanczos.outputImage else { throw ImageOperationError.exportFailed }
+        return output
+    }
 
+    func apply(to url: URL) throws -> URL {
+        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else { throw ImageOperationError.loadFailed }
+        let output = try transformed(ciImage)
         return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
     }
 }
@@ -59,30 +64,35 @@ struct ResizeOperation: ImageOperation {
 struct ConstrainSizeOperation: ImageOperation {
     let targetFormat: ImageFormat
 
-    func apply(to url: URL) throws -> URL {
+    // Reusable pixel transform for in-memory pipelines
+    func transformed(_ input: CIImage) throws -> CIImage {
         let caps = ImageIOCapabilities.shared
-        guard let restrictions = caps.sizeRestrictions(forUTType: targetFormat.utType) else {
-            return url
+        guard let _ = caps.sizeRestrictions(forUTType: targetFormat.utType) else {
+            return input
         }
-        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else {
-            throw ImageOperationError.loadFailed
-        }
-        let current = ciImage.extent.size
+        let current = input.extent.size
         if caps.isValidPixelSize(current, for: targetFormat.utType) {
-            return url
+            return input
         }
-        // Suggest a square side and resize accordingly
         guard let side = caps.suggestedSquareSide(for: targetFormat.utType, source: current) else {
-            return url
+            return input
         }
         let target = CGSize(width: side, height: side)
         let scaleX = target.width / current.width
         let scaleY = target.height / current.height
         let lanczos = CIFilter.lanczosScaleTransform()
-        lanczos.inputImage = ciImage
+        lanczos.inputImage = input
         lanczos.scale = Float(min(scaleX, scaleY))
         lanczos.aspectRatio = Float(scaleX / scaleY)
         guard let output = lanczos.outputImage else { throw ImageOperationError.exportFailed }
+        return output
+    }
+
+    func apply(to url: URL) throws -> URL {
+        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else {
+            throw ImageOperationError.loadFailed
+        }
+        let output = try transformed(ciImage)
         return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
     }
 }
@@ -132,20 +142,24 @@ struct CompressOperation: ImageOperation {
 
 struct RotateOperation: ImageOperation {
     let rotation: ImageRotation
-    func apply(to url: URL) throws -> URL {
+    // Reusable pixel transform for in-memory pipelines
+    func transformed(_ input: CIImage) throws -> CIImage {
         let angle = Double(rotation.rawValue) * Double.pi / 180.0
-        let ciImage = try loadCIImageApplyingOrientation(from: url)
         let transform = CGAffineTransform(rotationAngle: angle)
-        let output = ciImage.transformed(by: transform)
+        return input.transformed(by: transform)
+    }
+    func apply(to url: URL) throws -> URL {
+        let ciImage = try loadCIImageApplyingOrientation(from: url)
+        let output = try transformed(ciImage)
         return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
     }
 }
 
 struct FlipOperation: ImageOperation {
     let direction: HorizontalVertical
-    func apply(to url: URL) throws -> URL {
-        let ciImage = try loadCIImageApplyingOrientation(from: url)
-        let extent = ciImage.extent
+    // Reusable pixel transform for in-memory pipelines
+    func transformed(_ input: CIImage) throws -> CIImage {
+        let extent = input.extent
         let transform: CGAffineTransform
         switch direction {
         case .horizontal:
@@ -153,7 +167,11 @@ struct FlipOperation: ImageOperation {
         case .vertical:
             transform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -extent.height)
         }
-        let output = ciImage.transformed(by: transform)
+        return input.transformed(by: transform)
+    }
+    func apply(to url: URL) throws -> URL {
+        let ciImage = try loadCIImageApplyingOrientation(from: url)
+        let output = try transformed(ciImage)
         return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
     }
 }

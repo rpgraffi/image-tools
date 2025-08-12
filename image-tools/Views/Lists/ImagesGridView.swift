@@ -5,6 +5,18 @@ struct ImagesGridView: View {
     let images: [ImageAsset]
     let vm: ImageToolsViewModel
     let columns: [GridItem]
+    @State private var visibleIds: Set<UUID> = []
+    @State private var debounceWorkItem: DispatchWorkItem? = nil
+
+    private func scheduleEstimation() {
+        debounceWorkItem?.cancel()
+        let work = DispatchWorkItem { [visibleIds, images] in
+            let visible = images.filter { visibleIds.contains($0.id) }
+            vm.triggerEstimationForVisible(visible)
+        }
+        debounceWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
+    }
 
     var body: some View {
         ScrollView {
@@ -21,6 +33,8 @@ struct ImagesGridView: View {
                         Button(String(localized: "Enable/Disable")) { vm.toggleEnable(asset) }
                         if asset.backupURL != nil { Button(String(localized: "Recover original")) { vm.recoverOriginal(asset) } }
                     }
+                    .onAppear { visibleIds.insert(asset.id); scheduleEstimation() }
+                    .onDisappear { visibleIds.remove(asset.id); scheduleEstimation() }
                 }
             }
             .padding(10)

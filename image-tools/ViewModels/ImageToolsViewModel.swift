@@ -33,6 +33,10 @@ final class ImageToolsViewModel: ObservableObject {
     // Recently used formats for prioritization
     @Published var recentFormats: [ImageFormat] = [] { didSet { persistRecentFormats() } }
 
+    // Estimated sizes per image (bytes); UI displays "--- KB" when nil/absent
+    @Published var estimatedBytes: [UUID: Int] = [:]
+    private var estimationTask: Task<Void, Never>? = nil
+
     // MARK: - Init / Persistence
     init() {
         loadPersistedState()
@@ -94,6 +98,41 @@ final class ImageToolsViewModel: ObservableObject {
         )
     }
 
+    // MARK: - True size estimation orchestration
+    func triggerEstimationForVisible(_ visibleAssets: [ImageAsset]) {
+        // Cancel previous run
+        estimationTask?.cancel()
+        let sizeUnit = self.sizeUnit
+        let resizePercent = self.resizePercent
+        let resizeWidth = self.resizeWidth
+        let resizeHeight = self.resizeHeight
+        let selectedFormat = self.selectedFormat
+        let compressionMode = self.compressionMode
+        let compressionPercent = self.compressionPercent
+        let compressionTargetKB = self.compressionTargetKB
+        let removeMetadata = self.removeMetadata
+
+        estimationTask = Task(priority: .utility) { [weak self] in
+            guard let self else { return }
+            let enabled = visibleAssets.filter { $0.isEnabled }
+            let map = await TrueSizeEstimator.estimate(
+                assets: enabled,
+                sizeUnit: sizeUnit,
+                resizePercent: resizePercent,
+                resizeWidth: resizeWidth,
+                resizeHeight: resizeHeight,
+                selectedFormat: selectedFormat,
+                compressionMode: compressionMode,
+                compressionPercent: compressionPercent,
+                compressionTargetKB: compressionTargetKB,
+                removeMetadata: removeMetadata
+            )
+            await MainActor.run {
+                self.estimatedBytes.merge(map) { _, new in new }
+            }
+        }
+    }
+
     // React to format selection to prefill/switch resize inputs when required
     func onSelectedFormatChanged() {
         updateRestrictions()
@@ -112,6 +151,8 @@ final class ImageToolsViewModel: ObservableObject {
                 resizeHeight = String(side)
             }
         }
+        // Also retrigger estimation when format changes
+        scheduleReestimation()
     }
 
     // MARK: - Ingestion
@@ -132,6 +173,7 @@ final class ImageToolsViewModel: ObservableObject {
                 await Task.yield()
             }
         }
+        // Trigger background estimation for newly added (visible set will drive actual selection in UI)
     }
 
     private func isSupportedImage(_ url: URL) -> Bool {
@@ -182,6 +224,12 @@ final class ImageToolsViewModel: ObservableObject {
             }
             if same { resizeWidth = String(w); resizeHeight = String(h) } else { resizeWidth = ""; resizeHeight = "" }
         }
+    }
+
+    // MARK: - Reactive estimation triggers
+    private func scheduleReestimation() {
+        // UI should call triggerEstimationForVisible with current viewport items; leave here as a hook if needed.
+        // No-op: orchestrated from Views via onAppear/onChange with visible assets.
     }
 
     // MARK: - Processing

@@ -22,7 +22,8 @@ struct ImageChangeInfo {
         let origPixel = asset.originalPixelSize
         let targetPixel = preview.targetPixelSize
         let sizeBytesBefore = asset.originalFileSizeBytes
-        let sizeBytesAfter = preview.estimatedOutputBytes
+        // Prefer true background estimate when available; else use nil to show placeholder
+        let sizeBytesAfter = vm.estimatedBytes[asset.id] ?? preview.estimatedOutputBytes
         let beforeFmt = ImageExporter.inferFormat(from: asset.originalURL)
         let afterFmt = vm.selectedFormat ?? beforeFmt
         
@@ -109,12 +110,10 @@ private struct InfoOverlay: View {
             }
             
             // File size change overlay
-            if changeInfo.fileSizeChanged,
-               let originalSize = changeInfo.originalFileSize,
-               let outputSize = changeInfo.estimatedOutputSize {
+            if let originalSize = changeInfo.originalFileSize {
                 TwoLineOverlayBadge(
                     topText: "\(formatBytes(originalSize))",
-                    bottomText: "\(formatBytes(outputSize))"
+                    bottomText: changeInfo.estimatedOutputSize.map { formatBytes($0) } ?? "--- KB"
                 )
             }
         }
@@ -284,6 +283,16 @@ struct ImageItem: View {
             if isVisible { localThumbnail = asset.thumbnail }
         }
         .animation(.easeInOut(duration: 0.15), value: isHovering)
+        // Re-estimate on relevant control changes for this visible item
+        .onChange(of: vm.sizeUnit) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizePercent) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizeWidth) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizeHeight) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.selectedFormat) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.compressionMode) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.compressionPercent) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.compressionTargetKB) { _ in vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.removeMetadata) { _ in vm.triggerEstimationForVisible([asset]) }
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .continuous)
                 .inset(by: isHovering ? -2 : 0)
