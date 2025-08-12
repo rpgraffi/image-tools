@@ -200,6 +200,19 @@
         }
       }
     },
+    "Destination" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speicherort"
+          }
+        }
+      }
+    },
+    "Done" : {
+
+    },
     "Drag or " : {
       "extractionState" : "manual",
       "localizations" : {
@@ -430,7 +443,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Quelle"
+            "value" : "Zielordner"
           }
         },
         "en" : {
@@ -669,10 +682,24 @@
       }
     },
     "Save" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichern"
+          }
+        }
+      }
     },
     "Save images" : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speichere alle Bilder"
+          }
+        }
+      }
     },
     "Target" : {
       "extractionState" : "manual",

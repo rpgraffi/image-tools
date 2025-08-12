@@ -16,7 +16,7 @@ struct ImagesListView: View {
         [GridItem(.adaptive(minimum: 220, maximum: tileMaxWidth), spacing: gridSpacing, alignment: .top)]
     }
 
-    private var allImages: [ImageAsset] { vm.newImages + vm.editedImages }
+    private var allImages: [ImageAsset] { vm.images }
     private var isEmpty: Bool { allImages.isEmpty }
 
     @Environment(\.colorScheme) private var colorScheme
@@ -178,7 +178,7 @@ struct ImagesListView_Previews: PreviewProvider {
             makeTempImageURL(size: NSSize(width: 800, height: 800), color: .systemGreen),
             makeTempImageURL(size: NSSize(width: 600, height: 1200), color: .systemOrange)
         ]
-        vm.newImages = urls.map { ImageAsset(url: $0) }
+        vm.images = urls.map { ImageAsset(url: $0) }
         return vm
     }
 

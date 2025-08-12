@@ -21,13 +21,16 @@ struct SecondaryBar: View {
                 } label: {
                     Text(String(localized: "Clear"))
                 }
-                .disabled(vm.newImages.isEmpty && vm.editedImages.isEmpty)
+                .disabled(vm.images.isEmpty)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
 
             PrimaryApplyControl(
-                isDisabled: vm.newImages.isEmpty && vm.editedImages.isEmpty,
-                perform: { vm.applyPipeline() }
+                isDisabled: vm.images.isEmpty,
+                isInProgress: vm.isExporting,
+                progress: vm.exportFraction,
+                counterText: vm.isExporting ? "\(vm.exportCompleted)/\(vm.exportTotal)" : nil,
+                perform: { vm.applyPipelineAsync() }
             ).frame(maxWidth: .infinity)
 
             // Right column
@@ -39,7 +42,7 @@ struct SecondaryBar: View {
                 ExportDirectoryPill(
                     directory: $vm.exportDirectory,
                     sourceDirectory: vm.sourceDirectory,
-                    hasActiveImages: !(vm.newImages.isEmpty && vm.editedImages.isEmpty)
+                    hasActiveImages: !vm.images.isEmpty
                 )
             }
             .frame(maxWidth: .infinity, alignment: .trailing)

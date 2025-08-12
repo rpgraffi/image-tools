@@ -85,7 +85,6 @@ struct ProcessingPipeline {
 
         var updated = result
         updated.workingURL = destinationURL
-        updated.thumbnail = ThumbnailGenerator.generateThumbnail(for: destinationURL)
         updated.isEdited = true
         return updated
     }

@@ -52,7 +52,7 @@ struct ExportDirectoryPill: View {
     private var currentLabel: String {
         if let dir = directory { return dir.lastPathComponent }
         if hasActiveImages, let src = sourceDirectory { return src.lastPathComponent }
-        return String(localized: "Origin")
+        return String(localized: "Destination")
     }
 
     private var currentTooltip: String {

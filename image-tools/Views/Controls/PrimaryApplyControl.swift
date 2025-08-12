@@ -2,30 +2,186 @@ import SwiftUI
 
 struct PrimaryApplyControl: View {
     let isDisabled: Bool
+    var isInProgress: Bool = false
+    var progress: Double = 0
+    var counterText: String? = nil
     let perform: () -> Void
+    @State private var labelSize: CGSize = .zero
+    @State private var showDoneText: Bool = false
 
     var body: some View {
         let height: CGFloat = max(Theme.Metrics.controlHeight, 40)
         let corner = Theme.Metrics.pillCornerRadius(forHeight: height)
+        let horizontalPadding: CGFloat = 20
+        let maxWidth: CGFloat = 160
+
+        let huggedWidth = max(labelSize.width + horizontalPadding * 2, height)
+        let targetWidth = isInProgress ? maxWidth : min(maxWidth, huggedWidth)
+        let label: String = {
+            if isInProgress {
+                return counterText ?? String(localized: "Save")
+            }
+            if showDoneText {
+                return String(localized: "Done")
+            }
+            return String(localized: "Save")
+        }()
+        let isCounting = isInProgress && (counterText != nil)
+        let textTransition: ContentTransition = isCounting ? .numericText() : .opacity
+
         Button(role: .none) {
+            guard !isInProgress else { return }
             perform()
         } label: {
-            Label(String(localized: "Save"), systemImage: "play.fill")
+            ZStack(alignment: .leading) {
+                // Progress fill (clipped rectangle inside the pill)
+                GeometryReader { proxy in
+                    // Default: 100% fill; when saving, animate to current progress
+                    let displayed = isInProgress ? max(min(progress, 1.0), 0.0) : 1.0
+                    let w = displayed * proxy.size.width
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: w)
+                        .animation(Theme.Animations.spring(), value: displayed)
+                }
+                .frame(height: height) // constrain GeometryReader to pill height
+                .allowsHitTesting(false)
+
+                HStack(spacing: 8) {
+                    Image(systemName: isInProgress ? "hourglass" : "photo.stack.fill")
+                        .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.byLayer), options: .nonRepeating))
+                        .transition(.opacity)
+                    Text(label)
+                        .contentTransition(textTransition)
+                        .transition(.opacity)
+                        .monospacedDigit()
+                }
                 .font(Theme.Fonts.button)
                 .foregroundStyle(Color.white)
-                .frame(minWidth: 120, minHeight: height)
-                .padding(.horizontal, 20)
-                .contentShape(Rectangle())
+                .frame(height: height)
+                .padding(.horizontal, horizontalPadding)
+                .frame(maxWidth: .infinity, alignment: .center)
+                // Measure intrinsic label size to hug width in default state
+                .background(
+                    GeometryReader { proxy in
+                        Color.clear
+                            .preference(key: SizePreferenceKey.self, value: proxy.size)
+                    }
+                )
+                .onPreferenceChange(SizePreferenceKey.self) { newSize in
+                    if labelSize != newSize {
+                        labelSize = newSize
+                    }
+                }
+                // Drive numeric content transition
+                .animation(Theme.Animations.spring(), value: counterText)
+            }
+            .frame(width: targetWidth, height: height)
+            .contentShape(Rectangle())
         }
         .keyboardShortcut(.defaultAction)
         .buttonStyle(.plain)
         .background(
-            RoundedRectangle(cornerRadius: corner, style: .continuous)
-                .fill(Color.accentColor)
+            ZStack {
+                // Base track so remaining area is visible during progress
+                RoundedRectangle(cornerRadius: corner, style: .continuous)
+                    .fill(Color.secondary.opacity(0.2))
+            }
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+        .frame(maxWidth: maxWidth)
         .disabled(isDisabled)
-        .shadow(color: Color.accentColor.opacity(isDisabled ? 0 : 0.25), radius: 8, x: 0, y: 2)
+        .allowsHitTesting(!isInProgress)
+        .shadow(color: Color.accentColor.opacity((isDisabled || isInProgress) ? 0 : 0.25), radius: 8, x: 0, y: 2)
         .help(String(localized: "Save images"))
+        .onChange(of: isInProgress) { newValue in
+            if newValue == false {
+                // Show "Done" briefly when progress finishes
+                withAnimation(Theme.Animations.spring()) {
+                    showDoneText = true
+                }
+                Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 1_400_000_000)
+                    withAnimation(Theme.Animations.spring()) {
+                        showDoneText = false
+                    }
+                }
+            } else {
+                // Reset immediately when starting again
+                withAnimation(Theme.Animations.spring()) {
+                    showDoneText = false
+                }
+            }
+        }
+        // Animate width changes only when progress starts/ends, and animate label changes for Done <-> Save
+        .animation(Theme.Animations.spring(), value: isInProgress)
+        .animation(Theme.Animations.spring(), value: showDoneText)
     }
 } 
+
+// PreferenceKey to measure child size
+private struct SizePreferenceKey: PreferenceKey {
+    static var defaultValue: CGSize = .zero
+    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+        let next = nextValue()
+        // Prefer the latest non-zero value
+        value = next == .zero ? value : next
+    }
+}
+
+
+#Preview("PrimaryApplyControl") {
+    struct Demo: View {
+        @State private var disabled = false
+        @State private var inProgress = false
+        @State private var progress: Double = 0.0
+        @State private var count: Int? = nil
+
+        var body: some View {
+            VStack(spacing: 20) {
+                PrimaryApplyControl(
+                    isDisabled: disabled,
+                    isInProgress: inProgress,
+                    progress: progress,
+                    counterText: count.map(String.init),
+                    perform: {
+                        inProgress = true
+                        // Simulate work
+                        Task {
+                            for step in 1...10 {
+                                try? await Task.sleep(nanoseconds: 250_000_000)
+                                progress = Double(step) / 10.0
+                                count = step * 10
+                            }
+                            inProgress = false
+                            progress = 0
+                            count = nil
+                        }
+                    }
+                )
+
+                HStack {
+                    Toggle("Disabled", isOn: $disabled)
+                    Toggle("In Progress", isOn: $inProgress)
+                }
+                .toggleStyle(.switch)
+
+                HStack(spacing: 12) {
+                    Text("Progress")
+                    Slider(value: $progress, in: 0...1)
+                        .disabled(!inProgress)
+                }
+
+                HStack(spacing: 12) {
+                    Text("Counter")
+                    Stepper(value: Binding(get: { count ?? 0 }, set: { count = $0 }), in: 0...10_000) {
+                        Text(count.map(String.init) ?? "nil")
+                    }
+                }
+            }
+            .padding()
+            .frame(width: 400)
+        }
+    }
+    return Demo()
+}
