@@ -22,6 +22,7 @@ struct UnrestrictedResizeControl: View {
                         PixelFieldsView(
                             widthText: $vm.resizeWidth,
                             heightText: $vm.resizeHeight,
+                            baseSize: basePixelSizeForCurrentSelection(),
                             containerSize: size,
                             squareLocked: false
                         )
@@ -31,6 +32,11 @@ struct UnrestrictedResizeControl: View {
                 .frame(width: size.width, height: size.height)
             }
         }
+    }
+
+    private func basePixelSizeForCurrentSelection() -> CGSize? {
+        if let firstEnabled = vm.images.first(where: { $0.isEnabled }), let s = firstEnabled.originalPixelSize { return s }
+        return vm.images.first?.originalPixelSize
     }
 }
 

@@ -18,10 +18,13 @@ final class ImageToolsViewModel: ObservableObject {
     }
 
     // UI toggles/state
-    @Published var sizeUnit: SizeUnitToggle = .percent
+    @Published var sizeUnit: SizeUnitToggle = .percent { didSet { handleSizeUnitToggle(to: sizeUnit) } }
     @Published var resizePercent: Double = 1.0
     @Published var resizeWidth: String = ""
     @Published var resizeHeight: String = ""
+    
+    @Published var storedPixelWidth: String? = nil
+    @Published var storedPixelHeight: String? = nil
 
     @Published var selectedFormat: ImageFormat? = nil { didSet { persistSelectedFormat(); onSelectedFormatChanged() } }
     @Published var allowedSquareSizes: [Int]? = nil
@@ -56,6 +59,22 @@ final class ImageToolsViewModel: ObservableObject {
     // MARK: - Init / Persistence
     init() {
         loadPersistedState()
+    }
+
+    // MARK: - UI State Transitions
+    func handleSizeUnitToggle(to newUnit: SizeUnitToggle) {
+        switch newUnit {
+        case .pixels:
+            if let w = storedPixelWidth, let h = storedPixelHeight, (!w.isEmpty || !h.isEmpty) {
+                resizeWidth = w
+                resizeHeight = h
+            } else {
+                prefillPixelsIfPossible()
+            }
+        case .percent:
+            storedPixelWidth = resizeWidth
+            storedPixelHeight = resizeHeight
+        }
     }
 
     // MARK: - Clear all images

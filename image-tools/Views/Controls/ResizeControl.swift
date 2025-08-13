@@ -34,7 +34,7 @@ struct ResizeControl: View {
                 .animation(Theme.Animations.spring(), value: vm.sizeUnit)
         .onChange(of: vm.sizeUnit) { _, newValue in
             withAnimation(Theme.Animations.spring()) {
-                if newValue == .pixels { vm.prefillPixelsIfPossible() }
+                vm.handleSizeUnitToggle(to: newValue)
             }
         }
     }
@@ -43,7 +43,6 @@ struct ResizeControl: View {
         withAnimation(Theme.Animations.spring()) {
             if vm.sizeUnit == .percent {
                 vm.sizeUnit = .pixels
-                vm.prefillPixelsIfPossible()
             } else {
                 vm.sizeUnit = .percent
             }

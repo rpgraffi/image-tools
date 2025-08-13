@@ -1,100 +1,169 @@
 import SwiftUI
 import AppKit
 
-/// Reusable W/H pixel fields used by resize controls.
-/// - squareLocked: when true, both fields share the same value.
+/// Single numeric pixel field with inline dimension toggle ("long" / "high").
+/// The field edits either `widthText` or `heightText` based on the active toggle.
 struct PixelFieldsView: View {
     @Binding var widthText: String
     @Binding var heightText: String
+    let baseSize: CGSize?
     let containerSize: CGSize
     let squareLocked: Bool
-
-    @FocusState private var widthFieldFocused: Bool
-    @FocusState private var heightFieldFocused: Bool
-    @State private var isSyncing: Bool = false
-
+    
+    private enum ActiveDimension { case width, height }
+    
+    @State private var activeDimension: ActiveDimension = .width
+    @FocusState private var fieldFocused: Bool
+    @State private var didAcceptWidth: Bool = false
+    @State private var didAcceptHeight: Bool = false
+    
+    private var acceptedForActiveDimension: Bool {
+        activeDimension == .width ? didAcceptWidth : didAcceptHeight
+    }
+    
     var body: some View {
-        let width = containerSize.width
         let corner = Theme.Metrics.pillCornerRadius(forHeight: containerSize.height)
-        let fieldWidth = (width - 1) / 2
-        return HStack(spacing: 0) {
-            ZStack(alignment: .trailing) {
-                TextField("", text: $widthText)
-                    .textFieldStyle(.plain)
-                    .multilineTextAlignment(.center)
-                    .font(Theme.Fonts.button)
-                    .padding(.horizontal, 8)
-                    .frame(width: fieldWidth, height: containerSize.height)
-                    .background(
-                        UnevenRoundedRectangle(cornerRadii: .init(
-                            topLeading: corner,
-                            bottomLeading: corner,
-                            bottomTrailing: 0,
-                            topTrailing: 0
-                        ))
-                        .fill(Theme.Colors.controlBackground)
-                    )
-                    .focused($widthFieldFocused)
-                    .onSubmit { NSApp.keyWindow?.endEditing(for: nil); widthFieldFocused = false }
-                    .onChange(of: widthText) { _, newValue in
-                        let digits = newValue.filter { $0.isNumber }
-                        if digits != widthText { widthText = digits }
-                        if squareLocked { syncFromWidth() }
-                    }
-
-                Text(String(localized: "W"))
-                    .font(Theme.Fonts.button)
-                    .foregroundColor(Color.secondary)
-                    .padding(.trailing, 8)
+        let textBinding: Binding<String> = Binding<String>(
+            get: { activeDimension == .width ? widthText : heightText },
+            set: { newValue in
+                let digits = newValue.filter { $0.isNumber }
+                applyInputToActiveDimension(digits)
             }
-
-            Spacer().frame(width: 1)
-
-            ZStack(alignment: .trailing) {
-                TextField("", text: $heightText)
-                    .textFieldStyle(.plain)
-                    .multilineTextAlignment(.center)
-                    .font(Theme.Fonts.button)
-                    .padding(.horizontal, 8)
-                    .frame(width: fieldWidth, height: containerSize.height)
-                    .background(
-                        UnevenRoundedRectangle(cornerRadii: .init(
-                            topLeading: 0,
-                            bottomLeading: 0,
-                            bottomTrailing: corner,
-                            topTrailing: corner
-                        ))
-                        .fill(Theme.Colors.controlBackground)
-                    )
-                    .focused($heightFieldFocused)
-                    .onSubmit { NSApp.keyWindow?.endEditing(for: nil); heightFieldFocused = false }
-                    .onChange(of: heightText) { _, newValue in
-                        let digits = newValue.filter { $0.isNumber }
-                        if digits != heightText { heightText = digits }
-                        if squareLocked { syncFromHeight() }
+        )
+        
+        return HStack(spacing: 0) {
+            ZStack {
+                RoundedRectangle(cornerRadius: corner)
+                    .fill(acceptedForActiveDimension ? Color.accentColor : Theme.Colors.controlBackground)
+                HStack(spacing: 8) {
+                    Button(action: {
+                        withAnimation(Theme.Animations.fastSpring()) {
+                            setActiveDimension(activeDimension == .width ? .height : .width)
+                        }
+                    }) {
+                        Text(activeDimension == .width ? String(localized: "Width") : String(localized: "Height"))
+                            .contentTransition(.opacity)
+                             .fixedSize(horizontal: true, vertical: false)
+                             .layoutPriority(1)
+                            .padding(.horizontal, 8)
+                            .frame(height: Theme.Metrics.controlHeight - 10)
+                            .background(
+                                Capsule(style: .continuous)
+                                    .stroke(Color.secondary.opacity(0.2), lineWidth: 2)
+                            )
+                            .contentShape(Rectangle())
                     }
-
-                Text(String(localized: "H"))
+                    .buttonStyle(.plain)
+                    .animation(Theme.Animations.fastSpring(), value: activeDimension)
+                    
                     .font(Theme.Fonts.button)
-                    .foregroundColor(Color.secondary)
-                    .padding(.trailing, 8)
+                    .foregroundStyle(acceptedForActiveDimension ? Color.white : Color.primary)
+                    .padding(.horizontal, 6)
+                    
+                    Spacer()
+                    
+                    TextField("", text: textBinding)
+                        .textFieldStyle(.plain)
+                        .multilineTextAlignment(.trailing)
+                        .focused($fieldFocused)
+                        .onSubmit {
+                            acceptIfFilledForActiveDimension()
+                            NSApp.keyWindow?.endEditing(for: nil)
+                            fieldFocused = false
+                        }
+                        .frame(height: containerSize.height)
+                        .monospacedDigit()
+                        .tint(acceptedForActiveDimension ? Color.white : Color.primary)
+                    
+                    Text(String(localized: "px"))
+                        .padding(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 10))
+                        
+                }
+                
+            }
+            .font(Theme.Fonts.button)
+            .frame(width: containerSize.width, height: containerSize.height)
+            .contentShape(Rectangle())
+            .animation(Theme.Animations.pillFill(), value: acceptedForActiveDimension)
+        }
+        .onAppear {
+            initializeActiveDimension()
+            refocusAndSelectAll()
+        }
+		.onChange(of: fieldFocused) { _, isFocused in
+			if !isFocused {
+                acceptIfFilledForActiveDimension()
+            }
+        }
+		.onChange(of: activeDimension) {
+            clearInactiveDimension()
+            refocusAndSelectAll()
+        }
+		.onChange(of: widthText) {
+            if fieldFocused { didAcceptWidth = false }
+        }
+		.onChange(of: heightText) {
+            if fieldFocused { didAcceptHeight = false }
+        }
+    }
+    
+    private func initializeActiveDimension() {
+        if !heightText.isEmpty, (widthText.isEmpty || (Int(widthText) == nil && Int(heightText) != nil)) {
+            activeDimension = .height
+            // Enforce single-source-of-truth: clear the inactive counterpart.x
+            widthText = ""
+        } else {
+            activeDimension = .width
+            // Enforce single-source-of-truth: clear the inactive counterpart.
+            heightText = ""
+        }
+    }
+    
+    private func refocusAndSelectAll() {
+        // Attempt to select all text in the current first responder text field
+        // Avoid creating a field editor explicitly; only act when a session exists.
+        DispatchQueue.main.async {
+            fieldFocused = true
+            if let window = NSApp.keyWindow,
+               let textView = window.firstResponder as? NSTextView {
+                textView.selectAll(nil)
             }
         }
     }
-
-    private func syncFromWidth() {
-        if isSyncing { return }
-        isSyncing = true
-        defer { isSyncing = false }
-        if heightText != widthText { heightText = widthText }
+    
+    private func acceptIfFilledForActiveDimension() {
+        switch activeDimension {
+        case .width:
+            didAcceptWidth = !widthText.isEmpty
+        case .height:
+            didAcceptHeight = !heightText.isEmpty
+        }
     }
-
-    private func syncFromHeight() {
-        if isSyncing { return }
-        isSyncing = true
-        defer { isSyncing = false }
-        if widthText != heightText { widthText = heightText }
+    
+    private func clearInactiveDimension() {
+        switch activeDimension {
+        case .width:
+            heightText = ""
+        case .height:
+            widthText = ""
+        }
+    }
+    
+    private func setActiveDimension(_ newValue: ActiveDimension) {
+        activeDimension = newValue
+        clearInactiveDimension()
+        refocusAndSelectAll()
+    }
+    
+    private func applyInputToActiveDimension(_ digits: String) {
+        switch activeDimension {
+        case .width:
+            widthText = digits
+            heightText = ""
+        case .height:
+            heightText = digits
+            widthText = ""
+        }
     }
 }
-
 

@@ -318,6 +318,16 @@
         }
       }
     },
+    "Height" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Höhe"
+          }
+        }
+      }
+    },
     "KB" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -717,6 +727,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "W"
+          }
+        }
+      }
+    },
+    "Width" : {
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Breite"
           }
         }
       }

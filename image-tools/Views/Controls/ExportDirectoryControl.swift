@@ -31,7 +31,7 @@ struct ExportDirectoryPill: View {
                 Button(action: { withAnimation(Theme.Animations.spring()) { directory = nil } }) {
                     Image(systemName: "xmark.circle.fill")
                         .font(Theme.Fonts.button)
-                        .foregroundStyle(.primary)
+                        .foregroundStyle(Color.white)
                 }
                 .buttonStyle(.plain)
                 .help(String(localized: "Clear export folder"))

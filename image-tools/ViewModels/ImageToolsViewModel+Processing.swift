@@ -70,10 +70,9 @@ extension ImageToolsViewModel {
         exportCompleted = 0
         isExporting = true
 
-        // Snapshot to mutate off-main, then commit on completion
-        var updatedImages = self.images
-
         Task(priority: .userInitiated) {
+            // Snapshot to mutate off-main, then commit on completion
+            var updatedImages = await MainActor.run { self.images }
             let maxConcurrent = recommendedConcurrency()
             var index = 0
             while index < targets.count {
@@ -105,9 +104,10 @@ extension ImageToolsViewModel {
                 await Task.yield()
             }
 
+            let imagesToCommit = updatedImages
             await MainActor.run {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.3)) {
-                    self.images = updatedImages
+                    self.images = imagesToCommit
                 }
                 self.isExporting = false
                 self.exportCompleted = 0

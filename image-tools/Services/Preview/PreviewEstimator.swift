@@ -19,23 +19,22 @@ struct PreviewEstimator {
         let baseSize: CGSize? = asset.originalPixelSize
         let targetSize: CGSize? = {
             guard let base = baseSize else { return CGSize(width: 0, height: 0) }
-            switch sizeUnit {
-            case .percent:
-                let scale = resizePercent
-                var w = base.width * scale
-                var h = base.height * scale
-                if let selected = selectedFormat, ImageIOCapabilities.shared.sizeRestrictions(forUTType: selected.utType) != nil {
-                    let side = min(w, h)
-                    w = side; h = side
+            let input: ResizeInput = {
+                switch sizeUnit {
+                case .percent:
+                    return .percent(resizePercent)
+                case .pixels:
+                    return .pixels(width: Int(resizeWidth), height: Int(resizeHeight))
                 }
-                return CGSize(width: w, height: h)
-            case .pixels:
-                let w = Int(resizeWidth)
-                let h = Int(resizeHeight)
-                let width = CGFloat(w ?? Int(base.width))
-                let height = CGFloat(h ?? Int(base.height))
-                return CGSize(width: max(1, width), height: max(1, height))
+            }()
+            // Preview should not upscale
+            var size = ResizeMath.targetSize(for: base, input: input, noUpscale: true)
+            // If format enforces square sizes in preview, clamp to min side
+            if let selected = selectedFormat, ImageIOCapabilities.shared.sizeRestrictions(forUTType: selected.utType) != nil {
+                let side = min(size.width, size.height)
+                size = CGSize(width: side, height: side)
             }
+            return size
         }()
         // Report no bytes here; UI will show "--- KB" until background estimator fills it.
         return PreviewInfo(targetPixelSize: targetSize, estimatedOutputBytes: nil)

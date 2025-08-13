@@ -31,16 +31,16 @@ struct ResizeOperation: ImageOperation {
     // Reusable pixel transform for in-memory pipelines
     func transformed(_ input: CIImage) throws -> CIImage {
         let originalExtent = input.extent
-        let targetSize: CGSize
-        switch mode {
-        case .percent(let p):
-            let scale = max(p, 0.01)
-            targetSize = CGSize(width: originalExtent.width * scale, height: originalExtent.height * scale)
-        case .pixels(let width, let height):
-            let w = CGFloat(width ?? Int(originalExtent.width))
-            let h = CGFloat(height ?? Int(originalExtent.height))
-            targetSize = CGSize(width: max(w, 1), height: max(h, 1))
-        }
+        let targetSize: CGSize = {
+            let inputMode: ResizeInput = {
+                switch mode {
+                case .percent(let p): return .percent(p)
+                case .pixels(let width, let height): return .pixels(width: width, height: height)
+                }
+            }()
+            // Processing should not upscale either.
+            return ResizeMath.targetSize(for: originalExtent.size, input: inputMode, noUpscale: true)
+        }()
 
         let scaleX = targetSize.width / originalExtent.width
         let scaleY = targetSize.height / originalExtent.height
