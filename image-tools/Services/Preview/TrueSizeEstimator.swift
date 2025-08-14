@@ -16,6 +16,8 @@ struct TrueSizeEstimator {
         resizeHeight: String,
         selectedFormat: ImageFormat?,
         compressionPercent: Double,
+        flipH: Bool,
+        flipV: Bool,
         removeMetadata: Bool,
         removeBackground: Bool
     ) async -> [UUID: Int] {
@@ -40,6 +42,8 @@ struct TrueSizeEstimator {
                             resizeHeight: resizeHeight,
                             selectedFormat: selectedFormat,
                             compressionPercent: compressionPercent,
+                            flipH: flipH,
+                            flipV: flipV,
                             removeMetadata: removeMetadata,
                             removeBackground: removeBackground
                         )
@@ -65,55 +69,42 @@ struct TrueSizeEstimator {
         resizeHeight: String,
         selectedFormat: ImageFormat?,
         compressionPercent: Double,
+        flipH: Bool,
+        flipV: Bool,
         removeMetadata: Bool,
         removeBackground: Bool
     ) -> (UUID, Int)? {
         do {
-            // Load and normalize orientation from original, not from a previous working file
+            // Build a pipeline identical to the real processing path
+            let pipeline = PipelineBuilder().build(
+                sizeUnit: sizeUnit,
+                resizePercent: resizePercent,
+                resizeWidth: resizeWidth,
+                resizeHeight: resizeHeight,
+                selectedFormat: selectedFormat,
+                compressionPercent: compressionPercent,
+                flipH: flipH,
+                flipV: flipV,
+                removeBackground: removeBackground,
+                overwriteOriginals: false,
+                removeMetadata: removeMetadata,
+                exportDirectory: nil
+            )
+
+            // Apply the same operations in-memory
             var ci = try loadCIImageApplyingOrientation(from: asset.originalURL)
-
-            // Resize by UI settings
-            switch sizeUnit {
-            case .percent:
-                if abs(resizePercent - 1.0) > 0.0001 {
-                    ci = try ResizeOperation(mode: .percent(resizePercent)).transformed(ci)
-                }
-            case .pixels:
-                if (Int(resizeWidth) != nil) || (Int(resizeHeight) != nil) {
-                    ci = try ResizeOperation(mode: .pixels(width: Int(resizeWidth), height: Int(resizeHeight))).transformed(ci)
-                }
+            for op in pipeline.operations {
+                ci = try op.transformed(ci)
             }
 
-            // Enforce format constraints if any
-            if let fmt = selectedFormat {
-                ci = try ConstrainSizeOperation(targetFormat: fmt).transformed(ci)
-            }
-
-            // Background removal. If target format does not support alpha, composite on white.
-            if removeBackground {
-                if let masked = try? removeBackgroundCIImage(ci) {
-                    if let fmt = selectedFormat {
-                        let caps = ImageIOCapabilities.shared.capabilities(for: fmt)
-                        if caps.supportsAlpha {
-                            ci = masked
-                        } else {
-                            let extent = masked.extent
-                            let white = CIImage(color: CIColor(red: 1, green: 1, blue: 1, alpha: 1)).cropped(to: extent)
-                            let comp = CIFilter.sourceOverCompositing()
-                            comp.inputImage = masked
-                            comp.backgroundImage = white
-                            if let flattened = comp.outputImage { ci = flattened }
-                        }
-                    } else {
-                        ci = masked
-                    }
-                }
-            }
-
-            // Build encoder parameters
-        let targetFormat = selectedFormat ?? ImageExporter.inferFormat(from: asset.originalURL)
-            let q = max(min(compressionPercent, 1.0), 0.01)
-            let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: q, stripMetadata: removeMetadata)
+            // Encode using the same exporter logic as the pipeline
+            let encoded = try ImageExporter.encodeToData(
+                ciImage: ci,
+                originalURL: asset.originalURL,
+                format: pipeline.finalFormat,
+                compressionQuality: pipeline.compressionPercent.map { max(min($0, 1.0), 0.01) },
+                stripMetadata: pipeline.removeMetadata
+            )
             let bytes = encoded.data.count
             return (asset.id, bytes)
         } catch {

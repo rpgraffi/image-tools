@@ -24,6 +24,8 @@ extension ImageToolsViewModel {
                 resizeHeight: resizeHeight,
                 selectedFormat: selectedFormat,
                 compressionPercent: compressionPercent,
+                flipH: flipH,
+                flipV: flipV,
                 removeMetadata: removeMetadata,
                 removeBackground: removeBackground
             )
