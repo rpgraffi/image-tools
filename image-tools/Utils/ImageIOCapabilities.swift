@@ -2,12 +2,13 @@ import Foundation
 import UniformTypeIdentifiers
 import ImageIO
 import CoreGraphics
+import SDWebImageWebPCoder
 
 final class ImageIOCapabilities {
     static let shared = ImageIOCapabilities()
 
     private let readableTypes: Set<String>
-    private let writableTypes: Set<String>
+    private var writableTypes: Set<String>
 
     private init() {
         if let readIds = CGImageSourceCopyTypeIdentifiers() as? [String] {
@@ -20,6 +21,7 @@ final class ImageIOCapabilities {
         } else {
             self.writableTypes = []
         }
+
     }
 
     func supportsWriting(utType: UTType) -> Bool {
@@ -77,9 +79,10 @@ final class ImageIOCapabilities {
     func capabilities(forUTType utType: UTType) -> FormatCapabilities {
         let isReadable = supportsReading(utType: utType)
         let isWritable = supportsWriting(utType: utType)
-        let supportsQuality = (utType == .jpeg) || (utType == UTType.heic)
-        let supportsLossless = (utType == .png) || (utType == .tiff) || (utType == .bmp) || (utType == .gif)
+        let supportsQuality = (utType == .jpeg) || (utType == UTType.heic) || (utType == UTType.webP)
+        let supportsLossless = (utType == .png) || (utType == .tiff) || (utType == .bmp) || (utType == .gif) || (utType == UTType.webP)
         let supportsMetadata = supportsPrivacySensitiveMetadata(utType: utType)
+        let supportsAlpha = supportsAlphaChannel(utType: utType)
         let resizeRestricted = sizeRestrictions(forUTType: utType) != nil
         return FormatCapabilities(
             isReadable: isReadable,
@@ -87,6 +90,7 @@ final class ImageIOCapabilities {
             supportsLossless: supportsLossless,
             supportsQuality: supportsQuality,
             supportsMetadata: supportsMetadata,
+            supportsAlpha: supportsAlpha,
             resizeRestricted: resizeRestricted
         )
     }
@@ -130,6 +134,18 @@ final class ImageIOCapabilities {
         }
         
         return false
+    }
+
+    // MARK: - Alpha channel support
+    private func supportsAlphaChannel(utType: UTType) -> Bool {
+        // Common alpha-capable formats
+        if utType == .png || utType == .tiff || utType == .gif || utType == UTType.heic || utType == UTType.heif || utType == UTType.webP || utType == .bmp || utType == .icns { // BMP can have alpha in some variants; be permissive
+            return true
+        }
+        // JPEG typically doesn't support alpha
+        if utType == .jpeg { return false }
+        // Otherwise, default to true when unsure to avoid forcing white background unnecessarily
+        return true
     }
 
     // MARK: - URL helpers

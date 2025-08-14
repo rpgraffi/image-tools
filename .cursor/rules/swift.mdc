@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+No need to check for the latest version of the SDK, macOS, iOS, etc. Just assume the latest version is used.

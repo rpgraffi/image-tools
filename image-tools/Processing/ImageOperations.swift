@@ -4,6 +4,7 @@ import CoreImage.CIFilterBuiltins
 import AppKit
 import UniformTypeIdentifiers
 import ImageIO
+import Vision
 
 enum ImageOperationError: Error {
     case loadFailed
@@ -12,7 +13,7 @@ enum ImageOperationError: Error {
 }
 
 protocol ImageOperation {
-    func apply(to url: URL) throws -> URL
+    func transformed(_ input: CIImage) throws -> CIImage
 }
 
 // Load a CIImage while applying EXIF/TIFF orientation so pixels are normalized to 'up'
@@ -52,11 +53,7 @@ struct ResizeOperation: ImageOperation {
         return output
     }
 
-    func apply(to url: URL) throws -> URL {
-        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else { throw ImageOperationError.loadFailed }
-        let output = try transformed(ciImage)
-        return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
-    }
+    // Disk write handled at pipeline end
 }
 
 /// Ensures the image matches the size restrictions of a target format by resizing when necessary.
@@ -88,57 +85,10 @@ struct ConstrainSizeOperation: ImageOperation {
         return output
     }
 
-    func apply(to url: URL) throws -> URL {
-        guard let ciImage = try? loadCIImageApplyingOrientation(from: url) else {
-            throw ImageOperationError.loadFailed
-        }
-        let output = try transformed(ciImage)
-        return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
-    }
+    // Disk write handled at pipeline end
 }
 
-struct ConvertOperation: ImageOperation {
-    let format: ImageFormat
-    func apply(to url: URL) throws -> URL {
-        let ciImage = try loadCIImageApplyingOrientation(from: url)
-        return try ImageExporter.export(ciImage: ciImage, originalURL: url, format: format, compressionQuality: nil)
-    }
-}
-
-struct CompressOperation: ImageOperation {
-    enum Mode { case percent(Double); case targetKB(Int) }
-    let mode: Mode
-    let formatHint: ImageFormat? // to guide lossy export like JPEG/HEIC
-
-    func apply(to url: URL) throws -> URL {
-        let ciImage = try loadCIImageApplyingOrientation(from: url)
-        switch mode {
-        case .percent(let p):
-            let q = max(min(p, 1.0), 0.01)
-            return try ImageExporter.export(ciImage: ciImage, originalURL: url, format: formatHint, compressionQuality: q)
-        case .targetKB(let kb):
-            let targetBytes = max(kb, 1) * 1024
-            var quality: Double = 0.9
-            var bestURL: URL = url
-            // simple binary-like search iterations
-            var low: Double = 0.05
-            var high: Double = 0.95
-            for _ in 0..<8 {
-                let tmpURL = try ImageExporter.export(ciImage: ciImage, originalURL: url, format: formatHint, compressionQuality: quality)
-                let size = (try? FileManager.default.attributesOfItem(atPath: tmpURL.path)[.size] as? NSNumber)?.intValue ?? 0
-                if size > targetBytes {
-                    high = quality
-                    quality = (low + quality) / 2
-                } else {
-                    bestURL = tmpURL
-                    low = quality
-                    quality = (quality + high) / 2
-                }
-            }
-            return bestURL
-        }
-    }
-}
+// Conversion and compression are handled at final export.
 
 struct RotateOperation: ImageOperation {
     let rotation: ImageRotation
@@ -148,11 +98,7 @@ struct RotateOperation: ImageOperation {
         let transform = CGAffineTransform(rotationAngle: angle)
         return input.transformed(by: transform)
     }
-    func apply(to url: URL) throws -> URL {
-        let ciImage = try loadCIImageApplyingOrientation(from: url)
-        let output = try transformed(ciImage)
-        return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
-    }
+    // Disk write handled at pipeline end
 }
 
 struct FlipOperation: ImageOperation {
@@ -169,18 +115,45 @@ struct FlipOperation: ImageOperation {
         }
         return input.transformed(by: transform)
     }
-    func apply(to url: URL) throws -> URL {
-        let ciImage = try loadCIImageApplyingOrientation(from: url)
-        let output = try transformed(ciImage)
-        return try ImageExporter.export(ciImage: output, originalURL: url, format: nil, compressionQuality: nil)
-    }
+    // Disk write handled at pipeline end
 }
 
 struct RemoveBackgroundOperation: ImageOperation {
-    func apply(to url: URL) throws -> URL {
-        let ciImage = try loadCIImageApplyingOrientation(from: url)
-        return try ImageExporter.export(ciImage: ciImage, originalURL: url, format: nil, compressionQuality: nil)
+    func transformed(_ input: CIImage) throws -> CIImage {
+        guard let masked = try? removeBackgroundCIImage(input) else {
+            throw ImageOperationError.backgroundRemovalUnavailable
+        }
+        return masked
     }
 }
 
- 
+// MARK: - Foreground/background masking helpers
+
+func generateForegroundMaskCIImage(for inputImage: CIImage) throws -> CIImage {
+    let handler = VNImageRequestHandler(ciImage: inputImage)
+    let request = VNGenerateForegroundInstanceMaskRequest()
+    do {
+        try handler.perform([request])
+    } catch {
+        throw ImageOperationError.backgroundRemovalUnavailable
+    }
+    guard let result = request.results?.first else {
+        throw ImageOperationError.backgroundRemovalUnavailable
+    }
+    do {
+        let maskPixelBuffer = try result.generateScaledMaskForImage(forInstances: result.allInstances, from: handler)
+        return CIImage(cvPixelBuffer: maskPixelBuffer)
+    } catch {
+        throw ImageOperationError.backgroundRemovalUnavailable
+    }
+}
+
+func removeBackgroundCIImage(_ inputImage: CIImage) throws -> CIImage {
+    let mask = try generateForegroundMaskCIImage(for: inputImage)
+    let filter = CIFilter.blendWithMask()
+    filter.inputImage = inputImage
+    filter.maskImage = mask
+    filter.backgroundImage = CIImage.empty()
+    guard let output = filter.outputImage else { throw ImageOperationError.exportFailed }
+    return output
+}

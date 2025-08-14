@@ -9,10 +9,9 @@ extension ImageToolsViewModel {
         let resizeWidth = self.resizeWidth
         let resizeHeight = self.resizeHeight
         let selectedFormat = self.selectedFormat
-        let compressionMode = self.compressionMode
         let compressionPercent = self.compressionPercent
-        let compressionTargetKB = self.compressionTargetKB
         let removeMetadata = self.removeMetadata
+        let removeBackground = self.removeBackground
 
         estimationTask = Task(priority: .utility) { [weak self] in
             guard let self else { return }
@@ -24,10 +23,9 @@ extension ImageToolsViewModel {
                 resizeWidth: resizeWidth,
                 resizeHeight: resizeHeight,
                 selectedFormat: selectedFormat,
-                compressionMode: compressionMode,
                 compressionPercent: compressionPercent,
-                compressionTargetKB: compressionTargetKB,
-                removeMetadata: removeMetadata
+                removeMetadata: removeMetadata,
+                removeBackground: removeBackground
             )
             await MainActor.run {
                 self.estimatedBytes.merge(map) { _, new in new }

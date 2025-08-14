@@ -299,9 +299,7 @@ struct ImageItem: View {
         .onChange(of: vm.resizeWidth) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.resizeHeight) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.selectedFormat) { vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.compressionMode) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.compressionPercent) { vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.compressionTargetKB) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.removeMetadata) { vm.triggerEstimationForVisible([asset]) }
         .overlay {
             RoundedRectangle(cornerRadius: 10, style: .continuous)

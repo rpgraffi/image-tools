@@ -6,6 +6,8 @@ struct ProcessingPipeline {
     var overwriteOriginals: Bool = false
     var removeMetadata: Bool = false
     var exportDirectory: URL? = nil
+    var finalFormat: ImageFormat? = nil
+    var compressionPercent: Double? = nil
 
     mutating func add(_ op: ImageOperation) {
         operations.append(op)
@@ -33,16 +35,18 @@ struct ProcessingPipeline {
             result.backupURL = backupURL
         }
 
+        // Load once and apply all operations in-memory
+        guard var ci = try? loadCIImageApplyingOrientation(from: currentURL) else {
+            throw ImageOperationError.loadFailed
+        }
         for op in operations {
-            currentURL = try op.apply(to: currentURL)
+            ci = try op.transformed(ci)
         }
 
-        // Apply metadata stripping if requested (re-encode without metadata, preserving format)
-        if removeMetadata {
-            if let ci = CIImage(contentsOf: currentURL) {
-                currentURL = try ImageExporter.export(ciImage: ci, originalURL: currentURL, format: ImageExporter.inferFormat(from: currentURL), compressionQuality: nil, stripMetadata: true)
-            }
-        }
+        // One final export with selected format and compression
+        let chosenFormat = finalFormat ?? ImageExporter.inferFormat(from: currentURL)
+        let q = compressionPercent.map { max(min($0, 1.0), 0.01) }
+        currentURL = try ImageExporter.export(ciImage: ci, originalURL: currentURL, format: chosenFormat, compressionQuality: q, stripMetadata: removeMetadata)
 
         // Decide destination
         let destinationURL: URL
@@ -101,9 +105,16 @@ struct ProcessingPipeline {
             if didStartAccessing { currentURL.stopAccessingSecurityScopedResource() }
         }
 
-        for op in operations {
-            currentURL = try op.apply(to: currentURL)
+        // Render in-memory instead of writing per-op
+        guard var ci = try? loadCIImageApplyingOrientation(from: currentURL) else {
+            throw ImageOperationError.loadFailed
         }
+        for op in operations {
+            ci = try op.transformed(ci)
+        }
+        let chosenFormat = finalFormat ?? ImageExporter.inferFormat(from: currentURL)
+        let q = compressionPercent.map { max(min($0, 1.0), 0.01) }
+        currentURL = try ImageExporter.export(ciImage: ci, originalURL: currentURL, format: chosenFormat, compressionQuality: q, stripMetadata: removeMetadata)
 
         return currentURL
     }

@@ -230,29 +230,6 @@ struct ImageProcessingPipelineTests {
         #expect(NSImage(contentsOf: compressedURL) != nil)
     }
     
-    @Test func testCompressionTargetKB() async throws {
-        let sourceURL = try createTestImage(size: CGSize(width: 500, height: 500))
-        defer { cleanup(sourceURL) }
-        
-        // Convert to JPEG for compression
-        let convertOp = ConvertOperation(format: ImageFormat(utType: .jpeg))
-        let jpegURL = try convertOp.apply(to: sourceURL)
-        defer { cleanup(jpegURL) }
-        
-        // Target 50KB
-        let targetKB = 50
-        let compressOp = CompressOperation(mode: .targetKB(targetKB), formatHint: ImageFormat(utType: .jpeg))
-        let compressedURL = try compressOp.apply(to: jpegURL)
-        defer { cleanup(compressedURL) }
-        
-        let compressedSize = fileSize(at: compressedURL) ?? 0
-        let compressedKB = compressedSize / 1024
-        
-        // Should be reasonably close to target (within 20KB tolerance)
-        #expect(compressedKB <= targetKB + 20)
-        #expect(compressedSize > 0)
-        #expect(NSImage(contentsOf: compressedURL) != nil)
-    }
     
     // MARK: - Mirroring/Flipping Tests
     

@@ -15,10 +15,9 @@ struct TrueSizeEstimator {
         resizeWidth: String,
         resizeHeight: String,
         selectedFormat: ImageFormat?,
-        compressionMode: CompressionModeToggle,
         compressionPercent: Double,
-        compressionTargetKB: String,
-        removeMetadata: Bool
+        removeMetadata: Bool,
+        removeBackground: Bool
     ) async -> [UUID: Int] {
         guard !assets.isEmpty else { return [:] }
 
@@ -40,10 +39,9 @@ struct TrueSizeEstimator {
                             resizeWidth: resizeWidth,
                             resizeHeight: resizeHeight,
                             selectedFormat: selectedFormat,
-                            compressionMode: compressionMode,
                             compressionPercent: compressionPercent,
-                            compressionTargetKB: compressionTargetKB,
-                            removeMetadata: removeMetadata
+                            removeMetadata: removeMetadata,
+                            removeBackground: removeBackground
                         )
                     }
                 }
@@ -66,10 +64,9 @@ struct TrueSizeEstimator {
         resizeWidth: String,
         resizeHeight: String,
         selectedFormat: ImageFormat?,
-        compressionMode: CompressionModeToggle,
         compressionPercent: Double,
-        compressionTargetKB: String,
-        removeMetadata: Bool
+        removeMetadata: Bool,
+        removeBackground: Bool
     ) -> (UUID, Int)? {
         do {
             // Load and normalize orientation from original, not from a previous working file
@@ -92,42 +89,32 @@ struct TrueSizeEstimator {
                 ci = try ConstrainSizeOperation(targetFormat: fmt).transformed(ci)
             }
 
-            // Build encoder parameters
-            let targetFormat = selectedFormat ?? ImageExporter.inferFormat(from: asset.originalURL)
-
-            // Compression handling
-            let bytes: Int
-            switch compressionMode {
-            case .percent:
-                let q = max(min(compressionPercent, 1.0), 0.01)
-                let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: q, stripMetadata: removeMetadata)
-                bytes = encoded.data.count
-            case .targetKB:
-                if let kb = Int(compressionTargetKB), kb > 0 {
-                    let targetBytes = max(kb, 1) * 1024
-                    var low: Double = 0.05
-                    var high: Double = 0.95
-                    var quality: Double = 0.9
-                    var bestBytes = Int.max
-                    for _ in 0..<8 {
-                        let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: quality, stripMetadata: removeMetadata)
-                        let size = encoded.data.count
-                        if size > targetBytes {
-                            high = quality
-                            quality = (low + quality) / 2
+            // Background removal. If target format does not support alpha, composite on white.
+            if removeBackground {
+                if let masked = try? removeBackgroundCIImage(ci) {
+                    if let fmt = selectedFormat {
+                        let caps = ImageIOCapabilities.shared.capabilities(for: fmt)
+                        if caps.supportsAlpha {
+                            ci = masked
                         } else {
-                            bestBytes = size
-                            low = quality
-                            quality = (quality + high) / 2
+                            let extent = masked.extent
+                            let white = CIImage(color: CIColor(red: 1, green: 1, blue: 1, alpha: 1)).cropped(to: extent)
+                            let comp = CIFilter.sourceOverCompositing()
+                            comp.inputImage = masked
+                            comp.backgroundImage = white
+                            if let flattened = comp.outputImage { ci = flattened }
                         }
+                    } else {
+                        ci = masked
                     }
-                    bytes = (bestBytes == Int.max) ? targetBytes : bestBytes
-                } else {
-                    // Fallback to percent path if no KB provided
-                    let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: 0.9, stripMetadata: removeMetadata)
-                    bytes = encoded.data.count
                 }
             }
+
+            // Build encoder parameters
+        let targetFormat = selectedFormat ?? ImageExporter.inferFormat(from: asset.originalURL)
+            let q = max(min(compressionPercent, 1.0), 0.01)
+            let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: q, stripMetadata: removeMetadata)
+            let bytes = encoded.data.count
             return (asset.id, bytes)
         } catch {
             return nil

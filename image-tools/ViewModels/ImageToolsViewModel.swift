@@ -30,9 +30,7 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var allowedSquareSizes: [Int]? = nil
     @Published var restrictionHint: String? = nil
 
-    @Published var compressionMode: CompressionModeToggle = .percent
     @Published var compressionPercent: Double = 0.8
-    @Published var compressionTargetKB: String = ""
 
     @Published var rotation: ImageRotation = .r0
     @Published var flipH: Bool = false

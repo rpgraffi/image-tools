@@ -12,9 +12,7 @@ struct PreviewEstimator {
                   resizePercent: Double,
                   resizeWidth: String,
                   resizeHeight: String,
-                  compressionMode: CompressionModeToggle,
                   compressionPercent: Double,
-                  compressionTargetKB: String,
                   selectedFormat: ImageFormat?) -> PreviewInfo {
         let baseSize: CGSize? = asset.originalPixelSize
         let targetSize: CGSize? = {
