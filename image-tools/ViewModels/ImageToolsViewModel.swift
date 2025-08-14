@@ -18,7 +18,7 @@ final class ImageToolsViewModel: ObservableObject {
     }
 
     // UI toggles/state
-    @Published var sizeUnit: SizeUnitToggle = .percent { didSet { handleSizeUnitToggle(to: sizeUnit) } }
+    @Published var sizeUnit: SizeUnitToggle = .percent { didSet { handleSizeUnitToggle(to: sizeUnit); persistSizeUnit() } }
     @Published var resizePercent: Double = 1.0
     @Published var resizeWidth: String = ""
     @Published var resizeHeight: String = ""

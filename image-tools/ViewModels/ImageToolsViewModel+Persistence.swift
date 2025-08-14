@@ -5,6 +5,7 @@ extension ImageToolsViewModel {
         static let recentFormats = "image_tools.recent_formats.v1"
         static let selectedFormat = "image_tools.selected_format.v1"
         static let exportDirectory = "image_tools.export_directory.v1"
+        static let sizeUnit = "image_tools.size_unit.v1"
     }
 
     func loadPersistedState() {
@@ -23,6 +24,16 @@ extension ImageToolsViewModel {
 
         if let exportPath = defaults.string(forKey: PersistenceKeys.exportDirectory) {
             exportDirectory = URL(fileURLWithPath: exportPath)
+        }
+
+        if let unitRaw = defaults.string(forKey: PersistenceKeys.sizeUnit) {
+            switch unitRaw {
+            case "pixels":
+                sizeUnit = .pixels
+            case "percent": fallthrough
+            default:
+                sizeUnit = .percent
+            }
         }
 
         // Initialize restrictions after selectedFormat restoration
@@ -46,6 +57,12 @@ extension ImageToolsViewModel {
         } else {
             defaults.removeObject(forKey: PersistenceKeys.exportDirectory)
         }
+    }
+
+    func persistSizeUnit() {
+        let defaults = UserDefaults.standard
+        let value = (sizeUnit == .pixels) ? "pixels" : "percent"
+        defaults.set(value, forKey: PersistenceKeys.sizeUnit)
     }
 }
 
