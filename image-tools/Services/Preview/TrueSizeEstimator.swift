@@ -72,8 +72,8 @@ struct TrueSizeEstimator {
         removeMetadata: Bool
     ) -> (UUID, Int)? {
         do {
-            // Load and normalize orientation
-            var ci = try loadCIImageApplyingOrientation(from: asset.workingURL)
+            // Load and normalize orientation from original, not from a previous working file
+            var ci = try loadCIImageApplyingOrientation(from: asset.originalURL)
 
             // Resize by UI settings
             switch sizeUnit {
@@ -93,14 +93,14 @@ struct TrueSizeEstimator {
             }
 
             // Build encoder parameters
-            let targetFormat = selectedFormat ?? ImageExporter.inferFormat(from: asset.workingURL)
+            let targetFormat = selectedFormat ?? ImageExporter.inferFormat(from: asset.originalURL)
 
             // Compression handling
             let bytes: Int
             switch compressionMode {
             case .percent:
                 let q = max(min(compressionPercent, 1.0), 0.01)
-                let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.workingURL, format: targetFormat, compressionQuality: q, stripMetadata: removeMetadata)
+                let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: q, stripMetadata: removeMetadata)
                 bytes = encoded.data.count
             case .targetKB:
                 if let kb = Int(compressionTargetKB), kb > 0 {
@@ -110,7 +110,7 @@ struct TrueSizeEstimator {
                     var quality: Double = 0.9
                     var bestBytes = Int.max
                     for _ in 0..<8 {
-                        let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.workingURL, format: targetFormat, compressionQuality: quality, stripMetadata: removeMetadata)
+                        let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: quality, stripMetadata: removeMetadata)
                         let size = encoded.data.count
                         if size > targetBytes {
                             high = quality
@@ -124,7 +124,7 @@ struct TrueSizeEstimator {
                     bytes = (bestBytes == Int.max) ? targetBytes : bestBytes
                 } else {
                     // Fallback to percent path if no KB provided
-                    let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.workingURL, format: targetFormat, compressionQuality: 0.9, stripMetadata: removeMetadata)
+                    let encoded = try ImageExporter.encodeToData(ciImage: ci, originalURL: asset.originalURL, format: targetFormat, compressionQuality: 0.9, stripMetadata: removeMetadata)
                     bytes = encoded.data.count
                 }
             }

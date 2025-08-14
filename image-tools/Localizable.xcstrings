@@ -219,7 +219,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Bild ablegen, "
+            "value" : "Bild reinziehen, "
           }
         },
         "en" : {
@@ -504,7 +504,7 @@
         "de" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Einfügen "
+            "value" : "Einfügen  "
           }
         },
         "en" : {
@@ -516,7 +516,14 @@
       }
     },
     "Paste  " : {
-
+      "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Einfügen  "
+          }
+        }
+      }
     },
     "Plain Pill" : {
 

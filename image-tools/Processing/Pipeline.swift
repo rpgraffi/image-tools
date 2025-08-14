@@ -13,7 +13,7 @@ struct ProcessingPipeline {
 
     func run(on asset: ImageAsset) throws -> ImageAsset {
         var result = asset
-        var currentURL = result.workingURL
+        var currentURL = result.originalURL
 
         // Start security-scoped access if needed
         var didStartAccessing = false
@@ -91,7 +91,7 @@ struct ProcessingPipeline {
 
     // Apply operations and return a temporary file URL for the processed image without committing to a destination
     func renderTemporaryURL(on asset: ImageAsset) throws -> URL {
-        var currentURL = asset.workingURL
+        var currentURL = asset.originalURL
 
         var didStartAccessing = false
         if currentURL.startAccessingSecurityScopedResource() {

@@ -64,9 +64,10 @@ private struct ImageThumbnail: View {
 private struct TwoLineOverlayBadge: View {
     let topText: String
     let bottomText: String
+    var alignment: HorizontalAlignment = .leading
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: alignment, spacing: 2) {
             Text(topText).foregroundStyle(.secondary)
             Text(bottomText).foregroundStyle(.primary)
         }
@@ -125,7 +126,7 @@ private struct InfoOverlay: View {
                let target = changeInfo.targetPixelSize {
                 TwoLineOverlayBadge(
                     topText: "\(Int(original.width))×\(Int(original.height))",
-                    bottomText: "\(Int(target.width))×\(Int(target.height))"
+                    bottomText: paddedResolutionString(original: original, target: target)
                 )
             }
             
@@ -133,13 +134,34 @@ private struct InfoOverlay: View {
             if let originalSize = changeInfo.originalFileSize {
                 TwoLineOverlayBadge(
                     topText: "\(formatBytes(originalSize))",
-                    bottomText: changeInfo.estimatedOutputSize.map { formatBytes($0) } ?? "--- KB"
+                    bottomText: changeInfo.estimatedOutputSize.map { formatBytes($0) } ?? "--- KB",
+                    alignment: HorizontalAlignment.trailing
                 )
             }
         }
         .padding(6)
         .opacity(changeInfo.hasChanges ? 1 : 0)
     }
+}
+
+private func paddedResolutionString(original: CGSize, target: CGSize) -> String {
+    let ow = Int(original.width)
+    let oh = Int(original.height)
+    let tw = Int(target.width)
+    let th = Int(target.height)
+
+    let owStr = String(ow)
+    let ohStr = String(oh)
+    let twStr = String(tw)
+    let thStr = String(th)
+
+    let padW = max(0, owStr.count - twStr.count)
+    let padH = max(0, ohStr.count - thStr.count)
+
+    let paddedW = String(repeating: " ", count: padW) + twStr
+    let paddedH = String(repeating: " ", count: padH) + thStr
+
+    return "\(paddedW)×\(paddedH)"
 }
 
 private struct HoverControls: View {
@@ -217,7 +239,7 @@ struct ImageItem: View {
     @State private var isHovering: Bool = false
     @State private var isVisible: Bool = false
     @State private var localThumbnail: NSImage? = nil
-    private var fileName: String { asset.workingURL.lastPathComponent }
+    private var fileName: String { asset.originalURL.lastPathComponent }
     
     var body: some View {
         let changeInfo = ImageChangeInfo(asset: asset, vm: vm)

@@ -43,11 +43,11 @@ extension ImageToolsViewModel {
     func prefillPixelsIfPossible() {
         let targets: [ImageAsset] = images
         guard let first = (targets.first { $0.isEnabled }) ?? targets.first else { return }
-        if let size = ImageMetadata.pixelSize(for: first.workingURL) {
+        if let size = ImageMetadata.pixelSize(for: first.originalURL) {
             let w = Int(size.width.rounded())
             let h = Int(size.height.rounded())
             let same = targets.filter { $0.isEnabled }.allSatisfy { asset in
-                if let other = ImageMetadata.pixelSize(for: asset.workingURL) {
+                if let other = ImageMetadata.pixelSize(for: asset.originalURL) {
                     return Int(other.width.rounded()) == w && Int(other.height.rounded()) == h
                 }
                 return false

@@ -20,7 +20,7 @@ struct PillBackground: View {
                 .fill(Theme.Colors.controlBackground)
 
             Rectangle()
-                .fill(LinearGradient(colors: [Theme.Colors.accentGradientStart, Theme.Colors.accentGradientEnd], startPoint: .leading, endPoint: .trailing))
+                .fill(Color.accentColor)
                 .opacity(fillOpacity)
                 .frame(width: max(0, width * p))
                 .animation(Theme.Animations.pillFill(), value: clampedProgress)

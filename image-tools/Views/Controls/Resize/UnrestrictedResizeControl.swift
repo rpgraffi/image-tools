@@ -35,8 +35,11 @@ struct UnrestrictedResizeControl: View {
     }
 
     private func basePixelSizeForCurrentSelection() -> CGSize? {
-        if let firstEnabled = vm.images.first(where: { $0.isEnabled }), let s = firstEnabled.originalPixelSize { return s }
-        return vm.images.first?.originalPixelSize
+        let sizes = vm.images.compactMap { $0.originalPixelSize }
+        guard !sizes.isEmpty else { return nil }
+        let maxWidth = sizes.map { $0.width }.max() ?? 0
+        let maxHeight = sizes.map { $0.height }.max() ?? 0
+        return CGSize(width: maxWidth, height: maxHeight)
     }
 }
 

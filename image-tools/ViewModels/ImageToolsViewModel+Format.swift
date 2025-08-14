@@ -24,7 +24,7 @@ extension ImageToolsViewModel {
         // Choose a reference size from first enabled asset
         let targets: [ImageAsset] = images
         guard let first = (targets.first { $0.isEnabled }) ?? targets.first else { return }
-        let srcSize = ImageMetadata.pixelSize(for: first.workingURL) ?? first.originalPixelSize ?? .zero
+        let srcSize = ImageMetadata.pixelSize(for: first.originalURL) ?? first.originalPixelSize ?? .zero
         let caps = ImageIOCapabilities.shared
         if let fmt = selectedFormat, !caps.isValidPixelSize(srcSize, for: fmt.utType) {
             // Force pixel mode and prefill suggestion
