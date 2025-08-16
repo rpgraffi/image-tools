@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 // MARK: - Change Detection
 struct ImageChangeInfo {
@@ -185,14 +186,8 @@ private struct HoverControls: View {
                 Task {
                     do {
                         let pipeline = vm.buildPipeline()
-                        let tempURL = try pipeline.renderTemporaryURL(on: asset)
-                        copyURLImageToClipboard(tempURL)
-                        let tempRoot = FileManager.default.temporaryDirectory.standardizedFileURL.path
-                        let isTemp = tempURL.standardizedFileURL.path.hasPrefix(tempRoot)
-                        let isOriginal = tempURL.standardizedFileURL == asset.workingURL.standardizedFileURL
-                        if isTemp && !isOriginal {
-                            try? FileManager.default.removeItem(at: tempURL)
-                        }
+                        let encoded = try pipeline.renderEncodedData(on: asset)
+                        copyEncodedImageToClipboard(data: encoded.data, uti: encoded.uti)
                     } catch {
                         copyURLImageToClipboard(asset.workingURL)
                     }
@@ -331,6 +326,26 @@ private func copyURLImageToClipboard(_ url: URL) {
     } else {
         pb.writeObjects([url as NSURL])
     }
+}
+
+private func copyEncodedImageToClipboard(data: Data, uti: UTType) {
+    let pb = NSPasteboard.general
+    // 1) Create a temporary file URL so apps that prefer files can paste the correct format
+    let ext = ImageIOCapabilities.shared.preferredFilenameExtension(for: uti)
+    let filename = "copy-" + String(UUID().uuidString.prefix(8)) + "." + ext
+    let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
+    do {
+        try data.write(to: fileURL, options: [.atomic])
+    } catch {
+        // If file writing fails, still keep the in-memory representation
+    }
+
+    // 2) Publish NSURL first (preferred by Finder and file-based paste), and a separate item with raw bytes
+    let item = NSPasteboardItem()
+    let imageType = NSPasteboard.PasteboardType(uti.identifier)
+    item.setData(data, forType: imageType)
+    pb.clearContents()
+    _ = pb.writeObjects([fileURL as NSURL, item])
 }
 
 private func revealInFinder(_ url: URL) {
