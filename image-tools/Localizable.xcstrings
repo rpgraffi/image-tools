@@ -38,6 +38,9 @@
         }
       }
     },
+    "%lld" : {
+
+    },
     "%lld%%" : {
 
     },
@@ -182,6 +185,9 @@
           }
         }
       }
+    },
+    "Converted: %lld" : {
+
     },
     "Copy image to clipboard" : {
       "extractionState" : "manual",

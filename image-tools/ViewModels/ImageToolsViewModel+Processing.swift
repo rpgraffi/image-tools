@@ -37,6 +37,8 @@ extension ImageToolsViewModel {
         }
 
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.3)) { images = updatedImages }
+        // Record a pipeline application (after attempting all images)
+        UsageTracker.shared.recordPipelineApplied()
     }
 
     // Async concurrent export
@@ -110,6 +112,8 @@ extension ImageToolsViewModel {
                 self.isExporting = false
                 self.exportCompleted = 0
                 self.exportTotal = 0
+                // Record pipeline application once per batch
+                UsageTracker.shared.recordPipelineApplied()
             }
         }
     }

@@ -6,6 +6,7 @@ extension ImageToolsViewModel {
         static let selectedFormat = "image_tools.selected_format.v1"
         static let exportDirectory = "image_tools.export_directory.v1"
         static let sizeUnit = "image_tools.size_unit.v1"
+        static let usageEvents = "image_tools.usage_events.v1"
     }
 
     func loadPersistedState() {
@@ -38,6 +39,9 @@ extension ImageToolsViewModel {
 
         // Initialize restrictions after selectedFormat restoration
         updateRestrictions()
+
+        // Load usage tracking events
+        loadUsageEvents()
     }
 
     func persistRecentFormats() {
@@ -63,6 +67,22 @@ extension ImageToolsViewModel {
         let defaults = UserDefaults.standard
         let value = (sizeUnit == .pixels) ? "pixels" : "percent"
         defaults.set(value, forKey: PersistenceKeys.sizeUnit)
+    }
+
+    // MARK: - Usage tracking persistence
+    func loadUsageEvents() {
+        let defaults = UserDefaults.standard
+        guard let data = defaults.data(forKey: PersistenceKeys.usageEvents) else { return }
+        if let decoded = try? JSONDecoder().decode([UsageEvent].self, from: data) {
+            UsageTracker.shared.replaceAll(decoded)
+        }
+    }
+
+    func persistUsageEvents(_ events: [UsageEvent]) {
+        let defaults = UserDefaults.standard
+        if let data = try? JSONEncoder().encode(events) {
+            defaults.set(data, forKey: PersistenceKeys.usageEvents)
+        }
     }
 }
 

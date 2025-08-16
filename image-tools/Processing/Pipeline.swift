@@ -90,6 +90,8 @@ struct ProcessingPipeline {
         var updated = result
         updated.workingURL = destinationURL
         updated.isEdited = true
+        // Record a successful single-image conversion
+        UsageTracker.shared.recordImageConversion()
         return updated
     }
 

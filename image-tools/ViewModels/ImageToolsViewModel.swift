@@ -2,6 +2,7 @@ import Foundation
 import AppKit
 import SwiftUI
 import ImageIO
+import Combine
 
 final class ImageToolsViewModel: ObservableObject {
     @Published var images: [ImageAsset] = []
@@ -54,8 +55,21 @@ final class ImageToolsViewModel: ObservableObject {
         return Double(exportCompleted) / Double(exportTotal)
     }
 
+    // Usage counts
+    @Published private(set) var totalImageConversions: Int = 0
+    @Published private(set) var totalPipelineApplications: Int = 0
+    private var usageCancellable: AnyCancellable?
+
     // MARK: - Init / Persistence
     init() {
+        usageCancellable = UsageTracker.shared.$events
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] events in
+                guard let self = self else { return }
+                self.totalImageConversions = events.filter { $0.kind == .imageConversion }.count
+                self.totalPipelineApplications = events.filter { $0.kind == .pipelineApplied }.count
+                self.persistUsageEvents(events)
+            }
         loadPersistedState()
     }
 
