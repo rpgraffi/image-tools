@@ -26,6 +26,15 @@ struct PrimaryApplyControl: View {
             }
             return String(localized: "Save")
         }()
+        let iconName: String = {
+            if isInProgress {
+                return "hourglass"
+            }
+            if showDoneText {
+                return "checkmark.rectangle.stack.fill"
+            }
+            return "photo.stack.fill"
+        }()
         let isCounting = isInProgress && (counterText != nil)
         let textTransition: ContentTransition = isCounting ? .numericText() : .opacity
 
@@ -48,9 +57,8 @@ struct PrimaryApplyControl: View {
                 .allowsHitTesting(false)
 
                 HStack(spacing: 8) {
-                    Image(systemName: isInProgress ? "hourglass" : "photo.stack.fill")
-                        .contentTransition(.symbolEffect(.replace.magic(fallback: .downUp.byLayer), options: .nonRepeating))
-                        .transition(.opacity)
+                    Image(systemName: iconName)
+                        .contentTransition(.symbolEffect(.replace))
                     Text(label)
                         .contentTransition(textTransition)
                         .transition(.opacity)

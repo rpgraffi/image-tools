@@ -4,7 +4,7 @@ struct ControlsBar: View {
     @ObservedObject var vm: ImageToolsViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading) {
             HStack(spacing: 16) {
                 // Left controls
                 FormatControl(vm: vm)
@@ -35,7 +35,8 @@ struct ControlsBar: View {
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowCompression)
             .animation(.spring(response: 0.6, dampingFraction: 0.85), value: shouldShowMetadata)
         }
-        .padding(8)
+        .padding(.bottom, 8)
+        .padding(.horizontal, 8)
     }
 
     private var selectedFormatCaps: FormatCapabilities? {

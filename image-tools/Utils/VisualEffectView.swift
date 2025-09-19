@@ -24,6 +24,13 @@ enum WindowConfigurator {
         window.titlebarAppearsTransparent = true
         window.styleMask.insert(.fullSizeContentView)
         // Install a custom trailing accessory with our SwiftUI counter
+        
+        // --- ADD THIS PART ---
+        // Create and assign a toolbar to the window
+        let toolbar = NSToolbar(identifier: "MainToolbar")
+        toolbar.displayMode = .iconOnly
+        window.toolbar = toolbar
+        
         installTrailingAccessory(window: window)
     }
 
