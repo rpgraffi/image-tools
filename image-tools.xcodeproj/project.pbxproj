@@ -7,8 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B77ECE102E480BA500C28347 /* libwebp in Frameworks */ = {isa = PBXBuildFile; productRef = B77ECE0F2E480BA500C28347 /* libwebp */; };
-		B7B855582E4E433A00BE642F /* SDWebImageWebPCoder in Frameworks */ = {isa = PBXBuildFile; productRef = B7B855572E4E433A00BE642F /* SDWebImageWebPCoder */; };
+		B7438E642E7DA6F3003E7442 /* SDWebImageWebPCoder in Frameworks */ = {isa = PBXBuildFile; productRef = B7438E632E7DA6F3003E7442 /* SDWebImageWebPCoder */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,8 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B7B855582E4E433A00BE642F /* SDWebImageWebPCoder in Frameworks */,
-				B77ECE102E480BA500C28347 /* libwebp in Frameworks */,
+				B7438E642E7DA6F3003E7442 /* SDWebImageWebPCoder in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -119,8 +117,7 @@
 			);
 			name = "image-tools";
 			packageProductDependencies = (
-				B77ECE0F2E480BA500C28347 /* libwebp */,
-				B7B855572E4E433A00BE642F /* SDWebImageWebPCoder */,
+				B7438E632E7DA6F3003E7442 /* SDWebImageWebPCoder */,
 			);
 			productName = "image-tools";
 			productReference = B77ECCC42E45573200C28347 /* image-tools.app */;
@@ -206,8 +203,7 @@
 			mainGroup = B77ECCBB2E45573200C28347;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				B77ECE0E2E480BA500C28347 /* XCRemoteSwiftPackageReference "libwebp-Xcode" */,
-				B7B855562E4E433A00BE642F /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */,
+				B7438E622E7DA6F3003E7442 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = B77ECCC52E45573200C28347 /* Products */;
@@ -617,15 +613,7 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
-		B77ECE0E2E480BA500C28347 /* XCRemoteSwiftPackageReference "libwebp-Xcode" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/SDWebImage/libwebp-Xcode";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 1.5.0;
-			};
-		};
-		B7B855562E4E433A00BE642F /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */ = {
+		B7438E622E7DA6F3003E7442 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/SDWebImage/SDWebImageWebPCoder.git";
 			requirement = {
@@ -636,14 +624,9 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		B77ECE0F2E480BA500C28347 /* libwebp */ = {
+		B7438E632E7DA6F3003E7442 /* SDWebImageWebPCoder */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = B77ECE0E2E480BA500C28347 /* XCRemoteSwiftPackageReference "libwebp-Xcode" */;
-			productName = libwebp;
-		};
-		B7B855572E4E433A00BE642F /* SDWebImageWebPCoder */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = B7B855562E4E433A00BE642F /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */;
+			package = B7438E622E7DA6F3003E7442 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */;
 			productName = SDWebImageWebPCoder;
 		};
 /* End XCSwiftPackageProductDependency section */

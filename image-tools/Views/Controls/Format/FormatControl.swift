@@ -10,7 +10,7 @@ struct FormatControl: View {
     @State private var keyEventMonitor: Any?
 
     private var pinnedFormats: [ImageFormat] {
-        [ImageFormat(utType: .png), ImageFormat(utType: .jpeg), ImageFormat(utType: .heic)]
+        [ImageFormat(utType: .png), ImageFormat(utType: .jpeg), ImageFormat(utType: .heic), ImageFormat(utType: .webP)]
             .filter { ImageIOCapabilities.shared.supportsWriting(utType: $0.utType) }
     }
 
@@ -31,6 +31,7 @@ struct FormatControl: View {
         case .png: return "P"
         case .jpeg: return "J"
         case .heic: return "H"
+        case .webP: return "W"
         default: return nil
         }
     }
@@ -120,6 +121,10 @@ private extension FormatControl {
             Button(f.displayName) { selectFormat(f) }
                 .keyboardShortcut(.init("h"), modifiers: [])
                 .help(f.fullName)
+        } else if f.utType == .webP {
+            Button(f.displayName) { selectFormat(f) }
+                .keyboardShortcut(.init("w"), modifiers: [])
+                .help(f.fullName)
         }
     }
 }
@@ -139,6 +144,8 @@ private extension FormatControl {
                 if let fmt = pinnedFormats.first(where: { $0.utType == .jpeg }) { selectFormat(fmt); return nil }
             case "h":
                 if let fmt = pinnedFormats.first(where: { $0.utType == .heic }) { selectFormat(fmt); return nil }
+            case "w":
+                if let fmt = pinnedFormats.first(where: { $0.utType == .webP }) { selectFormat(fmt); return nil }
             default:
                 break
             }
@@ -164,11 +171,16 @@ struct FormatControlView_Previews: PreviewProvider {
             v.selectedFormat = ImageFormat(utType: .jpeg)
             return v
         }()
-
+        let vmWebP: ImageToolsViewModel = {
+            let v = ImageToolsViewModel()
+            v.selectedFormat = ImageFormat(utType: .webP)
+            return v
+        }()
         return VStack(alignment: .leading, spacing: 16) {
             FormatControl(vm: vmDefault)
             FormatControl(vm: vmPNG)
             FormatControl(vm: vmJPEG)
+            FormatControl(vm: vmWebP)
         }
         .padding()
         .frame(width: 360)

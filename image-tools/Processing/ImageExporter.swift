@@ -5,6 +5,9 @@ import UniformTypeIdentifiers
 import ImageIO
 
 struct ImageExporter {
+    private static let sharedCIContext: CIContext = {
+        CIContext()
+    }()
     // MARK: - DRY helpers
     private static func decideActualUTType(originalURL: URL, requestedFormat: ImageFormat?) -> UTType {
         let requestedFormat: ImageFormat = requestedFormat ?? (inferFormat(from: originalURL) ?? ImageIOCapabilities.shared.format(forIdentifier: UTType.png.identifier)!)
@@ -36,12 +39,20 @@ struct ImageExporter {
 
     static func encodeToData(ciImage: CIImage, originalURL: URL, format: ImageFormat?, compressionQuality: Double?, stripMetadata: Bool = false) throws -> (data: Data, uti: UTType) {
         let actualUTI = decideActualUTType(originalURL: originalURL, requestedFormat: format)
-        let ciContext = CIContext()
+        let ciContext = ImageExporter.sharedCIContext
         let colorSpace = CGColorSpace(name: CGColorSpace.sRGB)!
         guard let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent, format: .RGBA8, colorSpace: colorSpace) else {
             throw ImageOperationError.exportFailed
         }
 
+        // Custom encoder if available for this UTType
+        if let encoder = CustomImageEncoderRegistry.shared.encoder(for: actualUTI) {
+            let size = CGSize(width: ciImage.extent.width, height: ciImage.extent.height)
+            let data = try encoder.encode(cgImage: cgImage, pixelSize: size, utType: actualUTI, compressionQuality: compressionQuality, stripMetadata: stripMetadata)
+            return (data, actualUTI)
+        }
+
+        // Default path: ImageIO
         let props = buildDestinationProperties(originalURL: originalURL, actualUTI: actualUTI, compressionQuality: compressionQuality, stripMetadata: stripMetadata)
         let cfData = CFDataCreateMutable(nil, 0)!
         guard let dest = CGImageDestinationCreateWithData(cfData, actualUTI.identifier as CFString, 1, nil) else {

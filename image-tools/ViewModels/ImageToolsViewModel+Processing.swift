@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AppKit
 
 extension ImageToolsViewModel {
     func buildPipeline() -> ProcessingPipeline {
@@ -39,6 +40,12 @@ extension ImageToolsViewModel {
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.3)) { images = updatedImages }
         // Record a pipeline application (after attempting all images)
         UsageTracker.shared.recordPipelineApplied()
+
+        // Reveal exported files in Finder, selecting them when possible
+        let urlsToReveal = updatedImages.compactMap { $0.isEdited ? $0.workingURL : nil }
+        if !urlsToReveal.isEmpty {
+            NSWorkspace.shared.activateFileViewerSelecting(urlsToReveal)
+        }
     }
 
     // Async concurrent export
@@ -114,6 +121,12 @@ extension ImageToolsViewModel {
                 self.exportTotal = 0
                 // Record pipeline application once per batch
                 UsageTracker.shared.recordPipelineApplied()
+
+                // Reveal exported files in Finder, selecting them when possible
+                let urlsToReveal = imagesToCommit.compactMap { $0.isEdited ? $0.workingURL : nil }
+                if !urlsToReveal.isEmpty {
+                    NSWorkspace.shared.activateFileViewerSelecting(urlsToReveal)
+                }
             }
         }
     }

@@ -22,6 +22,10 @@ final class ImageIOCapabilities {
             self.writableTypes = []
         }
 
+        // Ensure WebP appears as a writable format via SDWebImageWebPCoder
+        // ImageIO may not advertise WebP as a destination type on all systems
+        self.writableTypes.insert(UTType.webP.identifier)
+
     }
 
     func supportsWriting(utType: UTType) -> Bool {
@@ -59,9 +63,10 @@ final class ImageIOCapabilities {
             UTType.jpeg.identifier: 0,
             UTType.png.identifier: 1,
             UTType.heic.identifier: 2,
-            UTType.tiff.identifier: 3,
-            UTType.bmp.identifier: 4,
-            UTType.gif.identifier: 5
+            UTType.webP.identifier: 3,
+            UTType.tiff.identifier: 4,
+            UTType.bmp.identifier: 5,
+            UTType.gif.identifier: 6
         ]
         return results.sorted { a, b in
             let ai = priority[a.utType.identifier] ?? Int.max
