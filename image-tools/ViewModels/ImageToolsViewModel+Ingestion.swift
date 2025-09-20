@@ -4,28 +4,27 @@ import SwiftUI
 
 extension ImageToolsViewModel {
     func addURLs(_ urls: [URL]) {
-        let imageURLs = urls.filter { ImageIOCapabilities.shared.isReadableURL($0) }
+        let imageURLs = urls
+            .filter { ImageIOCapabilities.shared.isReadableURL($0) }
+            .map { $0.standardizedFileURL }
         guard !imageURLs.isEmpty else { return }
 
-        // Track source directory based on first image URL
-        if let firstDir = imageURLs.first?.deletingLastPathComponent() {
-            sourceDirectory = firstDir
-        }
-
-        // Append in batches to keep UI responsive
+        // Create a simple one-shot stream in batches to reuse the unified ingestion path
         let batchSize = 16
-        Task { @MainActor in
-            var startIndex = 0
-            while startIndex < imageURLs.count {
-                let endIndex = min(startIndex + batchSize, imageURLs.count)
-                let batch = Array(imageURLs[startIndex..<endIndex])
-                let assets = batch.map { ImageAsset(url: $0) }
-                images.append(contentsOf: assets)
-                startIndex = endIndex
-                await Task.yield()
+        let stream = AsyncStream<[URL]> { continuation in
+            Task {
+                var startIndex = 0
+                while startIndex < imageURLs.count {
+                    let endIndex = min(startIndex + batchSize, imageURLs.count)
+                    let batch = Array(imageURLs[startIndex..<endIndex])
+                    continuation.yield(batch)
+                    startIndex = endIndex
+                    await Task.yield()
+                }
+                continuation.finish()
             }
         }
-        // Trigger background estimation for newly added (visible set will drive actual selection in UI)
+        ingestURLStream(stream)
     }
 
     func isSupportedImage(_ url: URL) -> Bool {
@@ -63,21 +62,30 @@ extension ImageToolsViewModel {
     }
 
     // Streaming ingestion for drag & drop / paste providers
-    @MainActor
     func addProvidersStreaming(_ providers: [NSItemProvider], batchSize: Int = 32) {
         let stream = IngestionCoordinator.streamURLs(from: providers, batchSize: batchSize)
+        ingestURLStream(stream)
+    }
+
+    // Unified incremental ingestion path for any stream of URL batches
+    func ingestURLStream(_ stream: AsyncStream<[URL]>) {
         Task {
             for await urls in stream {
-                let filtered = urls.filter { ImageIOCapabilities.shared.isReadableURL($0) }
-                guard !filtered.isEmpty else { continue }
-                if let firstDir = filtered.first?.deletingLastPathComponent() {
-                    await MainActor.run {
+                await MainActor.run {
+                    let readable = urls
+                        .filter { ImageIOCapabilities.shared.isReadableURL($0) }
+                        .map { $0.standardizedFileURL }
+                    guard !readable.isEmpty else { return }
+
+                    // Deduplicate against current images at the time of ingestion
+                    let existing: Set<URL> = Set(images.map { $0.originalURL.standardizedFileURL })
+                    let fresh = readable.filter { !existing.contains($0) }
+                    guard !fresh.isEmpty else { return }
+
+                    if let firstDir = fresh.first?.deletingLastPathComponent() {
                         sourceDirectory = firstDir
                     }
-                }
-                // Must create AppKit-backed assets on main actor
-                await MainActor.run {
-                    let assets = filtered.map { ImageAsset(url: $0) }
+                    let assets = fresh.map { ImageAsset(url: $0) }
                     images.append(contentsOf: assets)
                 }
             }

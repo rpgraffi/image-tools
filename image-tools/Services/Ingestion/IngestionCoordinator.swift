@@ -233,7 +233,7 @@ enum IngestionCoordinator {
         }
     }
 
-    static func presentOpenPanel(allowsDirectories: Bool = false,
+    static func presentOpenPanel(allowsDirectories: Bool = true,
                                  allowsMultiple: Bool = true,
                                  allowedContentTypes: [UTType] = [.image],
                                  completion: @escaping ([URL]) -> Void) {
@@ -243,7 +243,11 @@ enum IngestionCoordinator {
         panel.canChooseDirectories = allowsDirectories
         panel.allowedContentTypes = allowedContentTypes
         if panel.runModal() == .OK {
-            completion(panel.urls)
+            // Expand any selected directories into supported image files
+            let expanded: [URL] = panel.urls.flatMap { url in
+                expandToSupportedImageURLs(from: url, recursive: true)
+            }
+            completion(expanded)
         }
     }
 } 
