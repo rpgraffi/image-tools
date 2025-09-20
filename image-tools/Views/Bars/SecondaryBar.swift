@@ -35,10 +35,6 @@ struct SecondaryBar: View {
 
             // Right column
             HStack(spacing: 8) {
-                if vm.isExportingToSource {
-                    OverwriteToggleControl(isOn: $vm.overwriteOriginals)
-                        .transition(.opacity.combined(with: .move(edge: .trailing)))
-                }
                 ExportDirectoryPill(
                     directory: $vm.exportDirectory,
                     sourceDirectory: vm.sourceDirectory,

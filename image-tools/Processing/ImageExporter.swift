@@ -18,6 +18,11 @@ struct ImageExporter {
         return .jpeg
     }
 
+    // Exposed helper for planning destination names without doing any encode work
+    static func decideUTTypeForExport(originalURL: URL, requestedFormat: ImageFormat?) -> UTType {
+        return decideActualUTType(originalURL: originalURL, requestedFormat: requestedFormat)
+    }
+
     private static func buildDestinationProperties(originalURL: URL, actualUTI: UTType, compressionQuality: Double?, stripMetadata: Bool) -> [CFString: Any] {
         var props: [CFString: Any] = [:]
         if !stripMetadata {

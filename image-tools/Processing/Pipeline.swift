@@ -49,16 +49,16 @@ struct ProcessingPipeline {
             destinationURL = result.originalURL
         } else if let exportDir = exportDirectory {
             let base = result.originalURL.deletingPathExtension().lastPathComponent
-            destinationURL = exportDir.appendingPathComponent(base + "_edited." + ext)
+            destinationURL = exportDir.appendingPathComponent(base + "." + ext)
         } else if isTempSource {
             // Pasted images saved into temp should end up in Downloads upon apply
             let downloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser
             let base = result.originalURL.deletingPathExtension().lastPathComponent
-            destinationURL = downloadsDir.appendingPathComponent(base + "_edited." + ext)
+            destinationURL = downloadsDir.appendingPathComponent(base + "." + ext)
         } else {
             let dir = result.originalURL.deletingLastPathComponent()
             let base = result.originalURL.deletingPathExtension().lastPathComponent
-            destinationURL = dir.appendingPathComponent(base + "_edited." + ext)
+            destinationURL = dir.appendingPathComponent(base + "." + ext)
         }
 
         // Write into destination directory and atomically replace/move into place
@@ -139,5 +139,31 @@ struct ProcessingPipeline {
                                                      compressionQuality: q,
                                                      stripMetadata: removeMetadata)
         return encoded
+    }
+
+    /// Compute the destination URL without performing any processing, matching the naming behavior of `run(on:)`.
+    func plannedDestinationURL(for asset: ImageAsset) -> URL {
+        let currentURL = asset.originalURL
+        let tempDirPath = FileManager.default.temporaryDirectory.standardizedFileURL.path
+        let isTempSource = currentURL.standardizedFileURL.path.hasPrefix(tempDirPath)
+
+        let chosenFormat = finalFormat ?? ImageExporter.inferFormat(from: currentURL)
+        let finalUTI = ImageExporter.decideUTTypeForExport(originalURL: currentURL, requestedFormat: chosenFormat)
+        let ext = ImageIOCapabilities.shared.preferredFilenameExtension(for: finalUTI)
+
+        if overwriteOriginals {
+            return currentURL
+        } else if let exportDir = exportDirectory {
+            let base = currentURL.deletingPathExtension().lastPathComponent
+            return exportDir.appendingPathComponent(base + "." + ext)
+        } else if isTempSource {
+            let downloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser
+            let base = currentURL.deletingPathExtension().lastPathComponent
+            return downloadsDir.appendingPathComponent(base + "." + ext)
+        } else {
+            let dir = currentURL.deletingLastPathComponent()
+            let base = currentURL.deletingPathExtension().lastPathComponent
+            return dir.appendingPathComponent(base + "." + ext)
+        }
     }
 } 

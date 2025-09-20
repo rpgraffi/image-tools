@@ -22,31 +22,6 @@ extension ImageToolsViewModel {
         return pipeline
     }
 
-    func applyPipeline() {
-        let pipeline = buildPipeline()
-        let targets = images.filter { $0.isEnabled }
-
-        var updatedImages: [ImageAsset] = images
-
-        for asset in targets {
-            do {
-                let updated = try pipeline.run(on: asset)
-                if let idx = updatedImages.firstIndex(of: asset) { updatedImages[idx] = updated }
-            } catch {
-                print("Processing failed for \(asset.originalURL.lastPathComponent): \(error)")
-            }
-        }
-
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8, blendDuration: 0.3)) { images = updatedImages }
-        // Record a pipeline application (after attempting all images)
-        UsageTracker.shared.recordPipelineApplied()
-
-        // Reveal exported files in Finder, selecting them when possible
-        let urlsToReveal = updatedImages.compactMap { $0.isEdited ? $0.workingURL : nil }
-        if !urlsToReveal.isEmpty {
-            NSWorkspace.shared.activateFileViewerSelecting(urlsToReveal)
-        }
-    }
 
     // Async concurrent export
     func recommendedConcurrency() -> Int {
@@ -72,6 +47,11 @@ extension ImageToolsViewModel {
         let pipeline = buildPipeline()
         let targets = images.filter { $0.isEnabled }
         guard !targets.isEmpty else { return }
+
+        // Preflight replace confirmation (single dialog for all files)
+        if !preflightReplaceIfNecessary(pipeline: pipeline, targets: targets) {
+            return
+        }
 
         exportTotal = targets.count
         exportCompleted = 0
@@ -142,6 +122,56 @@ extension ImageToolsViewModel {
             updated.isEdited = false
             if let idx = images.firstIndex(of: asset) { images[idx] = updated }
         } catch { print("Recovery failed: \(error)") }
+    }
+}
+
+extension ImageToolsViewModel {
+    /// Returns true if export should proceed, false if user cancelled.
+    private func preflightReplaceIfNecessary(pipeline: ProcessingPipeline, targets: [ImageAsset]) -> Bool {
+        guard !targets.isEmpty else { return true }
+        let planned: [URL] = targets.map { pipeline.plannedDestinationURL(for: $0) }
+        // Only unique destinations matter for conflict check
+        let uniquePlanned = Array(Set(planned))
+        let fm = FileManager.default
+        let conflicts = uniquePlanned.filter { fm.fileExists(atPath: $0.path) }
+        guard !conflicts.isEmpty else { return true }
+
+        // Prefer showing the parent folder if all in same directory
+        let parentDirs = Set(conflicts.map { $0.deletingLastPathComponent().path })
+        let folderHintPath = parentDirs.count == 1 ? parentDirs.first! : nil
+        let message = String(localized: "Replace existing files?")
+        let count = conflicts.count
+        var info = ""
+        if let folderPath = folderHintPath {
+            let folderName = FileManager.default.displayName(atPath: folderPath)
+            if count == 1 {
+                info = String(format: String(localized: "1 file already exists in \"%@\". Replacing will overwrite it."), folderName)
+            } else {
+                info = String(format: String(localized: "%d files already exist in \"%@\". Replacing will overwrite them."), count, folderName)
+            }
+        } else {
+            if count == 1 {
+                info = String(localized: "1 file with the same name already exists. Replacing will overwrite it.")
+            } else {
+                info = String(format: String(localized: "%d files with the same name already exist. Replacing will overwrite them."), count)
+            }
+        }
+
+        func presentAlert() -> Bool {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = message
+            alert.informativeText = info
+            alert.addButton(withTitle: String(localized: "Replace"))
+            alert.addButton(withTitle: String(localized: "Cancel"))
+            if let icon = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil) {
+                alert.icon = icon
+            }
+            let resp = alert.runModal()
+            return resp == .alertFirstButtonReturn
+        }
+
+        return presentAlert()
     }
 }
 
