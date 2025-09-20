@@ -17,6 +17,7 @@ struct MainView: View {
                 SecondaryBar(vm: vm, onPickFromFinder: pickFromOpenPanel)
             }
         }
+        .frame(minWidth: 600)
         .onAppear { WindowConfigurator.configureMainWindow() }
         .focusable()
         .focusEffectDisabled()

@@ -242,6 +242,7 @@ struct PixelFieldsView: View {
                             }
                         }
                     Text(String(localized: "px"))
+                        .fixedSize(horizontal: true, vertical: false)
                         .padding(.trailing, 10)
                 }
             } else {
@@ -257,6 +258,7 @@ struct PixelFieldsView: View {
                         }
                     Text(String(localized: "px"))
                         .padding(.trailing, 10)
+                        .fixedSize(horizontal: true, vertical: false)
                 }
             }
         }

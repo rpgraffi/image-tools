@@ -15,6 +15,7 @@ struct VisualEffectView: NSViewRepresentable {
 
 // Keep window configuration centralized for reuse
 enum WindowConfigurator {
+    private static var didSetInitialSize: Bool = false
     static func configureMainWindow() {
         guard let window = NSApp.windows.first else { return }
         window.title = "Image Tools"
@@ -30,8 +31,16 @@ enum WindowConfigurator {
         let toolbar = NSToolbar(identifier: "MainToolbar")
         toolbar.displayMode = .iconOnly
         window.toolbar = toolbar
-        
+
         installTrailingAccessory(window: window)
+
+        // Set a default starting size once per app run
+        if !didSetInitialSize {
+            let defaultSize = NSSize(width: 950, height: 500)
+            window.setContentSize(defaultSize)
+            window.center()
+            didSetInitialSize = true
+        }
     }
 
     private static func installTrailingAccessory(window: NSWindow) {
