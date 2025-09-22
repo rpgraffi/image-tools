@@ -23,7 +23,7 @@ extension ImageToolsViewModel {
         switch link {
         case .recover: urlString = "https://imagetools.app/recover"
         case .privacy: urlString = "https://imagetools.app/privacy"
-        case .openSource: urlString = "https://imagetools.app/open-source"
+        case .openSource: urlString = "https://github.com/rpgraffi/image-tools"
         case .help: urlString = "https://imagetools.app/help"
         }
         if let url = URL(string: urlString) { NSWorkspace.shared.open(url) }
