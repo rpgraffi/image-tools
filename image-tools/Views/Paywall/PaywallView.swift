@@ -1,7 +1,8 @@
 import SwiftUI
 
 struct PaywallView: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @ObservedObject var purchase: PurchaseManager
+    let onContinue: () -> Void
 
     var body: some View {
         ZStack {
@@ -21,7 +22,7 @@ struct PaywallView: View {
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
-                        Button(action: { vm.paywallContinueFree() }) {
+                        Button(action: onContinue) {
                             Text(String(localized:"Continue"))
                                 .font(.system(size: 18))
                                 .frame(maxWidth: .infinity)
@@ -71,12 +72,13 @@ struct PaywallView: View {
                         .labelStyle(.titleAndIcon)
 
                         Spacer()
-                        Button(action: { vm.paywallPurchaseLifetime() }) {
-                            Text(String(localized:"Get Lifetime"))
-                                .font(.system(size: 18))
-                                .frame(maxWidth: .infinity)
-                                .padding(4)
+                        Button(action: { Task { await purchase.purchaseLifetime() } }) {
+                                Text(String(localized:"Get Lifetime"))
+                                    .font(.system(size: 18))
+                            .frame(maxWidth: .infinity)
+                            .padding(4)
                         }
+                        .disabled(purchase.isPurchasing)
                         .tint(.white.opacity(0.9))
                         .buttonStyle(.borderedProminent)
                         .buttonBorderShape(.capsule)
@@ -107,10 +109,10 @@ struct PaywallView: View {
                 }
 
                 HStack(spacing: 24) {
-                    Button(String(localized:"Recover")) { vm.openSupportURL(.recover) }
-                    Button(String(localized:"Privacy")) { vm.openSupportURL(.privacy) }
-                    Button(String(localized:"Open Source")) { vm.openSupportURL(.openSource) }
-                    Button(String(localized:"Help")) { vm.openSupportURL(.help) }
+                    Link(String(localized:"Recover"), destination: URL(string: "https://imagetools.app/recover")!)
+                    Link(String(localized:"Privacy"), destination: URL(string: "https://imagetools.app/privacy")!)
+                    Link(String(localized:"Open Source"), destination: URL(string: "https://github.com/rpgraffi/image-tools")!)
+                    Link(String(localized:"Help"), destination: URL(string: "https://imagetools.app/help")!)
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
@@ -118,11 +120,25 @@ struct PaywallView: View {
             .padding(8)
         }
         .frame(minWidth: 760, minHeight: 420)
+        .alert(item: Binding(
+            get: { purchase.purchaseError.map { LocalizedErrorWrapper(message: $0) } },
+            set: { _ in purchase.purchaseError = nil }
+        )) { wrapper in
+            Alert(title: Text(wrapper.message))
+        }
+        .onChange(of: purchase.isProUnlocked) {
+            if purchase.isProUnlocked { onContinue() }
+        }
     }
 }
 
+private struct LocalizedErrorWrapper: Identifiable {
+    let id = UUID()
+    let message: String
+}
+
 #Preview {
-    PaywallView(vm: ImageToolsViewModel())
+    PaywallView(purchase: PurchaseManager.shared, onContinue: {})
 }
 
 

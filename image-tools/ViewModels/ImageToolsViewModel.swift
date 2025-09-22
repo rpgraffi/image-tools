@@ -2,6 +2,7 @@ import Foundation
 import AppKit
 import SwiftUI
 import ImageIO
+import StoreKit
 import Combine
 
 final class ImageToolsViewModel: ObservableObject {
@@ -95,7 +96,12 @@ final class ImageToolsViewModel: ObservableObject {
         }
     }
 
-    // Payment-related helpers moved to ImageToolsViewModel+Payment.swift
+    // MARK: - Paywall actions
+    func paywallContinueFree() {
+        isPaywallPresented = false
+        shouldBypassPaywallOnce = true
+        applyPipelineAsync()
+    }
 
     // MARK: - Clear all images
     func clearAll() {

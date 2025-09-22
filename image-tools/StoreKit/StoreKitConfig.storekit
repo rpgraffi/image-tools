@@ -1,0 +1,92 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_US",
+        "policyText" : "",
+        "policyURL" : ""
+      }
+    ]
+  },
+  "identifier" : "CE8DFF5F",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "8.99",
+      "familyShareable" : true,
+      "internalID" : "6752862236",
+      "localizations" : [
+        {
+          "description" : "Débloquez toutes les fonctions",
+          "displayName" : "Accès à vie",
+          "locale" : "fr"
+        },
+        {
+          "description" : "Desbloquea todas las funciones",
+          "displayName" : "Acceso de por vida",
+          "locale" : "es_ES"
+        },
+        {
+          "description" : "解鎖所有功能",
+          "displayName" : "終身存取",
+          "locale" : "zh_Hant"
+        },
+        {
+          "description" : "解锁所有功能",
+          "displayName" : "终身访问",
+          "locale" : "zh_Hans"
+        },
+        {
+          "description" : "Schalte alle Funktionen frei, für immer",
+          "displayName" : " Lebenslanger Zugriff",
+          "locale" : "de"
+        },
+        {
+          "description" : "全機能を利用可能",
+          "displayName" : "ライフタイムアクセス",
+          "locale" : "ja"
+        },
+        {
+          "description" : "Unlock all features with lifetime access",
+          "displayName" : "Lifetime Access ",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "모든 기능 사용 가능",
+          "displayName" : "평생 이용권",
+          "locale" : "ko"
+        }
+      ],
+      "productID" : "lifetime",
+      "referenceName" : "Lifetime",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6752861983",
+    "_askToBuyEnabled" : false,
+    "_billingGracePeriodEnabled" : false,
+    "_billingIssuesEnabled" : false,
+    "_developerTeamID" : "9AU33YWN79",
+    "_disableDialogs" : false,
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 780246744.96333694,
+    "_locale" : "en_US",
+    "_renewalBillingIssuesEnabled" : false,
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+
+    ],
+    "_timeRate" : 0
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 4,
+    "minor" : 0
+  }
+}

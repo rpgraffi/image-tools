@@ -18,12 +18,18 @@ struct MainView: View {
             }
         }
         .frame(minWidth: 600)
-        .onAppear { WindowConfigurator.configureMainWindow() }
+        .onAppear {
+            WindowConfigurator.configureMainWindow()
+            PurchaseManager.shared.configure()
+        }
         .focusable()
         .focusEffectDisabled()
         .onPasteCommand(of: [.fileURL, .image], perform: handlePaste)
         .sheet(isPresented: $vm.isPaywallPresented) {
-            PaywallView(vm: vm)
+            PaywallView(
+                purchase: PurchaseManager.shared,
+                onContinue: { vm.paywallContinueFree() }
+            )
         }
         .presentationCornerRadius(32)
     }
