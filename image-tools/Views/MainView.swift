@@ -22,6 +22,10 @@ struct MainView: View {
         .focusable()
         .focusEffectDisabled()
         .onPasteCommand(of: [.fileURL, .image], perform: handlePaste)
+        .sheet(isPresented: $vm.isPaywallPresented) {
+            PaywallView(vm: vm)
+        }
+        .presentationCornerRadius(32)
     }
 
     private func handlePaste(providers: [NSItemProvider]) {

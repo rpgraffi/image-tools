@@ -60,6 +60,12 @@ final class ImageToolsViewModel: ObservableObject {
     @Published private(set) var totalPipelineApplications: Int = 0
     private var usageCancellable: AnyCancellable?
 
+    // Paywall / purchase state
+    @Published var isProUnlocked: Bool = false { didSet { persistPaywallState() } }
+    @Published var isPaywallPresented: Bool = false
+    // One-time gate so pressing Continue starts the just-requested apply without re-opening the paywall
+    var shouldBypassPaywallOnce: Bool = false
+
     // MARK: - Init / Persistence
     init() {
         usageCancellable = UsageTracker.shared.$events
@@ -88,6 +94,8 @@ final class ImageToolsViewModel: ObservableObject {
             storedPixelHeight = resizeHeight
         }
     }
+
+    // Payment-related helpers moved to ImageToolsViewModel+Payment.swift
 
     // MARK: - Clear all images
     func clearAll() {

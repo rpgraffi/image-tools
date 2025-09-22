@@ -36,7 +36,7 @@ enum WindowConfigurator {
 
         // Set a default starting size once per app run
         if !didSetInitialSize {
-            let defaultSize = NSSize(width: 950, height: 500)
+            let defaultSize = NSSize(width: 850, height: 600)
             window.setContentSize(defaultSize)
             window.center()
             didSetInitialSize = true
