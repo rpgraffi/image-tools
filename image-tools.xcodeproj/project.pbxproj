@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B7438E642E7DA6F3003E7442 /* SDWebImageWebPCoder in Frameworks */ = {isa = PBXBuildFile; productRef = B7438E632E7DA6F3003E7442 /* SDWebImageWebPCoder */; };
+		B7B69C542E8312A700BE3883 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = B7B69C532E8312A700BE3883 /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -28,9 +29,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		B77ECCC42E45573200C28347 /* image-tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "image-tools.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B77ECCD22E45573400C28347 /* image-toolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B77ECCDC2E45573400C28347 /* image-toolsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B77ECCC42E45573200C28347 /* image-tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "image-tools.app"; path = "/Users/raphaelwennmacher/Development/SwiftProjects/image-tools/build/Debug/image-tools.app"; sourceTree = "<absolute>"; };
+		B77ECCD22E45573400C28347 /* image-toolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "image-toolsTests.xctest"; path = "/Users/raphaelwennmacher/Development/SwiftProjects/image-tools/build/Debug/image-tools.app/Contents/PlugIns/image-toolsTests.xctest"; sourceTree = "<absolute>"; };
+		B77ECCDC2E45573400C28347 /* image-toolsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "image-toolsUITests.xctest"; path = "/Users/raphaelwennmacher/Development/SwiftProjects/image-tools/build/Debug/image-toolsUITests-Runner.app/Contents/PlugIns/image-toolsUITests.xctest"; sourceTree = "<absolute>"; };
+		B7B69C532E8312A700BE3883 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -83,18 +85,8 @@
 				B77ECCC62E45573200C28347 /* image-tools */,
 				B77ECCD52E45573400C28347 /* image-toolsTests */,
 				B77ECCDF2E45573400C28347 /* image-toolsUITests */,
-				B77ECCC52E45573200C28347 /* Products */,
+				B7B69C532E8312A700BE3883 /* AppIcon.icon */,
 			);
-			sourceTree = "<group>";
-		};
-		B77ECCC52E45573200C28347 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				B77ECCC42E45573200C28347 /* image-tools.app */,
-				B77ECCD22E45573400C28347 /* image-toolsTests.xctest */,
-				B77ECCDC2E45573400C28347 /* image-toolsUITests.xctest */,
-			);
-			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -206,7 +198,7 @@
 				B7438E622E7DA6F3003E7442 /* XCRemoteSwiftPackageReference "SDWebImageWebPCoder" */,
 			);
 			preferredProjectObjectVersion = 77;
-			productRefGroup = B77ECCC52E45573200C28347 /* Products */;
+			productRefGroup = B77ECCBB2E45573200C28347;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -222,6 +214,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				B7B69C542E8312A700BE3883 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -71,23 +71,31 @@ extension ImageToolsViewModel {
     func ingestURLStream(_ stream: AsyncStream<[URL]>) {
         Task {
             for await urls in stream {
-                await MainActor.run {
-                    let readable = urls
-                        .filter { ImageIOCapabilities.shared.isReadableURL($0) }
-                        .map { $0.standardizedFileURL }
-                    guard !readable.isEmpty else { return }
+                // Pre-filter on a background context
+                let readable = urls
+                    .filter { ImageIOCapabilities.shared.isReadableURL($0) }
+                    .map { $0.standardizedFileURL }
+                guard !readable.isEmpty else { continue }
 
-                    // Deduplicate against current images at the time of ingestion
+                // Read main-actor state needed for deduping and update source directory
+                let fresh: [URL] = await MainActor.run {
                     let existing: Set<URL> = Set(images.map { $0.originalURL.standardizedFileURL })
                     let fresh = readable.filter { !existing.contains($0) }
-                    guard !fresh.isEmpty else { return }
-
                     if let firstDir = fresh.first?.deletingLastPathComponent() {
                         sourceDirectory = firstDir
                     }
-                    let assets = fresh.map { ImageAsset(url: $0) }
-                    images.append(contentsOf: assets)
+                    return fresh
                 }
+                guard !fresh.isEmpty else { continue }
+
+                // Build ImageAsset objects off the main actor with a high priority,
+                // then append on the main actor to update the UI.
+                await Task.detached(priority: .userInitiated) { [fresh] in
+                    let assets = fresh.map { ImageAsset(url: $0) }
+                    await MainActor.run {
+                        self.images.append(contentsOf: assets)
+                    }
+                }.value
             }
         }
     }

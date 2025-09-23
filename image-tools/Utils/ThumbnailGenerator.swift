@@ -3,7 +3,13 @@ import ImageIO
 
 struct ThumbnailGenerator {
     static func generateThumbnail(for url: URL, maxPixelSize: CGFloat = 256) -> NSImage? {
-        let scale = NSScreen.main?.backingScaleFactor ?? 2.0
+        // Avoid touching AppKit screen APIs off the main thread to prevent QoS inversions
+        let scale: CGFloat
+        if Thread.isMainThread, let s = NSScreen.main?.backingScaleFactor {
+            scale = s
+        } else {
+            scale = 2.0
+        }
         let pixelMax = max(1, Int(maxPixelSize * scale))
 
         let sourceOptions: [CFString: Any] = [
