@@ -29,15 +29,28 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		B77ECCC42E45573200C28347 /* image-tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = "image-tools.app"; path = "/Users/raphaelwennmacher/Development/SwiftProjects/image-tools/build/Debug/image-tools.app"; sourceTree = "<absolute>"; };
-		B77ECCD22E45573400C28347 /* image-toolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "image-toolsTests.xctest"; path = "/Users/raphaelwennmacher/Development/SwiftProjects/image-tools/build/Debug/image-tools.app/Contents/PlugIns/image-toolsTests.xctest"; sourceTree = "<absolute>"; };
-		B77ECCDC2E45573400C28347 /* image-toolsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; name = "image-toolsUITests.xctest"; path = "/Users/raphaelwennmacher/Development/SwiftProjects/image-tools/build/Debug/image-toolsUITests-Runner.app/Contents/PlugIns/image-toolsUITests.xctest"; sourceTree = "<absolute>"; };
 		B7B69C532E8312A700BE3883 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
+		B7B69C582E83FC5700BE3883 /* image-tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "image-tools.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "image-tools" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = B77ECCC32E45573200C28347 /* image-tools */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		B77ECCC62E45573200C28347 /* image-tools */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "image-tools" target */,
+			);
 			path = "image-tools";
 			sourceTree = "<group>";
 		};
@@ -86,6 +99,9 @@
 				B77ECCD52E45573400C28347 /* image-toolsTests */,
 				B77ECCDF2E45573400C28347 /* image-toolsUITests */,
 				B7B69C532E8312A700BE3883 /* AppIcon.icon */,
+				B7B69C582E83FC5700BE3883 /* image-tools.app */,
+				B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */,
+				B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
@@ -112,7 +128,7 @@
 				B7438E632E7DA6F3003E7442 /* SDWebImageWebPCoder */,
 			);
 			productName = "image-tools";
-			productReference = B77ECCC42E45573200C28347 /* image-tools.app */;
+			productReference = B7B69C582E83FC5700BE3883 /* image-tools.app */;
 			productType = "com.apple.product-type.application";
 		};
 		B77ECCD12E45573400C28347 /* image-toolsTests */ = {
@@ -135,7 +151,7 @@
 			packageProductDependencies = (
 			);
 			productName = "image-toolsTests";
-			productReference = B77ECCD22E45573400C28347 /* image-toolsTests.xctest */;
+			productReference = B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
 		B77ECCDB2E45573400C28347 /* image-toolsUITests */ = {
@@ -158,7 +174,7 @@
 			packageProductDependencies = (
 			);
 			productName = "image-toolsUITests";
-			productReference = B77ECCDC2E45573400C28347 /* image-toolsUITests.xctest */;
+			productReference = B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -191,6 +207,11 @@
 				en,
 				Base,
 				de,
+				fr,
+				es,
+				ko,
+				ja,
+				"zh-Hans",
 			);
 			mainGroup = B77ECCBB2E45573200C28347;
 			minimizedProjectReferenceProxies = 1;
@@ -413,7 +434,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "image-tools/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Convert & Compress";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
@@ -459,7 +482,9 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "image-tools/Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = "Convert & Compress";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;

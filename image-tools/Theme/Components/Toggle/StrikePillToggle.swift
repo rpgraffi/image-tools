@@ -64,7 +64,7 @@ private struct StrikePillTogglePreviewWrapper: View {
             .help("Toggle metadata removal")
 
             PillToggle(isOn: $isOn) {
-                Text("Plain Pill")
+                Text("Metadata")
             }
         }
         .padding()
