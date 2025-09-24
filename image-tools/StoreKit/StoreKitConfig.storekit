@@ -15,7 +15,7 @@
   ],
   "products" : [
     {
-      "displayPrice" : "8.99",
+      "displayPrice" : "9.99",
       "familyShareable" : true,
       "internalID" : "6752862236",
       "localizations" : [
@@ -30,9 +30,9 @@
           "locale" : "es_ES"
         },
         {
-          "description" : "모든 기능 사용 가능",
-          "displayName" : "평생 이용권",
-          "locale" : "ko"
+          "description" : "Schalte alle Funktionen frei, für immer",
+          "displayName" : " Lebenslanger Zugriff",
+          "locale" : "de"
         },
         {
           "description" : "解鎖所有功能",
@@ -45,11 +45,6 @@
           "locale" : "zh_Hans"
         },
         {
-          "description" : "Schalte alle Funktionen frei, für immer",
-          "displayName" : " Lebenslanger Zugriff",
-          "locale" : "de"
-        },
-        {
           "description" : "全機能を利用可能",
           "displayName" : "ライフタイムアクセス",
           "locale" : "ja"
@@ -58,6 +53,11 @@
           "description" : "Unlock all features with lifetime access",
           "displayName" : "Lifetime Access ",
           "locale" : "en_US"
+        },
+        {
+          "description" : "모든 기능 사용 가능",
+          "displayName" : "평생 이용권",
+          "locale" : "ko"
         }
       ],
       "productID" : "lifetime",
@@ -65,7 +65,7 @@
       "type" : "NonConsumable"
     },
     {
-      "displayPrice" : "12.99",
+      "displayPrice" : "17.99",
       "familyShareable" : true,
       "internalID" : "6752908811",
       "localizations" : [
@@ -123,7 +123,7 @@
     "_developerTeamID" : "9AU33YWN79",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 780384271.10957003,
+    "_lastSynchronizedDate" : 780419559.03217304,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
