@@ -32,6 +32,12 @@
             "state" : "translated",
             "value" : ""
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : ""
+          }
         }
       }
     },
@@ -72,6 +78,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : " 여기에 이미지를 추가하세요."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : " 在此添加您的图片。"
           }
         }
       }
@@ -161,6 +173,12 @@
             "state" : "translated",
             "value" : "%1$@ %2$@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$@"
+          }
         }
       }
     },
@@ -203,6 +221,12 @@
             "state" : "translated",
             "value" : "\"%2$@\"에 이미 %1$d개의 파일이 있습니다. 교체하면 덮어씁니다."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%2$@\"中已存在%1$d个文件。替换将覆盖它们。"
+          }
         }
       }
     },
@@ -236,6 +260,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "같은 이름의 파일이 이미 %1$d개 있습니다. 교체하면 덮어씁니다."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已存在%1$d个同名文件。替换将覆盖它们。"
           }
         }
       }
@@ -271,6 +301,12 @@
             "state" : "translated",
             "value" : "%lld"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld"
+          }
         }
       }
     },
@@ -301,6 +337,12 @@
           }
         },
         "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld%%"
+          }
+        },
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "%lld%%"
@@ -345,6 +387,12 @@
             "state" : "translated",
             "value" : "%1$lldx%2$lld"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$lldx%2$lld"
+          }
         }
       }
     },
@@ -375,6 +423,12 @@
           }
         },
         "ko" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "`⌘+V`"
+          }
+        },
+        "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "`⌘+V`"
@@ -415,6 +469,12 @@
             "state" : "translated",
             "value" : "\"%@\"에 파일이 이미 1개 있습니다. 교체하면 덮어씁니다."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "\"%@\"中已存在1个文件。替换将覆盖它。"
+          }
         }
       }
     },
@@ -451,6 +511,12 @@
             "state" : "translated",
             "value" : "같은 이름의 파일이 이미 1개 있습니다. 교체하면 덮어씁니다."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已存在1个同名文件。替换将覆盖它。"
+          }
         }
       }
     },
@@ -486,6 +552,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "향후 모든 업데이트"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有未来更新"
           }
         }
       }
@@ -528,6 +600,12 @@
             "state" : "translated",
             "value" : "적용"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用"
+          }
         }
       }
     },
@@ -569,6 +647,12 @@
             "state" : "translated",
             "value" : "처리 파이프라인 적용"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "应用处理管道"
+          }
         }
       }
     },
@@ -602,6 +686,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "구매"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "购买"
           }
         }
       }
@@ -638,6 +728,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "취소"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
           }
         }
       }
@@ -680,6 +776,12 @@
             "state" : "translated",
             "value" : "선택"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择"
+          }
         }
       }
     },
@@ -720,6 +822,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "내보내기 폴더 선택"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "选择导出文件夹"
           }
         }
       }
@@ -762,6 +870,12 @@
             "state" : "translated",
             "value" : "지우기"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清除"
+          }
         }
       }
     },
@@ -803,6 +917,12 @@
             "state" : "translated",
             "value" : "내보내기 폴더 비우기"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清空导出文件夹"
+          }
         }
       }
     },
@@ -838,6 +958,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "계속"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续"
           }
         }
       }
@@ -880,6 +1006,12 @@
             "state" : "translated",
             "value" : "변환 압축 크기 조정"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "转换 压缩 调整大小"
+          }
         }
       }
     },
@@ -900,7 +1032,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Converti : %lld"
+            "value" : "Converti : %lld"
           }
         },
         "ja" : {
@@ -913,6 +1045,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "변환됨: %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已转换：%lld"
           }
         }
       }
@@ -941,7 +1079,7 @@
         "fr" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Copier l’image dans le presse‑papiers"
+            "value" : "Copier l'image dans le presse‑papiers"
           }
         },
         "ja" : {
@@ -954,6 +1092,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "이미지를 클립보드에 복사"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "复制图片到剪贴板"
           }
         }
       }
@@ -988,6 +1132,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "대상"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标位置"
           }
         }
       }
@@ -1025,6 +1175,12 @@
             "state" : "translated",
             "value" : "초기 사용자 할인"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "早期用户优惠"
+          }
         }
       }
     },
@@ -1058,6 +1214,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "완료"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
           }
         }
       }
@@ -1100,6 +1262,12 @@
             "state" : "translated",
             "value" : "드래그 또는 "
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "拖拽或 "
+          }
         }
       }
     },
@@ -1135,6 +1303,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "초기 단계 동안"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在早期阶段"
           }
         }
       }
@@ -1177,6 +1351,12 @@
             "state" : "translated",
             "value" : "편집됨"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已编辑"
+          }
         }
       }
     },
@@ -1217,6 +1397,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "가로로 뒤집기"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "水平翻转"
           }
         }
       }
@@ -1259,6 +1445,12 @@
             "state" : "translated",
             "value" : "세로로 뒤집기"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "垂直翻转"
+          }
         }
       }
     },
@@ -1300,6 +1492,12 @@
             "state" : "translated",
             "value" : "폴더"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件夹"
+          }
         }
       }
     },
@@ -1333,6 +1531,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "형식"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "格式"
           }
         }
       }
@@ -1369,6 +1573,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "무료"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费"
           }
         }
       }
@@ -1445,6 +1655,12 @@
             "state" : "translated",
             "value" : "높이"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高度"
+          }
         }
       }
     },
@@ -1480,6 +1696,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "도움말"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "帮助"
           }
         }
       }
@@ -1563,6 +1785,12 @@
             "state" : "translated",
             "value" : "원본 형식 유지"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保持原始格式"
+          }
         }
       }
     },
@@ -1598,6 +1826,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "유럽에서 제작"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "欧洲制造"
           }
         }
       }
@@ -1640,6 +1874,12 @@
             "state" : "translated",
             "value" : "메타데이터"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "元数据"
+          }
         }
       }
     },
@@ -1680,6 +1920,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "메타데이터가 제거됩니다"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将删除元数据"
           }
         }
       }
@@ -1722,6 +1968,12 @@
             "state" : "translated",
             "value" : "더 보기"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更多"
+          }
         }
       }
     },
@@ -1755,6 +2007,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "1회"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一次"
           }
         }
       }
@@ -1797,6 +2055,12 @@
             "state" : "translated",
             "value" : "또는 선택 "
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "或选择 "
+          }
         }
       }
     },
@@ -1837,6 +2101,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "원본"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来源"
           }
         }
       }
@@ -1879,6 +2149,12 @@
             "state" : "translated",
             "value" : "원본"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "原始"
+          }
         }
       }
     },
@@ -1919,6 +2195,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "덮어쓰기"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "覆盖"
           }
         }
       }
@@ -1961,6 +2243,12 @@
             "state" : "translated",
             "value" : "저장 시 원본 덮어쓰기"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存时覆盖原文件"
+          }
         }
       }
     },
@@ -2002,6 +2290,12 @@
             "state" : "translated",
             "value" : "붙여넣기"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴"
+          }
         }
       }
     },
@@ -2035,6 +2329,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "붙여넣기  "
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "粘贴  "
           }
         }
       }
@@ -2118,6 +2418,12 @@
             "state" : "translated",
             "value" : "메타데이터 유지"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保留元数据"
+          }
         }
       }
     },
@@ -2159,6 +2465,12 @@
             "state" : "translated",
             "value" : "프리셋"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "预设"
+          }
         }
       }
     },
@@ -2194,6 +2506,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "개인정보 처리방침"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私政策"
           }
         }
       }
@@ -2277,6 +2595,12 @@
             "state" : "translated",
             "value" : "품질"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "质量"
+          }
         }
       }
     },
@@ -2317,6 +2641,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "최근"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近"
           }
         }
       }
@@ -2359,6 +2689,12 @@
             "state" : "translated",
             "value" : "원본 복원"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复原始文件"
+          }
         }
       }
     },
@@ -2400,6 +2736,12 @@
             "state" : "translated",
             "value" : "목록에서 제거"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "从列表中移除"
+          }
         }
       }
     },
@@ -2433,6 +2775,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "대체"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "替换"
           }
         }
       }
@@ -2469,6 +2817,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "기존 파일을 교체하시겠습니까?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "是否替换现有文件？"
           }
         }
       }
@@ -2511,6 +2865,12 @@
             "state" : "translated",
             "value" : "크기 조정"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整大小"
+          }
         }
       }
     },
@@ -2544,6 +2904,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "구매 복원"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复购买"
           }
         }
       }
@@ -2586,6 +2952,12 @@
             "state" : "translated",
             "value" : "Finder에서 보기"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在 Finder 中显示"
+          }
         }
       }
     },
@@ -2619,6 +2991,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "저장"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存"
           }
         }
       }
@@ -2654,6 +3032,12 @@
             "state" : "translated",
             "value" : "이미지 저장"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存图片"
+          }
         }
       }
     },
@@ -2687,6 +3071,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "소스 코드"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "源代码"
           }
         }
       }
@@ -2729,6 +3119,12 @@
             "state" : "translated",
             "value" : "대상"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "目标"
+          }
         }
       }
     },
@@ -2763,6 +3159,12 @@
             "state" : "translated",
             "value" : "이용약관"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "条款"
+          }
         }
       }
     },
@@ -2796,6 +3198,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "메타데이터 제거 전환"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "切换元数据移除"
           }
         }
       }
@@ -2832,6 +3240,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "무제한 변환"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无限转换"
           }
         }
       }
@@ -2907,6 +3321,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "너비"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "宽度"
           }
         }
       }
