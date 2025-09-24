@@ -31,7 +31,6 @@ struct MainView: View {
                 onContinue: { vm.paywallContinueFree() }
             )
         }
-        .presentationCornerRadius(32)
     }
 
     private func handlePaste(providers: [NSItemProvider]) {

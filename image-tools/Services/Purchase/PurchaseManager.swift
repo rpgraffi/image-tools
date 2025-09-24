@@ -8,9 +8,15 @@ final class PurchaseManager: ObservableObject {
     @Published var isProUnlocked: Bool = false
     @Published var purchaseError: String? = nil
     @Published var lifetimeProduct: Product? = nil
+    @Published var lifetimeRegularProduct: Product? = nil
+    
+    var lifetimeDisplayPrice: String? { lifetimeProduct?.displayPrice }
+    var lifetimeRegularDisplayPrice: String? { lifetimeRegularProduct?.displayPrice }
 
     private var configured = false
     private let lifetimeProductId: String = "lifetime"
+    private let lifetimeRegularProductId: String = "lifetime_regular"
+    private var proEntitlementProductIds: Set<String> { [lifetimeProductId, lifetimeRegularProductId] }
 
     private init() {}
 
@@ -24,8 +30,11 @@ final class PurchaseManager: ObservableObject {
 
     func loadProducts() async {
         do {
-            let products = try await Product.products(for: [lifetimeProductId])
-            await MainActor.run { self.lifetimeProduct = products.first }
+            let products = try await Product.products(for: [lifetimeProductId, lifetimeRegularProductId])
+            await MainActor.run {
+                self.lifetimeProduct = products.first(where: { $0.id == lifetimeProductId })
+                self.lifetimeRegularProduct = products.first(where: { $0.id == lifetimeRegularProductId })
+            }
         } catch {
             // Keep silent; UI can retry via purchase
         }
@@ -33,7 +42,7 @@ final class PurchaseManager: ObservableObject {
 
     func refreshEntitlement() async {
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result, transaction.productID == lifetimeProductId {
+            if case .verified(let transaction) = result, proEntitlementProductIds.contains(transaction.productID) {
                 await MainActor.run { self.isProUnlocked = true }
             }
         }
@@ -42,7 +51,7 @@ final class PurchaseManager: ObservableObject {
     func observeTransactions() async {
         for await update in Transaction.updates {
             if case .verified(let transaction) = update {
-                if transaction.productID == lifetimeProductId {
+                if proEntitlementProductIds.contains(transaction.productID) {
                     await MainActor.run { self.isProUnlocked = true }
                 }
                 await transaction.finish()
@@ -51,8 +60,8 @@ final class PurchaseManager: ObservableObject {
     }
 
     func purchaseLifetime() async {
-        if lifetimeProduct == nil { await loadProducts() }
-        guard let product = lifetimeProduct else {
+        if lifetimeProduct == nil && lifetimeRegularProduct == nil { await loadProducts() }
+        guard let product = lifetimeProduct ?? lifetimeRegularProduct else {
             await MainActor.run { self.purchaseError = "Product not available. Please try again." }
             return
         }
@@ -63,7 +72,7 @@ final class PurchaseManager: ObservableObject {
             switch result {
             case .success(let verification):
                 if case .verified(let transaction) = verification {
-                    if transaction.productID == lifetimeProductId {
+                    if proEntitlementProductIds.contains(transaction.productID) {
                         await MainActor.run { self.isProUnlocked = true }
                     }
                     await transaction.finish()
@@ -73,6 +82,17 @@ final class PurchaseManager: ObservableObject {
             }
         } catch {
             await MainActor.run { self.purchaseError = "Purchase failed. Please try again." }
+        }
+    }
+
+    func restorePurchases() async {
+        await MainActor.run { self.isPurchasing = true }
+        defer { Task { await MainActor.run { self.isPurchasing = false } } }
+        do {
+            try await AppStore.sync()
+            await refreshEntitlement()
+        } catch {
+            await MainActor.run { self.purchaseError = "Restore failed. Please try again." }
         }
     }
 }
