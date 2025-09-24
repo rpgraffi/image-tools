@@ -30,6 +30,11 @@
           "locale" : "es_ES"
         },
         {
+          "description" : "모든 기능 사용 가능",
+          "displayName" : "평생 이용권",
+          "locale" : "ko"
+        },
+        {
           "description" : "解鎖所有功能",
           "displayName" : "終身存取",
           "locale" : "zh_Hant"
@@ -53,15 +58,60 @@
           "description" : "Unlock all features with lifetime access",
           "displayName" : "Lifetime Access ",
           "locale" : "en_US"
+        }
+      ],
+      "productID" : "lifetime",
+      "referenceName" : "Lifetime",
+      "type" : "NonConsumable"
+    },
+    {
+      "displayPrice" : "12.99",
+      "familyShareable" : true,
+      "internalID" : "6752908811",
+      "localizations" : [
+        {
+          "description" : "解鎖所有功能",
+          "displayName" : "終身存取",
+          "locale" : "zh_Hant"
+        },
+        {
+          "description" : "全機能を利用可能",
+          "displayName" : "ライフタイムアクセス",
+          "locale" : "ja"
+        },
+        {
+          "description" : "Desbloquea todas las funciones",
+          "displayName" : "Acceso de por vida",
+          "locale" : "es_ES"
+        },
+        {
+          "description" : "Schalte alle Funktionen frei, für immer",
+          "displayName" : "Lebenslanger Zugriff",
+          "locale" : "de"
         },
         {
           "description" : "모든 기능 사용 가능",
           "displayName" : "평생 이용권",
           "locale" : "ko"
+        },
+        {
+          "description" : "Unlock all features with lifetime access",
+          "displayName" : "Lifetime Access ",
+          "locale" : "en_US"
+        },
+        {
+          "description" : "解锁所有功能",
+          "displayName" : "终身访问",
+          "locale" : "zh_Hans"
+        },
+        {
+          "description" : "Débloquez toutes les fonctions",
+          "displayName" : "Accès à vie",
+          "locale" : "fr"
         }
       ],
-      "productID" : "lifetime",
-      "referenceName" : "Lifetime",
+      "productID" : "lifetime_regular",
+      "referenceName" : "Lifetime Regular",
       "type" : "NonConsumable"
     }
   ],
@@ -73,7 +123,7 @@
     "_developerTeamID" : "9AU33YWN79",
     "_disableDialogs" : false,
     "_failTransactionsEnabled" : false,
-    "_lastSynchronizedDate" : 780246744.96333694,
+    "_lastSynchronizedDate" : 780384271.10957003,
     "_locale" : "en_US",
     "_renewalBillingIssuesEnabled" : false,
     "_storefront" : "USA",
