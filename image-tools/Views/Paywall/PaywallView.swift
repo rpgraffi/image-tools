@@ -71,7 +71,7 @@ struct PaywallView: View {
                     
                     Spacer()
                     Button(action: { Task { await purchase.purchaseLifetime() } }) {
-                        Text(String(localized:"Get Lifetime"))
+                        Text(String(localized:"Buy"))
                             .font(.system(size: 18))
                             .frame(maxWidth: .infinity)
                             .padding(4)
