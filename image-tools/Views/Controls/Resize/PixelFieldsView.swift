@@ -162,7 +162,7 @@ struct PixelFieldsView: View {
 
     private func handleStopHaptics(currentIndex: Int) {
         if lastStopIndex != currentIndex {
-            NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+            Haptics.alignment()
             lastStopIndex = currentIndex
         }
     }

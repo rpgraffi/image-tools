@@ -1,10 +1,12 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct ExportDirectoryPill: View {
     @Binding var directory: URL?
     var sourceDirectory: URL?
     var hasActiveImages: Bool
+    @State private var isDropping: Bool = false
 
     var body: some View {
         let height: CGFloat = Theme.Metrics.controlHeight
@@ -45,8 +47,25 @@ struct ExportDirectoryPill: View {
                 .fill(isOn ? Color.accentColor : Theme.Colors.controlBackground)
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: corner, style: .continuous)
+                .stroke(style: StrokeStyle(lineWidth: 2, dash: [6, 4]))
+                .foregroundStyle(isDropping ? (isOn ? Color.white : Color.accentColor) : Color.clear)
+        )
         .animation(Theme.Animations.pillFill(), value: isOn)
         .help(isOn ? (directory?.path ?? "") : (currentTooltip))
+        .dropDestination(for: URL.self) { items, _ in
+            guard let folder = items.first else { return false }
+            var isDirectory: ObjCBool = false
+            guard FileManager.default.fileExists(atPath: folder.path, isDirectory: &isDirectory), isDirectory.boolValue else {
+                return false
+            }
+            directory = folder
+            return true
+        } isTargeted: { hovering in
+            isDropping = hovering
+            if hovering { Haptics.generic() } else { Haptics.alignment() }
+        }
     }
 
     private var currentLabel: String {
@@ -72,4 +91,5 @@ struct ExportDirectoryPill: View {
             directory = panel.urls.first
         }
     }
+
 } 

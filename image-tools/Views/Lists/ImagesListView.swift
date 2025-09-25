@@ -27,8 +27,9 @@ struct ImagesListView: View {
             .frame(minWidth: 420, minHeight: 260)
             .contentShape(Rectangle())
             .onDrop(of: [.image, .fileURL, .folder, .directory], isTargeted: $isDropping, perform: handleProviderDrop)
-            .onChange(of: isDropping) { hovering in
-                performHapticFeedback()
+            .onChange(of: isDropping) { _, hovering in
+                if hovering { Haptics.generic() }
+                else { Haptics.alignment() }
             }
     }
 
@@ -92,9 +93,7 @@ struct ImagesListView: View {
         return true
     }
 
-    private func performHapticFeedback() {
-        NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
-    }
+    
 } 
 
 struct ImagesListView_Previews: PreviewProvider {
