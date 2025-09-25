@@ -23,12 +23,13 @@ struct PixelFieldsView: View {
         activeDimension == .width ? widthText : heightText
     }
     
-    private func assignActive(_ newValue: String) {
+    private func assignActive(_ newValue: String?) {
+        let sanitized = newValue?.filter { $0.isNumber } ?? ""
         if activeDimension == .width {
-            widthText = newValue
+            widthText = sanitized
             heightText = ""
         } else {
-            heightText = newValue
+            heightText = sanitized
             widthText = ""
         }
     }
@@ -44,16 +45,13 @@ struct PixelFieldsView: View {
                     containerSize: containerSize,
                     cornerRadius: corner,
                     progress: progress,
-                    // Always show full fill; do not fade near end for this control
                     fadeStart: 2.0
                 )
-                contentRow(containerHeight: containerSize.height)
+                contentRow()
                 .allowsHitTesting(!isDragging)
                 .padding(.horizontal, 0)
             }
             .font(Theme.Fonts.button)
-            .frame(width: containerSize.width, height: containerSize.height)
-            .contentShape(Rectangle())
             .onTapGesture {
                 if !isDragging {
                     beginEditing()
@@ -69,13 +67,18 @@ struct PixelFieldsView: View {
                             fieldFocused = false
                         }
                         guard !stops.isEmpty else { return }
+                        let totalStops = stops.count + 1 // include original stop
                         let width = max(containerSize.width, 1)
                         let x = min(max(0, value.location.x), width)
                         let p = Double(x / width)
-                        let idx = Int((p * Double(max(stops.count - 1, 1))).rounded())
-                        let clampedIdx = min(max(0, idx), max(stops.count - 1, 0))
-                        let side = stops[clampedIdx]
-                        assignActive(String(side))
+                        let idx = Int((p * Double(max(totalStops - 1, 1))).rounded())
+                        let clampedIdx = min(max(0, idx), max(totalStops - 1, 0))
+                        if clampedIdx >= stops.count {
+                            assignActive(nil)
+                        } else {
+                            let side = stops[clampedIdx]
+                            assignActive(String(side))
+                        }
                         handleStopHaptics(currentIndex: clampedIdx)
                     }
                     .onEnded { _ in
@@ -98,11 +101,9 @@ struct PixelFieldsView: View {
     private func initializeActiveDimension() {
         if !heightText.isEmpty, (widthText.isEmpty || (Int(widthText) == nil && Int(heightText) != nil)) {
             activeDimension = .height
-            // Enforce single-source-of-truth: clear the inactive counterpart.
             widthText = ""
         } else {
             activeDimension = .width
-            // Enforce single-source-of-truth: clear the inactive counterpart.
             heightText = ""
         }
     }
@@ -151,13 +152,11 @@ struct PixelFieldsView: View {
         if let idx = stops.firstIndex(of: currentValue), stops.count > 1 {
             return Double(idx) / Double(stops.count - 1)
         }
-        // If current value isn't exactly a stop, use nearest for progress display
-        if stops.count > 1 {
+        if !activeText.isEmpty, stops.count > 1 {
             let nearestIdx = stops.enumerated().min(by: { abs($0.element - currentValue) < abs($1.element - currentValue) })?.offset ?? 0
             return Double(nearestIdx) / Double(stops.count - 1)
-        } else {
-            return 0
         }
+        return 0
     }
 
     private func handleStopHaptics(currentIndex: Int) {
@@ -175,22 +174,21 @@ struct PixelFieldsView: View {
         NSApp.keyWindow?.endEditing(for: nil)
     }
 
-    private func displayTextForActive() -> String {
-        let text = activeText
-        if text.isEmpty { return "—" }
-        return text
+    private func trailingLabelText() -> String {
+        if isEditingField { return String(localized: "px") }
+        return activeText.isEmpty ? String(localized: "Original") : String(localized: "px")
     }
 
     // MARK: - Extracted logic for readability / type-checker performance
     @ViewBuilder
-    private func contentRow(containerHeight: CGFloat) -> some View {
+    private func contentRow() -> some View {
         HStack(spacing: 8) {
             toggleButton()
             .font(Theme.Fonts.button)
             .foregroundStyle(.primary)
-            .padding(.horizontal, 6)
-            Spacer()
-            trailingValue(containerHeight: containerHeight)
+            .padding(.leading, 6)
+            trailingValue()
+            .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
 
@@ -218,7 +216,7 @@ struct PixelFieldsView: View {
     }
 
     @ViewBuilder
-    private func trailingValue(containerHeight: CGFloat) -> some View {
+    private func trailingValue() -> some View {
         Group {
             if isEditingField {
                 HStack(spacing: 4) {
@@ -227,7 +225,7 @@ struct PixelFieldsView: View {
                         .multilineTextAlignment(.trailing)
                         .focused($fieldFocused)
                         .onSubmit { commitInlineEdit() }
-                        .frame(height: containerHeight)
+                        .fixedSize(horizontal: true, vertical: false)
                         .monospacedDigit()
                         .tint(Color.primary)
                         .onChange(of: inlineText) { _, newValue in
@@ -247,16 +245,16 @@ struct PixelFieldsView: View {
                 }
             } else {
                 HStack(spacing: 4) {
-                    Text(displayTextForActive())
+                    Text(activeText.isEmpty ? "" : activeText)
                         .font(Theme.Fonts.button)
                         .foregroundStyle(.primary)
                         .monospacedDigit()
+                        .fixedSize(horizontal: true, vertical: false)
                         .contentTransition(.numericText())
-                        .contentShape(Rectangle())
                         .onTapGesture {
                             beginEditing()
                         }
-                    Text(String(localized: "px"))
+                    Text(trailingLabelText())
                         .padding(.trailing, 10)
                         .fixedSize(horizontal: true, vertical: false)
                 }

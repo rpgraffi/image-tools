@@ -17,14 +17,14 @@ struct ImageAsset: Identifiable, Hashable {
 
     init(url: URL) {
         self.id = UUID()
-        self.originalURL = url
-        self.workingURL = url
-        self.thumbnail = ThumbnailGenerator.generateThumbnail(for: url)
+        self.originalURL = url.standardizedFileURL
+        self.workingURL = url.standardizedFileURL
+        self.thumbnail = nil
         self.isEdited = false
         self.isEnabled = true
         self.backupURL = nil
-        if let img = NSImage(contentsOf: url) { self.originalPixelSize = img.size } else { self.originalPixelSize = nil }
-        if let attrs = try? FileManager.default.attributesOfItem(atPath: url.path), let size = attrs[.size] as? NSNumber { self.originalFileSizeBytes = size.intValue } else { self.originalFileSizeBytes = nil }
+        self.originalPixelSize = nil
+        self.originalFileSizeBytes = nil
     }
 }
 

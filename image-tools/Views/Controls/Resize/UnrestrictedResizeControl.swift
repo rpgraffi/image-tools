@@ -26,10 +26,9 @@ struct UnrestrictedResizeControl: View {
                             containerSize: size,
                             squareLocked: false
                         )
-                            .transition(.opacity)
+                        .transition(.opacity)
                     }
                 }
-                .frame(width: size.width, height: size.height)
             }
         }
     }
