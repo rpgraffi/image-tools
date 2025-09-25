@@ -4,6 +4,79 @@ import UniformTypeIdentifiers
 
 enum IngestionCoordinator {
     // MARK: - Helpers
+    /// Returns the provider's registered type identifiers that conform to `public.image`.
+    private static func imageTypeIdentifiers(for provider: NSItemProvider) -> [String] {
+        provider.registeredTypeIdentifiers.filter { id in
+            if let t = UTType(id) { return t.conforms(to: .image) }
+            return false
+        }
+    }
+
+    /// Returns the provider's registered type identifiers that represent directories/folders.
+    private static func directoryTypeIdentifiers(for provider: NSItemProvider) -> [String] {
+        provider.registeredTypeIdentifiers.filter { id in
+            guard let t = UTType(id) else { return false }
+            return t == .fileURL || t.conforms(to: .directory) || t.conforms(to: .folder)
+        }
+    }
+
+    /// Writes a temporary PNG for a given `NSImage` and returns its file URL.
+    private static func writeTempPNG(from image: NSImage, prefix: String = "paste_") -> URL? {
+        guard let tiff = image.tiffRepresentation,
+              let rep = NSBitmapImageRep(data: tiff),
+              let data = rep.representation(using: .png, properties: [:]) else { return nil }
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent(prefix + UUID().uuidString + ".png")
+        try? data.write(to: url)
+        return url
+    }
+
+    /// Loads a usable file `URL` from an `NSItemProvider` representing an image.
+    /// Strategy:
+    /// 1) Try in-place file representation for concrete image UTIs
+    /// 2) Try data representations for those UTIs and write a temp PNG
+    /// 3) If none, try directory/fileURL representation (for Finder folder drops)
+    private static func loadImageURL(from provider: NSItemProvider, completion: @escaping (URL?) -> Void) {
+        let imageIds = imageTypeIdentifiers(for: provider)
+
+        func tryInPlace(_ index: Int) {
+            guard index < imageIds.count else { return tryData(0) }
+            provider.loadInPlaceFileRepresentation(forTypeIdentifier: imageIds[index]) { url, _, _ in
+                if let url = url { completion(url) }
+                else { tryInPlace(index + 1) }
+            }
+        }
+
+        func tryData(_ index: Int) {
+            guard index < imageIds.count else {
+                // Attempt to resolve a directory/folder URL
+                let dirIds = directoryTypeIdentifiers(for: provider)
+                if let first = dirIds.first {
+                    provider.loadInPlaceFileRepresentation(forTypeIdentifier: first) { url, _, _ in
+                        completion(url)
+                    }
+                } else {
+                    completion(nil)
+                }
+                return
+            }
+            provider.loadDataRepresentation(forTypeIdentifier: imageIds[index]) { data, _ in
+                if let data = data, let image = NSImage(data: data), let url = writeTempPNG(from: image) {
+                    completion(url)
+                } else {
+                    tryData(index + 1)
+                }
+            }
+        }
+
+        if !imageIds.isEmpty { tryInPlace(0) }
+        else if let first = directoryTypeIdentifiers(for: provider).first {
+            provider.loadInPlaceFileRepresentation(forTypeIdentifier: first) { url, _, _ in
+                completion(url)
+            }
+        } else {
+            completion(nil)
+        }
+    }
     /// Returns a flat list of readable image file URLs.
     /// - If `url` is a file and readable, it's returned as a single-element array.
     /// - If `url` is a directory, it is recursively enumerated and all readable files are returned.
@@ -71,8 +144,9 @@ enum IngestionCoordinator {
     }
     static func canHandle(providers: [NSItemProvider]) -> Bool {
         providers.contains { provider in
+            provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) ||
             provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) ||
-            provider.hasItemConformingToTypeIdentifier(UTType.image.identifier)
+            !directoryTypeIdentifiers(for: provider).isEmpty
         }
     }
 
@@ -82,40 +156,16 @@ enum IngestionCoordinator {
         let urlsLock = NSLock()
 
         for provider in providers {
-            if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-                group.enter()
-                provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                    defer { group.leave() }
-                    let maybeURL: URL? = {
-                        if let data = item as? Data { return URL(dataRepresentation: data, relativeTo: nil) }
-                        if let url = item as? URL { return url }
-                        return nil
-                    }()
-                    if let url = maybeURL {
-                        let expanded = collectSupportedFilesRecursively(at: url)
-                        if !expanded.isEmpty { urlsLock.lock(); urls.append(contentsOf: expanded); urlsLock.unlock() }
-                    }
+            group.enter()
+            loadImageURL(from: provider) { url in
+                if let url = url {
+                    var didAccess = false
+                    if url.isFileURL { didAccess = url.startAccessingSecurityScopedResource() }
+                    let expanded = collectSupportedFilesRecursively(at: url)
+                    if didAccess { url.stopAccessingSecurityScopedResource() }
+                    if !expanded.isEmpty { urlsLock.lock(); urls.append(contentsOf: expanded); urlsLock.unlock() }
                 }
-            } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-                group.enter()
-                provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { item, _ in
-                    defer { group.leave() }
-                    let tempDir = FileManager.default.temporaryDirectory
-                    func writeImage(_ nsImage: NSImage) {
-                        if let tiff = nsImage.tiffRepresentation,
-                           let rep = NSBitmapImageRep(data: tiff),
-                           let data = rep.representation(using: .png, properties: [:]) {
-                            let url = tempDir.appendingPathComponent("paste_" + UUID().uuidString + ".png")
-                            try? data.write(to: url)
-                            urlsLock.lock(); urls.append(url); urlsLock.unlock()
-                        }
-                    }
-                    if let data = item as? Data, let image = NSImage(data: data) {
-                        writeImage(image)
-                    } else if let image = item as? NSImage {
-                        writeImage(image)
-                    }
-                }
+                group.leave()
             }
         }
 
@@ -196,38 +246,16 @@ enum IngestionCoordinator {
 
             // Schedule loads for each provider
             for provider in providers {
-                if provider.hasItemConformingToTypeIdentifier(UTType.fileURL.identifier) {
-                    lock.lock(); pendingLoads += 1; lock.unlock()
-                    provider.loadItem(forTypeIdentifier: UTType.fileURL.identifier, options: nil) { item, _ in
-                        defer { decrementAndFinishIfDone() }
-                        let maybeURL: URL? = {
-                            if let data = item as? Data { return URL(dataRepresentation: data, relativeTo: nil) }
-                            if let url = item as? URL { return url }
-                            return nil
-                        }()
-                        if let url = maybeURL {
-                            let expanded = collectSupportedFilesRecursively(at: url)
-                            for file in expanded { appendURL(file) }
-                        }
+                lock.lock(); pendingLoads += 1; lock.unlock()
+                loadImageURL(from: provider) { url in
+                    if let url = url {
+                        var didAccess = false
+                        if url.isFileURL { didAccess = url.startAccessingSecurityScopedResource() }
+                        let expanded = collectSupportedFilesRecursively(at: url)
+                        if didAccess { url.stopAccessingSecurityScopedResource() }
+                        for file in expanded { appendURL(file) }
                     }
-                } else if provider.hasItemConformingToTypeIdentifier(UTType.image.identifier) {
-                    lock.lock(); pendingLoads += 1; lock.unlock()
-                    provider.loadItem(forTypeIdentifier: UTType.image.identifier, options: nil) { item, _ in
-                        defer { decrementAndFinishIfDone() }
-                        func writeImage(_ nsImage: NSImage) -> URL? {
-                            guard let tiff = nsImage.tiffRepresentation,
-                                  let rep = NSBitmapImageRep(data: tiff),
-                                  let data = rep.representation(using: .png, properties: [:]) else { return nil }
-                            let url = FileManager.default.temporaryDirectory.appendingPathComponent("paste_" + UUID().uuidString + ".png")
-                            try? data.write(to: url)
-                            return url
-                        }
-                        if let data = item as? Data, let image = NSImage(data: data), let url = writeImage(image) {
-                            appendURL(url)
-                        } else if let image = item as? NSImage, let url = writeImage(image) {
-                            appendURL(url)
-                        }
-                    }
+                    decrementAndFinishIfDone()
                 }
             }
         }

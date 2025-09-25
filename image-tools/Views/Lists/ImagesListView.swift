@@ -26,16 +26,10 @@ struct ImagesListView: View {
             .padding(8)
             .frame(minWidth: 420, minHeight: 260)
             .contentShape(Rectangle())
-            .dropDestination(for: URL.self, action: { urls, _ in
-                handleURLDrop(urls)
-            }, isTargeted: { hovering in
-                handleDropHoverChange(hovering)
-            })
-            .dropDestination(for: NSImage.self, action: { images, _ in
-                handleImageDrop(images)
-            }, isTargeted: { hovering in
-                handleDropHoverChange(hovering)
-            })
+            .onDrop(of: [.image, .fileURL, .folder, .directory], isTargeted: $isDropping, perform: handleProviderDrop)
+            .onChange(of: isDropping) { hovering in
+                performHapticFeedback()
+            }
     }
 
     private var content: some View {
@@ -92,40 +86,9 @@ struct ImagesListView: View {
         .allowsHitTesting(false)
     }
 
-    private func handleDropHoverChange(_ hovering: Bool) {
-        if hovering && !isDropping {
-            performHapticFeedback()
-        }
-        isDropping = hovering
-    }
-
-    private func handleURLDrop(_ urls: [URL]) -> Bool {
-        guard !urls.isEmpty else { return false }
-        // Expand any dropped directories into supported image files
-        let expanded = urls.flatMap { IngestionCoordinator.expandToSupportedImageURLs(from: $0, recursive: true) }
-        guard !expanded.isEmpty else { return false }
-        vm.addURLs(expanded)
-        return true
-    }
-
-    private func handleImageDrop(_ images: [NSImage]) -> Bool {
-        guard !images.isEmpty else { return false }
-
-        let tempDir = FileManager.default.temporaryDirectory
-        var urls: [URL] = []
-        for nsImage in images {
-            guard
-                let tiff = nsImage.tiffRepresentation,
-                let rep = NSBitmapImageRep(data: tiff),
-                let data = rep.representation(using: .png, properties: [:])
-            else { continue }
-
-            let url = tempDir.appendingPathComponent("drop_" + UUID().uuidString + ".png")
-            try? data.write(to: url)
-            urls.append(url)
-        }
-        guard !urls.isEmpty else { return false }
-        vm.addURLs(urls)
+    private func handleProviderDrop(_ providers: [NSItemProvider]) -> Bool {
+        guard IngestionCoordinator.canHandle(providers: providers) else { return false }
+        vm.addProvidersStreaming(providers, batchSize: 16)
         return true
     }
 
