@@ -153,34 +153,3 @@ extension ImageToolsViewModel {
         Self.ingestionLogger.debug("Ingest complete for batch of \(fresh.count, privacy: .public) URLs")
     }
 }
-
-private actor AsyncSemaphore {
-    private let limit: Int
-    private var permits: Int
-    private var waiters: [CheckedContinuation<Void, Never>] = []
-
-    init(value: Int) {
-        self.limit = value
-        self.permits = value
-    }
-
-    func acquire() async {
-        if permits > 0 {
-            permits -= 1
-            return
-        }
-        await withCheckedContinuation { continuation in
-            waiters.append(continuation)
-        }
-    }
-
-    func release() {
-        if !waiters.isEmpty {
-            let continuation = waiters.removeFirst()
-            continuation.resume()
-        } else {
-            permits = min(permits + 1, limit)
-        }
-    }
-}
-
