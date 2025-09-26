@@ -64,37 +64,44 @@ extension ImageToolsViewModel {
         isExporting = true
 
         Task(priority: .userInitiated) {
+            let hint = recommendedConcurrency()
             // Snapshot to mutate off-main, then commit on completion
             var updatedImages = await MainActor.run { self.images }
-            let maxConcurrent = recommendedConcurrency()
-            var index = 0
-            while index < targets.count {
-                let end = min(index + maxConcurrent, targets.count)
-                let slice = Array(targets[index..<end])
-                await withTaskGroup(of: (ImageAsset, ImageAsset)?.self) { group in
-                    for asset in slice {
-                        group.addTask(priority: .utility) {
-                            do {
-                                let updated = try pipeline.run(on: asset)
-                                return (asset, updated)
-                            } catch {
-                                return nil
-                            }
-                        }
-                    }
-                    for await result in group {
-                        if let (original, updated) = result {
-                            if let idx = updatedImages.firstIndex(of: original) {
-                                updatedImages[idx] = updated
-                            }
-                        }
-                        await MainActor.run {
-                            self.exportCompleted += 1
+
+            await withTaskGroup(of: (ImageAsset, ImageAsset)?.self) { group in
+                var iterator = targets.makeIterator()
+                let boost = max(1, Int(Double(hint) * 1.5))
+                let limit = min(boost, targets.count)
+
+                func addNextTask(from iterator: inout IndexingIterator<[ImageAsset]>, to group: inout TaskGroup<(ImageAsset, ImageAsset)?>) {
+                    guard let asset = iterator.next() else { return }
+                    group.addTask(priority: .utility) {
+                        do {
+                            let updated = try pipeline.run(on: asset)
+                            return (asset, updated)
+                        } catch {
+                            return nil
                         }
                     }
                 }
-                index = end
-                await Task.yield()
+
+                for _ in 0..<limit {
+                    addNextTask(from: &iterator, to: &group)
+                }
+
+                while let result = await group.next() {
+                    if let (original, updated) = result,
+                       let idx = updatedImages.firstIndex(of: original) {
+                        updatedImages[idx] = updated
+                    }
+
+                    await MainActor.run {
+                        self.exportCompleted += 1
+                    }
+
+                    addNextTask(from: &iterator, to: &group)
+                    await Task.yield()
+                }
             }
 
             let imagesToCommit = updatedImages

@@ -87,7 +87,7 @@ struct PercentPill: View {
         // Full boundary haptic (100%)
         if showsFullBoundaryHaptic {
             if progress >= 1.0 && !didHapticAtFull {
-                NSHapticFeedbackManager.defaultPerformer.perform(.levelChange, performanceTime: .now)
+                Haptics.levelChange()
                 didHapticAtFull = true
             } else if progress < 1.0 && didHapticAtFull {
                 didHapticAtFull = false
@@ -98,7 +98,7 @@ struct PercentPill: View {
             let currentTick = Int((progress * 100).rounded())
             if currentTick % 10 == 0 && currentTick > 0 && currentTick < 100 {
                 if lastTenPercentTick != currentTick {
-                    NSHapticFeedbackManager.defaultPerformer.perform(.alignment, performanceTime: .now)
+                    Haptics.alignment()
                     lastTenPercentTick = currentTick
                 }
             } else if lastTenPercentTick != nil {

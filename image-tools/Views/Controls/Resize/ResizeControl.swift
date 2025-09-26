@@ -4,11 +4,11 @@ import AppKit
 /// Orchestrates resize UI and delegates to specialized sub-controls.
 struct ResizeControl: View {
     @ObservedObject var vm: ImageToolsViewModel
-
+    
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
     private let controlMinWidth: CGFloat = Theme.Metrics.controlMinWidth
     private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
-
+    
     var body: some View {
         HStack(spacing: 4) {
             Group {
@@ -18,8 +18,9 @@ struct ResizeControl: View {
                     UnrestrictedResizeControl(vm: vm)
                 }
             }
-            .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, minHeight: controlHeight, maxHeight: controlHeight)
-
+            .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, alignment: .leading)
+            .frame(height: controlHeight)
+            
             if vm.allowedSquareSizes == nil {
                 CircleIconButton(action: toggleMode) {
                     Text(vm.sizeUnit == .percent ? String(localized: "px") : String(localized: "%"))
@@ -31,14 +32,15 @@ struct ResizeControl: View {
                 .animation(Theme.Animations.spring(), value: vm.sizeUnit)
             }
         }
-                .animation(Theme.Animations.spring(), value: vm.sizeUnit)
+        .frame(minWidth: controlMinWidth + 36, maxWidth: controlMaxWidth + 36)
+        .animation(Theme.Animations.spring(), value: vm.sizeUnit)
         .onChange(of: vm.sizeUnit) { _, newValue in
             withAnimation(Theme.Animations.spring()) {
                 vm.handleSizeUnitToggle(to: newValue)
             }
         }
     }
-
+    
     private func toggleMode() {
         withAnimation(Theme.Animations.spring()) {
             if vm.sizeUnit == .percent {

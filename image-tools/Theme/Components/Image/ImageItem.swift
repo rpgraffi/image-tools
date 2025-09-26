@@ -233,7 +233,6 @@ struct ImageItem: View {
     let recover: (() -> Void)?
     @State private var isHovering: Bool = false
     @State private var isVisible: Bool = false
-    @State private var localThumbnail: NSImage? = nil
     private var fileName: String { asset.originalURL.lastPathComponent }
     
     var body: some View {
@@ -241,7 +240,7 @@ struct ImageItem: View {
         
         ZStack {
             // Background thumbnail (lazy)
-            if let thumb = localThumbnail {
+            if let thumb = asset.thumbnail {
                 ImageThumbnail(thumbnail: thumb)
             } else {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -276,17 +275,6 @@ struct ImageItem: View {
         }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
-        .onAppear {
-            isVisible = true
-            localThumbnail = asset.thumbnail
-        }
-        .onDisappear {
-            isVisible = false
-            localThumbnail = nil
-        }
-        .onChange(of: asset.workingURL) {
-            if isVisible { localThumbnail = asset.thumbnail }
-        }
         .animation(.easeInOut(duration: 0.15), value: isHovering)
         // Re-estimate on relevant control changes for this visible item
         .onChange(of: vm.sizeUnit) { vm.triggerEstimationForVisible([asset]) }

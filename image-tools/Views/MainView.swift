@@ -7,15 +7,10 @@ struct MainView: View {
     @State private var isDropping: Bool = false
 
     var body: some View {
-        ZStack {
-            VisualEffectView()
-                .ignoresSafeArea()
-
-            VStack(spacing: 0) {
-                ControlsBar(vm: vm)
-                ImagesListView(vm: vm, isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
-                SecondaryBar(vm: vm, onPickFromFinder: pickFromOpenPanel)
-            }
+        VStack(spacing: 0) {
+            ControlsBar(vm: vm)
+            ImagesListView(vm: vm, isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
+            SecondaryBar(vm: vm, onPickFromFinder: pickFromOpenPanel)
         }
         .frame(minWidth: 600)
         .onAppear {
@@ -24,6 +19,7 @@ struct MainView: View {
         }
         .focusable()
         .focusEffectDisabled()
+        .background(.regularMaterial)
         .onPasteCommand(of: [.fileURL, .image], perform: handlePaste)
         .sheet(isPresented: $vm.isPaywallPresented) {
             PaywallView(

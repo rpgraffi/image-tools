@@ -5,6 +5,8 @@ struct PrimaryApplyControl: View {
     var isInProgress: Bool = false
     var progress: Double = 0
     var counterText: String? = nil
+    var ingestText: String? = nil
+    var ingestProgress: Double = 0
     let perform: () -> Void
     @State private var labelSize: CGSize = .zero
     @State private var showDoneText: Bool = false
@@ -16,8 +18,11 @@ struct PrimaryApplyControl: View {
         let maxWidth: CGFloat = 160
 
         let huggedWidth = max(labelSize.width + horizontalPadding * 2, height)
-        let targetWidth = isInProgress ? maxWidth : min(maxWidth, huggedWidth)
+        let targetWidth = (isInProgress || ingestText != nil) ? maxWidth : min(maxWidth, huggedWidth)
         let label: String = {
+            if let ingestText {
+                return ingestText
+            }
             if isInProgress {
                 return counterText ?? String(localized: "Save")
             }
@@ -27,6 +32,9 @@ struct PrimaryApplyControl: View {
             return String(localized: "Save")
         }()
         let iconName: String = {
+            if ingestText != nil {
+                return "arrow.down.app.dashed"
+            }
             if isInProgress {
                 return "hourglass"
             }
@@ -35,23 +43,31 @@ struct PrimaryApplyControl: View {
             }
             return "photo.stack.fill"
         }()
-        let isCounting = isInProgress && (counterText != nil)
+        let isCounting = ingestText != nil || (isInProgress && (counterText != nil))
         let textTransition: ContentTransition = isCounting ? .numericText() : .opacity
+        let displayedProgress: Double = {
+            if let _ = ingestText {
+                return max(min(ingestProgress, 1.0), 0.0)
+            }
+            if isInProgress {
+                return max(min(progress, 1.0), 0.0)
+            }
+            return 1.0
+        }()
 
         Button(role: .none) {
-            guard !isInProgress else { return }
+            guard !isInProgress && ingestText == nil else { return }
             perform()
         } label: {
             ZStack(alignment: .leading) {
                 // Progress fill (clipped rectangle inside the pill)
                 GeometryReader { proxy in
-                    // Default: 100% fill; when saving, animate to current progress
-                    let displayed = isInProgress ? max(min(progress, 1.0), 0.0) : 1.0
-                    let w = displayed * proxy.size.width
+                    // Default: 100% fill; when saving or ingesting, animate to current progress
+                    let w = displayedProgress * proxy.size.width
                     Rectangle()
                         .fill(Color.accentColor)
                         .frame(width: w)
-                        .animation(Theme.Animations.spring(), value: displayed)
+                        .animation(Theme.Animations.spring(), value: displayedProgress)
                 }
                 .frame(height: height) // constrain GeometryReader to pill height
                 .allowsHitTesting(false)
@@ -83,6 +99,7 @@ struct PrimaryApplyControl: View {
                 }
                 // Drive numeric content transition
                 .animation(Theme.Animations.spring(), value: counterText)
+                .animation(Theme.Animations.spring(), value: ingestText)
             }
             .frame(width: targetWidth, height: height)
             .contentShape(Rectangle())
@@ -98,9 +115,9 @@ struct PrimaryApplyControl: View {
         )
         .clipShape(RoundedRectangle(cornerRadius: corner, style: .continuous))
         .frame(maxWidth: maxWidth)
-        .disabled(isDisabled)
-        .allowsHitTesting(!isInProgress)
-        .shadow(color: Color.accentColor.opacity((isDisabled || isInProgress) ? 0 : 0.25), radius: 8, x: 0, y: 2)
+        .disabled(isDisabled || ingestText != nil)
+        .allowsHitTesting(!isInProgress && ingestText == nil)
+        .shadow(color: Color.accentColor.opacity((isDisabled || isInProgress || ingestText != nil) ? 0 : 0.25), radius: 8, x: 0, y: 2)
         .help(String(localized: "Save images"))
         .onChange(of: isInProgress) { _, isNowInProgress in
             if isNowInProgress == false {
@@ -124,6 +141,8 @@ struct PrimaryApplyControl: View {
         // Animate width changes only when progress starts/ends, and animate label changes for Done <-> Save
         .animation(Theme.Animations.spring(), value: isInProgress)
         .animation(Theme.Animations.spring(), value: showDoneText)
+        .animation(Theme.Animations.spring(), value: ingestText)
+        .animation(Theme.Animations.spring(), value: ingestProgress)
     }
 } 
 
