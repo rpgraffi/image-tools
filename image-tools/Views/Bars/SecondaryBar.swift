@@ -30,6 +30,8 @@ struct SecondaryBar: View {
                 isInProgress: vm.isExporting,
                 progress: vm.exportFraction,
                 counterText: vm.isExporting ? "\(vm.exportCompleted)/\(vm.exportTotal)" : nil,
+                ingestText: vm.ingestCounterText,
+                ingestProgress: vm.ingestFraction,
                 perform: { vm.applyPipelineAsync() }
             ).frame(maxWidth: .infinity)
 

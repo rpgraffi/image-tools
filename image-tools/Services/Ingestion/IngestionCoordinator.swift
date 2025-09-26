@@ -30,52 +30,51 @@ enum IngestionCoordinator {
         return url
     }
 
+    private static func loadFileURL(for provider: NSItemProvider, typeIdentifier: String) async -> URL? {
+        await withCheckedContinuation { continuation in
+            provider.loadInPlaceFileRepresentation(forTypeIdentifier: typeIdentifier) { url, _, _ in
+                continuation.resume(returning: url)
+            }
+        }
+    }
+
+    private static func loadData(for provider: NSItemProvider, typeIdentifier: String) async -> Data? {
+        await withCheckedContinuation { continuation in
+            provider.loadDataRepresentation(forTypeIdentifier: typeIdentifier) { data, _ in
+                continuation.resume(returning: data)
+            }
+        }
+    }
+
     /// Loads a usable file `URL` from an `NSItemProvider` representing an image.
     /// Strategy:
     /// 1) Try in-place file representation for concrete image UTIs
     /// 2) Try data representations for those UTIs and write a temp PNG
     /// 3) If none, try directory/fileURL representation (for Finder folder drops)
-    private static func loadImageURL(from provider: NSItemProvider, completion: @escaping (URL?) -> Void) {
+    private static func loadImageURL(from provider: NSItemProvider) async -> URL? {
         let imageIds = imageTypeIdentifiers(for: provider)
 
-        func tryInPlace(_ index: Int) {
-            guard index < imageIds.count else { return tryData(0) }
-            provider.loadInPlaceFileRepresentation(forTypeIdentifier: imageIds[index]) { url, _, _ in
-                if let url = url { completion(url) }
-                else { tryInPlace(index + 1) }
+        for id in imageIds {
+            if let url = await loadFileURL(for: provider, typeIdentifier: id) {
+                return url
             }
         }
 
-        func tryData(_ index: Int) {
-            guard index < imageIds.count else {
-                // Attempt to resolve a directory/folder URL
-                let dirIds = directoryTypeIdentifiers(for: provider)
-                if let first = dirIds.first {
-                    provider.loadInPlaceFileRepresentation(forTypeIdentifier: first) { url, _, _ in
-                        completion(url)
-                    }
-                } else {
-                    completion(nil)
-                }
-                return
-            }
-            provider.loadDataRepresentation(forTypeIdentifier: imageIds[index]) { data, _ in
-                if let data = data, let image = NSImage(data: data), let url = writeTempPNG(from: image) {
-                    completion(url)
-                } else {
-                    tryData(index + 1)
+        for id in imageIds {
+            if let data = await loadData(for: provider, typeIdentifier: id) {
+                if let image = NSImage(data: data), let url = writeTempPNG(from: image) {
+                    return url
                 }
             }
         }
 
-        if !imageIds.isEmpty { tryInPlace(0) }
-        else if let first = directoryTypeIdentifiers(for: provider).first {
-            provider.loadInPlaceFileRepresentation(forTypeIdentifier: first) { url, _, _ in
-                completion(url)
+        for id in directoryTypeIdentifiers(for: provider) {
+            if let url = await loadFileURL(for: provider, typeIdentifier: id) {
+                return url
             }
-        } else {
-            completion(nil)
         }
+
+        return nil
     }
     /// Returns a flat list of readable image file URLs.
     /// - If `url` is a file and readable, it's returned as a single-element array.
@@ -151,26 +150,37 @@ enum IngestionCoordinator {
     }
 
     static func collectURLs(from providers: [NSItemProvider], completion: @escaping ([URL]) -> Void) {
-        let group = DispatchGroup()
-        var urls: [URL] = []
-        let urlsLock = NSLock()
-
-        for provider in providers {
-            group.enter()
-            loadImageURL(from: provider) { url in
-                if let url = url {
-                    var didAccess = false
-                    if url.isFileURL { didAccess = url.startAccessingSecurityScopedResource() }
-                    let expanded = collectSupportedFilesRecursively(at: url)
-                    if didAccess { url.stopAccessingSecurityScopedResource() }
-                    if !expanded.isEmpty { urlsLock.lock(); urls.append(contentsOf: expanded); urlsLock.unlock() }
+        Task.detached(priority: .userInitiated) {
+            let urls: [URL] = await withTaskGroup(of: [URL].self) { group in
+                for provider in providers {
+                    group.addTask {
+                        if let url = await loadImageURL(from: provider) {
+                            var didAccess = false
+                            if url.isFileURL {
+                                didAccess = url.startAccessingSecurityScopedResource()
+                            }
+                            let expanded = collectSupportedFilesRecursively(at: url)
+                            if didAccess {
+                                url.stopAccessingSecurityScopedResource()
+                            }
+                            return expanded
+                        }
+                        return []
+                    }
                 }
-                group.leave()
-            }
-        }
 
-        group.notify(queue: .main) {
-            completion(urls)
+                var results: [URL] = []
+                results.reserveCapacity(providers.count)
+
+                for await expanded in group {
+                    results.append(contentsOf: expanded)
+                }
+                return results
+            }
+
+            await MainActor.run {
+                completion(urls)
+            }
         }
     }
 
@@ -204,59 +214,50 @@ enum IngestionCoordinator {
     /// Reference: Swift Concurrency guide [Swift.org](https://docs.swift.org/swift-book/documentation/the-swift-programming-language/concurrency/)
     static func streamURLs(from providers: [NSItemProvider], batchSize: Int = 32) -> AsyncStream<[URL]> {
         AsyncStream { continuation in
-            // If nothing to do, finish immediately
             guard !providers.isEmpty else {
                 continuation.finish()
                 return
             }
 
-            let lock = NSLock()
-            var pendingLoads: Int = 0
-            var buffer: [URL] = []
+            Task.detached(priority: .userInitiated) {
+                var buffer: [URL] = []
 
-            func yieldBufferIfNeeded(force: Bool = false) {
-                let shouldYield = force || buffer.count >= batchSize
-                guard shouldYield, !buffer.isEmpty else { return }
-                let toYield = buffer
-                buffer.removeAll(keepingCapacity: true)
-                continuation.yield(toYield)
-            }
-
-            func appendURL(_ url: URL) {
-                lock.lock()
-                buffer.append(url)
-                yieldBufferIfNeeded()
-                lock.unlock()
-            }
-
-            func decrementAndFinishIfDone() {
-                var shouldFinish = false
-                var trailing: [URL] = []
-                lock.lock()
-                pendingLoads -= 1
-                if pendingLoads == 0 {
-                    shouldFinish = true
-                    trailing = buffer
-                    buffer.removeAll(keepingCapacity: false)
-                }
-                lock.unlock()
-                if !trailing.isEmpty { continuation.yield(trailing) }
-                if shouldFinish { continuation.finish() }
-            }
-
-            // Schedule loads for each provider
-            for provider in providers {
-                lock.lock(); pendingLoads += 1; lock.unlock()
-                loadImageURL(from: provider) { url in
-                    if let url = url {
-                        var didAccess = false
-                        if url.isFileURL { didAccess = url.startAccessingSecurityScopedResource() }
-                        let expanded = collectSupportedFilesRecursively(at: url)
-                        if didAccess { url.stopAccessingSecurityScopedResource() }
-                        for file in expanded { appendURL(file) }
+                func flushBuffer(force: Bool = false) {
+                    guard !buffer.isEmpty else { return }
+                    if force || buffer.count >= batchSize {
+                        let toYield = buffer
+                        buffer.removeAll(keepingCapacity: true)
+                        continuation.yield(toYield)
                     }
-                    decrementAndFinishIfDone()
                 }
+
+                await withTaskGroup(of: [URL].self) { group in
+                    for provider in providers {
+                        group.addTask {
+                            if let url = await loadImageURL(from: provider) {
+                                var didAccess = false
+                                if url.isFileURL {
+                                    didAccess = url.startAccessingSecurityScopedResource()
+                                }
+                                let expanded = collectSupportedFilesRecursively(at: url)
+                                if didAccess {
+                                    url.stopAccessingSecurityScopedResource()
+                                }
+                                return expanded
+                            }
+                            return []
+                        }
+                    }
+
+                    for await urls in group {
+                        if urls.isEmpty { continue }
+                        buffer.append(contentsOf: urls)
+                        flushBuffer()
+                    }
+                }
+
+                flushBuffer(force: true)
+                continuation.finish()
             }
         }
     }

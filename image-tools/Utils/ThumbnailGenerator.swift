@@ -15,21 +15,25 @@ actor ThumbnailGenerator {
         init(_ output: Output) { self.output = output }
     }
 
-    private let cache = NSCache<NSURL, CacheEntry>()
+    nonisolated(unsafe) private let cache = NSCache<NSURL, CacheEntry>()
     private var inflight: [NSURL: Task<Output, Never>] = [:]
 
     func load(for url: URL, maxPixelSize: CGFloat = 256) async -> Output {
         let key = url.standardizedFileURL as NSURL
 
         if let cached = cache.object(forKey: key) {
+            ImageToolsViewModel.ingestionLogger.debug("Cache hit: \(url.lastPathComponent, privacy: .public)")
             return cached.output
         }
 
         if let existing = inflight[key] {
+            ImageToolsViewModel.ingestionLogger.debug("Awaiting inflight load: \(url.lastPathComponent, privacy: .public)")
             return await existing.value
         }
 
-        let task = Task(priority: .userInitiated) {
+        ImageToolsViewModel.ingestionLogger.debug("Cache miss: scheduling load \(url.lastPathComponent, privacy: .public)")
+
+        let task = Task.detached(priority: .userInitiated) {
             await ThumbnailGenerator.makeOutput(for: url, maxPixelSize: maxPixelSize)
         }
         inflight[key] = task
@@ -37,10 +41,11 @@ actor ThumbnailGenerator {
         let result = await task.value
         inflight[key] = nil
         cache.setObject(CacheEntry(result), forKey: key)
+        ImageToolsViewModel.ingestionLogger.debug("Cache store: \(url.lastPathComponent, privacy: .public)")
         return result
     }
 
-    func cachedThumbnail(for url: URL) -> NSImage? {
+    nonisolated func cachedThumbnail(for url: URL) -> NSImage? {
         let key = url.standardizedFileURL as NSURL
         return cache.object(forKey: key)?.output.thumbnail
     }

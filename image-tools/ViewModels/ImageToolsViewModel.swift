@@ -56,6 +56,20 @@ final class ImageToolsViewModel: ObservableObject {
         return Double(exportCompleted) / Double(exportTotal)
     }
 
+    // Ingestion progress state
+    @Published var isIngesting: Bool = false
+    @Published var ingestCompleted: Int = 0
+    @Published var ingestTotal: Int = 0
+    var ingestFraction: Double {
+        guard isIngesting, ingestTotal > 0 else { return 0 }
+        return Double(ingestCompleted) / Double(ingestTotal)
+    }
+    var ingestCounterText: String? {
+        guard isIngesting, ingestTotal > 0 else { return nil }
+        let displayed = min(ingestCompleted + (ingestCompleted < ingestTotal ? 1 : 0), ingestTotal)
+        return String("\(displayed)/\(ingestTotal)")
+    }
+
     // Usage counts
     @Published private(set) var totalImageConversions: Int = 0
     @Published private(set) var totalPipelineApplications: Int = 0

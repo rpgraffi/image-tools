@@ -1,8 +1,10 @@
 import Foundation
 import AppKit
 import SwiftUI
+import OSLog
 
 extension ImageToolsViewModel {
+    static let ingestionLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "image-tools", category: "Ingestion")
     func addURLs(_ urls: [URL]) {
         Task.detached(priority: .userInitiated) { [weak self] in
             guard let self else { return }
@@ -76,7 +78,12 @@ extension ImageToolsViewModel {
         let readable = urls
             .filter { ImageIOCapabilities.shared.isReadableURL($0) }
             .map { $0.standardizedFileURL }
-        guard !readable.isEmpty else { return }
+        guard !readable.isEmpty else {
+            Self.ingestionLogger.debug("Ingest skip: no readable URLs from \(urls.count, privacy: .public) inputs")
+            return
+        }
+
+        Self.ingestionLogger.debug("Ingest start: \(readable.count, privacy: .public) readable URLs")
 
         let fresh: [URL] = await MainActor.run {
             let existing: Set<URL> = Set(images.map { $0.originalURL })
@@ -87,36 +94,92 @@ extension ImageToolsViewModel {
             return fresh
         }
 
-        guard !fresh.isEmpty else { return }
-
-        let outputs: [Int: ThumbnailGenerator.Output] = await withTaskGroup(of: (Int, ThumbnailGenerator.Output).self) { group in
-            for (index, url) in fresh.enumerated() {
-                group.addTask {
-                    let output = await ThumbnailGenerator.shared.load(for: url)
-                    return (index, output)
-                }
-            }
-
-            var result: [Int: ThumbnailGenerator.Output] = [:]
-            result.reserveCapacity(fresh.count)
-
-            for await (index, output) in group {
-                result[index] = output
-            }
-
-            return result
+        guard !fresh.isEmpty else {
+            Self.ingestionLogger.debug("Ingest skip: all URLs already present")
+            return
         }
 
+        Self.ingestionLogger.debug("Ingest new URLs: \(fresh.count, privacy: .public)")
+
+        let assets: [ImageAsset] = fresh.map { ImageAsset(url: $0) }
+
         await MainActor.run {
-            for (index, url) in fresh.enumerated() {
-                var asset = ImageAsset(url: url)
-                if let output = outputs[index] {
-                    asset.thumbnail = output.thumbnail
-                    asset.originalPixelSize = output.pixelSize
-                    asset.originalFileSizeBytes = output.fileSizeBytes
-                }
-                images.append(asset)
+            if !isIngesting {
+                ingestCompleted = 0
+                ingestTotal = 0
             }
+            ingestTotal += fresh.count
+            if ingestTotal > ingestCompleted {
+                isIngesting = true
+            }
+            images.append(contentsOf: assets)
+            Self.ingestionLogger.debug("Appended assets. Total images: \(self.images.count, privacy: .public)")
+        }
+
+        let semaphore = AsyncSemaphore(value: 16)
+
+        await withTaskGroup(of: Void.self) { group in
+            for asset in assets {
+                let fileName = asset.originalURL.lastPathComponent
+                group.addTask(priority: .userInitiated) { [weak self] in
+                    await semaphore.acquire()
+                    guard let self else {
+                        await semaphore.release()
+                        return
+                    }
+                    Self.ingestionLogger.debug("Thumbnail load begin: \(fileName, privacy: .public)")
+                    let output = await ThumbnailGenerator.shared.load(for: asset.originalURL)
+                    Self.ingestionLogger.debug("Thumbnail load done: \(fileName, privacy: .public) thumb? \(output.thumbnail != nil) size? \(output.pixelSize != nil) bytes? \(output.fileSizeBytes != nil)")
+                    await MainActor.run {
+                        guard let idx = self.images.firstIndex(where: { $0.id == asset.id }) else {
+                            Self.ingestionLogger.warning("Thumbnail update skipped; asset missing: \(fileName, privacy: .public)")
+                            return
+                        }
+                        self.images[idx].thumbnail = output.thumbnail
+                        self.images[idx].originalPixelSize = output.pixelSize
+                        self.images[idx].originalFileSizeBytes = output.fileSizeBytes
+                        Self.ingestionLogger.debug("Thumbnail applied: \(fileName, privacy: .public)")
+                    }
+                    await MainActor.run {
+                        self.ingestCompleted = min(self.ingestCompleted + 1, self.ingestTotal)
+                        if self.ingestCompleted >= self.ingestTotal {
+                            self.isIngesting = false
+                        }
+                    }
+                    await semaphore.release()
+                }
+            }
+        }
+        Self.ingestionLogger.debug("Ingest complete for batch of \(fresh.count, privacy: .public) URLs")
+    }
+}
+
+private actor AsyncSemaphore {
+    private let limit: Int
+    private var permits: Int
+    private var waiters: [CheckedContinuation<Void, Never>] = []
+
+    init(value: Int) {
+        self.limit = value
+        self.permits = value
+    }
+
+    func acquire() async {
+        if permits > 0 {
+            permits -= 1
+            return
+        }
+        await withCheckedContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
+    func release() {
+        if !waiters.isEmpty {
+            let continuation = waiters.removeFirst()
+            continuation.resume()
+        } else {
+            permits = min(permits + 1, limit)
         }
     }
 }
