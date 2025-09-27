@@ -10,7 +10,15 @@ final class ImageToolsViewModel: ObservableObject {
 
     @Published var overwriteOriginals: Bool = false
     // Persist selected export directory between sessions
-    @Published var exportDirectory: URL? = nil { didSet { persistExportDirectory() } }
+    @Published var exportDirectory: URL? = nil {
+        didSet {
+            guard exportDirectory != oldValue else { return }
+            persistExportDirectory()
+            if let directory = exportDirectory {
+                SandboxAccessManager.shared.register(url: directory)
+            }
+        }
+    }
     // Last detected source directory from most recent import
     @Published var sourceDirectory: URL? = nil
     var isExportingToSource: Bool {

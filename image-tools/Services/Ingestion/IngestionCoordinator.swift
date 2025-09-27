@@ -111,6 +111,16 @@ enum IngestionCoordinator {
         return results
     }
 
+    private static func resolvedDirectory(for url: URL) -> URL? {
+        guard url.isFileURL else { return nil }
+        var isDirectory: ObjCBool = false
+        if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue {
+            return url.standardizedFileURL
+        }
+        let parent = url.deletingLastPathComponent()
+        return parent.path.isEmpty ? nil : parent.standardizedFileURL
+    }
+
     /// Expands a file or directory `URL` into supported image file URLs.
     /// - If `url` is a directory, its contents are searched (recursively by default) and only readable image files are returned.
     /// - If `url` is a regular file, it is returned only if it's a readable image.
@@ -155,13 +165,12 @@ enum IngestionCoordinator {
                 for provider in providers {
                     group.addTask {
                         if let url = await loadImageURL(from: provider) {
-                            var didAccess = false
-                            if url.isFileURL {
-                                didAccess = url.startAccessingSecurityScopedResource()
-                            }
+                            let token = SandboxAccessToken(url: url)
                             let expanded = collectSupportedFilesRecursively(at: url)
-                            if didAccess {
-                                url.stopAccessingSecurityScopedResource()
+
+                            if let token {
+                                SandboxAccessManager.shared.register(url: url, scopedToken: token)
+                                token.stop()
                             }
                             return expanded
                         }
@@ -234,16 +243,15 @@ enum IngestionCoordinator {
                 await withTaskGroup(of: [URL].self) { group in
                     for provider in providers {
                         group.addTask {
-                            if let url = await loadImageURL(from: provider) {
-                                var didAccess = false
-                                if url.isFileURL {
-                                    didAccess = url.startAccessingSecurityScopedResource()
-                                }
-                                let expanded = collectSupportedFilesRecursively(at: url)
-                                if didAccess {
-                                    url.stopAccessingSecurityScopedResource()
-                                }
-                                return expanded
+                                if let url = await loadImageURL(from: provider) {
+                                    let token = SandboxAccessToken(url: url)
+                                    let expanded = collectSupportedFilesRecursively(at: url)
+
+                                    if let token {
+                                        SandboxAccessManager.shared.register(url: url, scopedToken: token)
+                                        token.stop()
+                                    }
+                                    return expanded
                             }
                             return []
                         }
@@ -274,7 +282,9 @@ enum IngestionCoordinator {
         if panel.runModal() == .OK {
             // Expand any selected directories into supported image files
             let expanded: [URL] = panel.urls.flatMap { url in
-                expandToSupportedImageURLs(from: url, recursive: true)
+                let standardized = url.standardizedFileURL
+                SandboxAccessManager.shared.register(url: standardized)
+                return expandToSupportedImageURLs(from: standardized, recursive: true)
             }
             completion(expanded)
         }

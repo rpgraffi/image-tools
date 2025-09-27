@@ -19,13 +19,10 @@ struct ProcessingPipeline {
         let currentURL = result.originalURL
 
         // Start security-scoped access if needed
-        var didStartAccessing = false
-        if currentURL.startAccessingSecurityScopedResource() {
-            didStartAccessing = true
+        guard let sourceToken = SandboxAccessToken(url: currentURL) else {
+            throw ImageOperationError.permissionDenied
         }
-        defer {
-            if didStartAccessing { currentURL.stopAccessingSecurityScopedResource() }
-        }
+        defer { sourceToken.stop() }
 
         // Backup before first edit if overwriting
         if overwriteOriginals && result.backupURL == nil {
@@ -63,13 +60,10 @@ struct ProcessingPipeline {
 
         // Write into destination directory and atomically replace/move into place
         let destParent = destinationURL.deletingLastPathComponent()
-        var didStartDestAccess = false
-        if destParent.startAccessingSecurityScopedResource() {
-            didStartDestAccess = true
+        guard let accessToken = SandboxAccessManager.shared.beginAccess(for: destParent) else {
+            throw ImageOperationError.permissionDenied
         }
-        defer {
-            if didStartDestAccess { destParent.stopAccessingSecurityScopedResource() }
-        }
+        defer { accessToken.stop() }
 
         let tempFilename = destinationURL.deletingPathExtension().lastPathComponent + "_tmp_" + String(UUID().uuidString.prefix(8)) + "." + ext
         let tempInDest = destParent.appendingPathComponent(tempFilename)
@@ -91,14 +85,10 @@ struct ProcessingPipeline {
     // Apply operations and return a temporary file URL for the processed image without committing to a destination
     func renderTemporaryURL(on asset: ImageAsset) throws -> URL {
         let currentURL = asset.originalURL
-
-        var didStartAccessing = false
-        if currentURL.startAccessingSecurityScopedResource() {
-            didStartAccessing = true
+        guard let token = SandboxAccessToken(url: currentURL) else {
+            throw ImageOperationError.permissionDenied
         }
-        defer {
-            if didStartAccessing { currentURL.stopAccessingSecurityScopedResource() }
-        }
+        defer { token.stop() }
         // Process and encode, then write to a temporary file
         let encoded = try processAndEncode(from: currentURL)
         let tempDir = FileManager.default.temporaryDirectory
@@ -117,13 +107,10 @@ struct ProcessingPipeline {
 
     // MARK: - DRY helper
     private func processAndEncode(from originalURL: URL) throws -> (data: Data, uti: UTType) {
-        var didStartAccessing = false
-        if originalURL.startAccessingSecurityScopedResource() {
-            didStartAccessing = true
+        guard let token = SandboxAccessToken(url: originalURL) else {
+            throw ImageOperationError.permissionDenied
         }
-        defer {
-            if didStartAccessing { originalURL.stopAccessingSecurityScopedResource() }
-        }
+        defer { token.stop() }
 
         guard var ci = try? loadCIImageApplyingOrientation(from: originalURL) else {
             throw ImageOperationError.loadFailed

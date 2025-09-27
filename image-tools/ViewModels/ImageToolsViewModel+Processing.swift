@@ -59,11 +59,25 @@ extension ImageToolsViewModel {
             return
         }
 
-        exportTotal = targets.count
-        exportCompleted = 0
-        isExporting = true
-
         Task(priority: .userInitiated) {
+            let directories = uniqueDestinationDirectories(for: targets, pipeline: pipeline)
+            for directory in directories {
+                let message = String(localized: "Allow ImageTools to save files in \(directory.lastPathComponent)?")
+                let granted = await SandboxAccessManager.shared.requestAccessIfNeeded(to: directory, message: message)
+                if !granted {
+                    await MainActor.run {
+                        self.presentAccessDeniedAlert(for: directory)
+                    }
+                    return
+                }
+            }
+
+            await MainActor.run {
+                self.exportTotal = targets.count
+                self.exportCompleted = 0
+                self.isExporting = true
+            }
+
             let hint = recommendedConcurrency()
             // Snapshot to mutate off-main, then commit on completion
             var updatedImages = await MainActor.run { self.images }
@@ -185,6 +199,29 @@ extension ImageToolsViewModel {
         }
 
         return presentAlert()
+    }
+
+    func uniqueDestinationDirectories(for targets: [ImageAsset], pipeline: ProcessingPipeline) -> [URL] {
+        let destinations = targets.map { pipeline.plannedDestinationURL(for: $0).deletingLastPathComponent().standardizedFileURL }
+        var seen: Set<URL> = []
+        var result: [URL] = []
+        for directory in destinations {
+            if !seen.contains(directory) {
+                seen.insert(directory)
+                result.append(directory)
+            }
+        }
+        return result
+    }
+
+    @MainActor
+    func presentAccessDeniedAlert(for directory: URL) {
+        let alert = NSAlert()
+        alert.alertStyle = .critical
+        alert.messageText = String(localized: "Permission needed")
+        alert.informativeText = String(localized: "ImageTools needs access to save files in \(directory.lastPathComponent). Please choose Allow when prompted.")
+        alert.addButton(withTitle: String(localized: "OK"))
+        alert.runModal()
     }
 }
 
