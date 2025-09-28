@@ -65,7 +65,7 @@ extension ImageToolsViewModel {
             guard let self else { return }
 
             for directory in directories {
-                let message = String(localized: "Allow ImageTools to save files in \(directory.lastPathComponent)?")
+                let message = String(localized: "Allow Convert & Compress to save files in \(directory.lastPathComponent)?")
                 let granted = await SandboxAccessManager.shared.requestAccessIfNeeded(to: directory, message: message)
                 if !granted {
                     self.presentAccessDeniedAlert(for: directory)
@@ -226,7 +226,7 @@ extension ImageToolsViewModel {
         let alert = NSAlert()
         alert.alertStyle = .critical
         alert.messageText = String(localized: "Permission needed")
-        alert.informativeText = String(localized: "ImageTools needs access to save files in \(directory.lastPathComponent). Please choose Allow when prompted.")
+        alert.informativeText = String(localized: "Convert & Compress needs access to save files in \(directory.lastPathComponent). Please choose Allow when prompted.")
         alert.addButton(withTitle: String(localized: "OK"))
         alert.runModal()
     }
