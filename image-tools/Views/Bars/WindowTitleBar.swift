@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct WindowTitleBar: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
     @State private var isHovered: Bool = false
 
     var body: some View {

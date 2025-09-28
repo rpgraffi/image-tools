@@ -45,7 +45,7 @@ enum WindowConfigurator {
     }
 
     private static func installTrailingAccessory(window: NSWindow) {
-        let hosting = NSHostingController(rootView: WindowTitleBar(vm: ImageToolsViewModelAccessor.shared()))
+        let hosting = NSHostingController(rootView: WindowTitleBar())
         hosting.view.frame.size = NSSize(width: 160, height: 24)
 
         let accessory = NSTitlebarAccessoryViewController()
@@ -55,17 +55,3 @@ enum WindowConfigurator {
         window.addTitlebarAccessoryViewController(accessory)
     }
 } 
-
-// Provide access to the singleton VM used in the SwiftUI App scene
-@MainActor
-enum ImageToolsViewModelAccessor {
-    private static weak var currentVM: ImageToolsViewModel?
-    static func set(_ vm: ImageToolsViewModel) { currentVM = vm }
-    static func shared() -> ImageToolsViewModel {
-        if let vm = currentVM { return vm }
-        // Fallback (should not happen): create a new instance
-        let vm = ImageToolsViewModel()
-        currentVM = vm
-        return vm
-    }
-}

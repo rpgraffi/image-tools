@@ -80,35 +80,7 @@ enum IngestionCoordinator {
     /// - If `url` is a file and readable, it's returned as a single-element array.
     /// - If `url` is a directory, it is recursively enumerated and all readable files are returned.
     private static func collectSupportedFilesRecursively(at url: URL) -> [URL] {
-        guard url.isFileURL else { return [] }
-
-        var isDirectory: ObjCBool = false
-        let exists = FileManager.default.fileExists(atPath: url.path, isDirectory: &isDirectory)
-        guard exists else { return [] }
-
-        if !isDirectory.boolValue {
-            return ImageIOCapabilities.shared.isReadableURL(url) ? [url] : []
-        }
-
-        // Enumerate directory contents recursively, skipping packages and hidden files
-        var results: [URL] = []
-        let keys: [URLResourceKey] = [.isRegularFileKey]
-        if let enumerator = FileManager.default.enumerator(
-            at: url,
-            includingPropertiesForKeys: keys,
-            options: [.skipsPackageDescendants, .skipsHiddenFiles],
-            errorHandler: { _, _ in true }
-        ) {
-            for case let fileURL as URL in enumerator {
-                // Fast path: only consider regular files
-                if let values = try? fileURL.resourceValues(forKeys: Set(keys)), values.isRegularFile == true {
-                    if ImageIOCapabilities.shared.isReadableURL(fileURL) {
-                        results.append(fileURL)
-                    }
-                }
-            }
-        }
-        return results
+        DirectoryEnumerator(url: url).collectSupportedImages()
     }
 
     private static func resolvedDirectory(for url: URL) -> URL? {
@@ -126,30 +98,7 @@ enum IngestionCoordinator {
     /// - If `url` is a regular file, it is returned only if it's a readable image.
     /// - Non-image files are skipped.
     static func expandToSupportedImageURLs(from url: URL, recursive: Bool = true) -> [URL] {
-        var results: [URL] = []
-        let fileManager = FileManager.default
-        var isDirectory: ObjCBool = false
-        if fileManager.fileExists(atPath: url.path, isDirectory: &isDirectory), isDirectory.boolValue {
-            if recursive {
-                return collectSupportedFilesRecursively(at: url)
-            } else {
-                let keys: [URLResourceKey] = [.isRegularFileKey]
-                if let items = try? fileManager.contentsOfDirectory(at: url, includingPropertiesForKeys: keys, options: [.skipsHiddenFiles]) {
-                    for fileURL in items {
-                        var isChildDir: ObjCBool = false
-                        if fileManager.fileExists(atPath: fileURL.path, isDirectory: &isChildDir), !isChildDir.boolValue,
-                           ImageIOCapabilities.shared.isReadableURL(fileURL) {
-                            results.append(fileURL)
-                        }
-                    }
-                }
-            }
-        } else {
-            if ImageIOCapabilities.shared.isReadableURL(url) {
-                results.append(url)
-            }
-        }
-        return results
+        DirectoryEnumerator(url: url).collectSupportedImages()
     }
     static func canHandle(providers: [NSItemProvider]) -> Bool {
         providers.contains { provider in
@@ -166,7 +115,7 @@ enum IngestionCoordinator {
                     group.addTask {
                         if let url = await loadImageURL(from: provider) {
                             let token = SandboxAccessToken(url: url)
-                            let expanded = collectSupportedFilesRecursively(at: url)
+                            let expanded = DirectoryEnumerator(url: url).collectSupportedImages()
 
                             if let token {
                                 SandboxAccessManager.shared.register(url: url, scopedToken: token)
@@ -196,7 +145,7 @@ enum IngestionCoordinator {
     static func collectURLsFromPasteboard(_ pasteboard: NSPasteboard = .general) -> [URL] {
         if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL] {
             // Expand any directories and filter to supported files only
-            return urls.flatMap { collectSupportedFilesRecursively(at: $0) }
+            return urls.flatMap { DirectoryEnumerator(url: $0).collectSupportedImages() }
         }
         if let images = pasteboard.readObjects(forClasses: [NSImage.self], options: nil) as? [NSImage] {
             let dir = FileManager.default.temporaryDirectory
@@ -245,7 +194,7 @@ enum IngestionCoordinator {
                         group.addTask {
                                 if let url = await loadImageURL(from: provider) {
                                     let token = SandboxAccessToken(url: url)
-                                    let expanded = collectSupportedFilesRecursively(at: url)
+                            let expanded = DirectoryEnumerator(url: url).collectSupportedImages()
 
                                     if let token {
                                         SandboxAccessManager.shared.register(url: url, scopedToken: token)

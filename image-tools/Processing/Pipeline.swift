@@ -35,47 +35,26 @@ struct ProcessingPipeline {
 
         // Process and encode once according to selected format and compression
         let encoded = try processAndEncode(from: currentURL)
-        let ext = ImageIOCapabilities.shared.preferredFilenameExtension(for: encoded.uti)
-
-        // Decide destination
-        let destinationURL: URL
-        let tempDirPath = FileManager.default.temporaryDirectory.standardizedFileURL.path
-        let isTempSource = result.originalURL.standardizedFileURL.path.hasPrefix(tempDirPath)
-
-        if overwriteOriginals {
-            destinationURL = result.originalURL
-        } else if let exportDir = exportDirectory {
-            let base = result.originalURL.deletingPathExtension().lastPathComponent
-            destinationURL = exportDir.appendingPathComponent(base + "." + ext)
-        } else if isTempSource {
-            // Pasted images saved into temp should end up in Downloads upon apply
-            let downloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser
-            let base = result.originalURL.deletingPathExtension().lastPathComponent
-            destinationURL = downloadsDir.appendingPathComponent(base + "." + ext)
-        } else {
-            let dir = result.originalURL.deletingLastPathComponent()
-            let base = result.originalURL.deletingPathExtension().lastPathComponent
-            destinationURL = dir.appendingPathComponent(base + "." + ext)
-        }
+        let plan = destinationPlan(for: result, uti: encoded.uti)
 
         // Write into destination directory and atomically replace/move into place
-        let destParent = destinationURL.deletingLastPathComponent()
+        let destParent = plan.directory
         guard let accessToken = SandboxAccessManager.shared.beginAccess(for: destParent) else {
             throw ImageOperationError.permissionDenied
         }
         defer { accessToken.stop() }
 
-        let tempFilename = destinationURL.deletingPathExtension().lastPathComponent + "_tmp_" + String(UUID().uuidString.prefix(8)) + "." + ext
+        let tempFilename = plan.filenameStem + "_tmp_" + String(UUID().uuidString.prefix(8)) + "." + plan.fileExtension
         let tempInDest = destParent.appendingPathComponent(tempFilename)
         try encoded.data.write(to: tempInDest, options: [.atomic])
-        if FileManager.default.fileExists(atPath: destinationURL.path) {
-            _ = try FileManager.default.replaceItemAt(destinationURL, withItemAt: tempInDest, backupItemName: nil, options: [])
+        if FileManager.default.fileExists(atPath: plan.url.path) {
+            _ = try FileManager.default.replaceItemAt(plan.url, withItemAt: tempInDest, backupItemName: nil, options: [])
         } else {
-            try FileManager.default.moveItem(at: tempInDest, to: destinationURL)
+            try FileManager.default.moveItem(at: tempInDest, to: plan.url)
         }
 
         var updated = result
-        updated.workingURL = destinationURL
+        updated.workingURL = plan.url
         updated.isEdited = true
         // Record a successful single-image conversion
         UsageTracker.shared.recordImageConversion()
@@ -131,26 +110,45 @@ struct ProcessingPipeline {
     /// Compute the destination URL without performing any processing, matching the naming behavior of `run(on:)`.
     func plannedDestinationURL(for asset: ImageAsset) -> URL {
         let currentURL = asset.originalURL
+        let chosenFormat = finalFormat ?? ImageExporter.inferFormat(from: currentURL)
+        let finalUTI = ImageExporter.decideUTTypeForExport(originalURL: currentURL, requestedFormat: chosenFormat)
+        let plan = destinationPlan(for: asset, uti: finalUTI)
+        return plan.url
+    }
+} 
+
+private extension ProcessingPipeline {
+    struct DestinationPlan {
+        let url: URL
+        let directory: URL
+        let filenameStem: String
+        let fileExtension: String
+    }
+
+    func destinationPlan(for asset: ImageAsset, uti: UTType) -> DestinationPlan {
+        let currentURL = asset.originalURL
+        let ext = ImageIOCapabilities.shared.preferredFilenameExtension(for: uti)
         let tempDirPath = FileManager.default.temporaryDirectory.standardizedFileURL.path
         let isTempSource = currentURL.standardizedFileURL.path.hasPrefix(tempDirPath)
 
-        let chosenFormat = finalFormat ?? ImageExporter.inferFormat(from: currentURL)
-        let finalUTI = ImageExporter.decideUTTypeForExport(originalURL: currentURL, requestedFormat: chosenFormat)
-        let ext = ImageIOCapabilities.shared.preferredFilenameExtension(for: finalUTI)
-
+        let destinationURL: URL
         if overwriteOriginals {
-            return currentURL
+            destinationURL = currentURL
         } else if let exportDir = exportDirectory {
             let base = currentURL.deletingPathExtension().lastPathComponent
-            return exportDir.appendingPathComponent(base + "." + ext)
+            destinationURL = exportDir.appendingPathComponent(base + "." + ext)
         } else if isTempSource {
             let downloadsDir = FileManager.default.urls(for: .downloadsDirectory, in: .userDomainMask).first ?? FileManager.default.homeDirectoryForCurrentUser
             let base = currentURL.deletingPathExtension().lastPathComponent
-            return downloadsDir.appendingPathComponent(base + "." + ext)
+            destinationURL = downloadsDir.appendingPathComponent(base + "." + ext)
         } else {
             let dir = currentURL.deletingLastPathComponent()
             let base = currentURL.deletingPathExtension().lastPathComponent
-            return dir.appendingPathComponent(base + "." + ext)
+            destinationURL = dir.appendingPathComponent(base + "." + ext)
         }
+
+        let directory = destinationURL.deletingLastPathComponent()
+        let stem = destinationURL.deletingPathExtension().lastPathComponent
+        return DestinationPlan(url: destinationURL, directory: directory, filenameStem: stem, fileExtension: ext)
     }
-} 
+}
