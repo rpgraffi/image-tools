@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct WindowTitleBar: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @StateObject private var vm = ImageToolsViewModel()
     @State private var isHovered: Bool = false
 
     var body: some View {
@@ -17,5 +17,4 @@ struct WindowTitleBar: View {
             }
     }
 }
-
 
