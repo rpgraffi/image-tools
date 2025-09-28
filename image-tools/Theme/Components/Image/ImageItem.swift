@@ -18,6 +18,7 @@ struct ImageChangeInfo {
         resolutionChanged || fileSizeChanged || formatChanged
     }
     
+    @MainActor
     init(asset: ImageAsset, vm: ImageToolsViewModel) {
         let preview = vm.previewInfo(for: asset)
         let origPixel = asset.originalPixelSize
@@ -419,6 +420,7 @@ private struct PreviewData {
         return asset
     }()
     
+    @MainActor
     static let mockViewModel: ImageToolsViewModel = {
         return ImageToolsViewModel()
     }()

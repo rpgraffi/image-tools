@@ -1,6 +1,10 @@
 import Foundation
 
 extension ImageToolsViewModel {
+    private func mergeEstimatedBytes(with map: [UUID: Int]) {
+        estimatedBytes.merge(map) { _, new in new }
+    }
+
     func triggerEstimationForVisible(_ visibleAssets: [ImageAsset]) {
         // Cancel previous run
         estimationTask?.cancel()
@@ -29,9 +33,7 @@ extension ImageToolsViewModel {
                 removeMetadata: removeMetadata,
                 removeBackground: removeBackground
             )
-            await MainActor.run {
-                self.estimatedBytes.merge(map) { _, new in new }
-            }
+            self.mergeEstimatedBytes(with: map)
         }
     }
 

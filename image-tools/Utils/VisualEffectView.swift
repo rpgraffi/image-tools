@@ -14,6 +14,7 @@ struct VisualEffectView: NSViewRepresentable {
 }
 
 // Keep window configuration centralized for reuse
+@MainActor
 enum WindowConfigurator {
     private static var didSetInitialSize: Bool = false
     static func configureMainWindow() {
@@ -56,6 +57,7 @@ enum WindowConfigurator {
 } 
 
 // Provide access to the singleton VM used in the SwiftUI App scene
+@MainActor
 enum ImageToolsViewModelAccessor {
     private static weak var currentVM: ImageToolsViewModel?
     static func set(_ vm: ImageToolsViewModel) { currentVM = vm }

@@ -5,6 +5,7 @@ import ImageIO
 import StoreKit
 import Combine
 
+@MainActor
 final class ImageToolsViewModel: ObservableObject {
     @Published var images: [ImageAsset] = []
 

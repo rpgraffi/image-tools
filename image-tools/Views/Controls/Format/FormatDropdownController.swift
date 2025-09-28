@@ -27,6 +27,7 @@ final class FormatDropdownController: ObservableObject {
 
 // MARK: - Filtering & Ranking logic
 extension FormatDropdownController {
+    @MainActor
     func filteredAndSortedEntries(vm: ImageToolsViewModel) -> [FormatDropdownEntry] {
         let allFormats = ImageIOCapabilities.shared.writableFormats()
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
@@ -38,9 +39,9 @@ extension FormatDropdownController {
             filteredFormats = allFormats.filter { $0.displayName.lowercased().contains(q) }
         }
 
-        let sorted = filteredFormats.sorted(by: { a, b in
-            let ai = vm.recentFormats.firstIndex(of: a)
-            let bi = vm.recentFormats.firstIndex(of: b)
+        let sorted = filteredFormats.sorted(by: { [recent = vm.recentFormats] a, b in
+            let ai = recent.firstIndex(of: a)
+            let bi = recent.firstIndex(of: b)
             if ai != nil || bi != nil { return (ai ?? Int.max) < (bi ?? Int.max) }
             return a.displayName < b.displayName
         })
