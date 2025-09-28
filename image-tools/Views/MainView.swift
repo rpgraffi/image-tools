@@ -3,14 +3,14 @@ import AppKit
 import UniformTypeIdentifiers
 
 struct MainView: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
     @State private var isDropping: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
-            ControlsBar(vm: vm)
-            ImagesListView(vm: vm, isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
-            SecondaryBar(vm: vm, onPickFromFinder: pickFromOpenPanel)
+            ControlsBar()
+            ImagesListView(isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
+            SecondaryBar(onPickFromFinder: pickFromOpenPanel)
         }
         .frame(minWidth: 600)
         .onAppear {
@@ -47,5 +47,6 @@ struct MainView: View {
 }
 
 #Preview {
-    MainView(vm: ImageToolsViewModel())
-} 
+    MainView()
+        .environmentObject(ImageToolsViewModel())
+}

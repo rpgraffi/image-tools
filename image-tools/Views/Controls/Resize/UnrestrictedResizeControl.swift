@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 struct UnrestrictedResizeControl: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
 
     var body: some View {
         ZStack {

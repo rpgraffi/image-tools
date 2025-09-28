@@ -10,6 +10,7 @@ enum ImageOperationError: Error {
     case loadFailed
     case exportFailed
     case backgroundRemovalUnavailable
+    case permissionDenied
 }
 
 protocol ImageOperation {

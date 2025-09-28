@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 import AppKit
 
 struct FormatControl: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
 
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
 
@@ -177,12 +177,16 @@ struct FormatControlView_Previews: PreviewProvider {
             return v
         }()
         return VStack(alignment: .leading, spacing: 16) {
-            FormatControl(vm: vmDefault)
-            FormatControl(vm: vmPNG)
-            FormatControl(vm: vmJPEG)
-            FormatControl(vm: vmWebP)
+            FormatControl()
+                .environmentObject(vmDefault)
+            FormatControl()
+                .environmentObject(vmPNG)
+            FormatControl()
+                .environmentObject(vmJPEG)
+            FormatControl()
+                .environmentObject(vmWebP)
         }
         .padding()
         .frame(width: 360)
     }
-} 
+}

@@ -8,13 +8,14 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var vm = ImageToolsViewModel()
+    @EnvironmentObject private var vm: ImageToolsViewModel
 
     var body: some View {
-        MainView(vm: vm)
+        MainView()
     }
 }
 
 #Preview {
-    MainView(vm: ImageToolsViewModel())
+    MainView()
+        .environmentObject(ImageToolsViewModel())
 }

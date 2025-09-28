@@ -60,7 +60,7 @@ struct ExportDirectoryPill: View {
             guard FileManager.default.fileExists(atPath: folder.path, isDirectory: &isDirectory), isDirectory.boolValue else {
                 return false
             }
-            directory = folder
+            directory = folder.standardizedFileURL
             return true
         } isTargeted: { hovering in
             isDropping = hovering
@@ -88,7 +88,10 @@ struct ExportDirectoryPill: View {
         panel.canCreateDirectories = true
         panel.prompt = String(localized: "Choose")
         if panel.runModal() == .OK {
-            directory = panel.urls.first
+            if let chosen = panel.urls.first?.standardizedFileURL {
+                SandboxAccessManager.shared.register(url: chosen)
+                directory = chosen
+            }
         }
     }
 

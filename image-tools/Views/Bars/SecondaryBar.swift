@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct SecondaryBar: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
     let onPickFromFinder: () -> Void
 
     var body: some View {
