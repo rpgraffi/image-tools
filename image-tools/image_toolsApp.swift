@@ -21,10 +21,11 @@ struct ImageToolsApp: App {
 
     var body: some Scene {
         WindowGroup {
-            MainView(vm: vm)
+            MainView()
                 .background(.clear)
         }
         .windowStyle(.hiddenTitleBar)
         .windowResizability(.contentSize)
+        .environmentObject(vm)
     }
 }

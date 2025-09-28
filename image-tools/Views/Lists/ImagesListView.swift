@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 import AppKit
 
 struct ImagesListView: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
     @Binding var isDropping: Bool
     let onPickFromFinder: () -> Void
 
@@ -43,7 +43,6 @@ struct ImagesListView: View {
             } else {
                 ImagesGridView(
                     images: allImages,
-                    vm: vm,
                     columns: columns
                 )
             }
@@ -101,28 +100,28 @@ struct ImagesListView_Previews: PreviewProvider {
         Group {
             // Empty state
             ImagesListView(
-                vm: demoVMEmpty(),
                 isDropping: .constant(false),
                 onPickFromFinder: {}
             )
+            .environmentObject(demoVMEmpty())
             .frame(width: 900, height: 600)
             .padding()
 
             // With images
             ImagesListView(
-                vm: demoVMWithImages(),
                 isDropping: .constant(false),
                 onPickFromFinder: {}
             )
+            .environmentObject(demoVMWithImages())
             .frame(width: 900, height: 600)
             .padding()
 
             // Dropping state + dark mode
             ImagesListView(
-                vm: demoVMWithImages(),
                 isDropping: .constant(true),
                 onPickFromFinder: {}
             )
+            .environmentObject(demoVMWithImages())
             .frame(width: 900, height: 600)
             .padding()
             .preferredColorScheme(.dark)

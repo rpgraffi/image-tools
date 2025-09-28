@@ -1,29 +1,29 @@
 import SwiftUI
 
 struct ControlsBar: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
 
     var body: some View {
         VStack(alignment: .leading) {
             HStack(spacing: 16) {
                 // Left controls
-                FormatControl(vm: vm)
+                FormatControl()
                     .transition(.opacity.combined(with: .scale))
 
                 if shouldShowResize {
-                    ResizeControl(vm: vm)
+                    ResizeControl()
                         .transition(.opacity.combined(with: .scale))
                 }
 
                 if shouldShowCompression {
-                    CompressControl(vm: vm)
+                    CompressControl()
                         .transition(.opacity.combined(with: .scale))
                 }
 
-                FlipControl(vm: vm)
-                BackgroundRemovalControl(vm: vm)
+                FlipControl()
+                BackgroundRemovalControl()
                 if shouldShowMetadata {
-                    MetadataControl(vm: vm)
+                    MetadataControl()
                         .transition(.opacity.combined(with: .scale))
                 }
             }

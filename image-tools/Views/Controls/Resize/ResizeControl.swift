@@ -3,7 +3,7 @@ import AppKit
 
 /// Orchestrates resize UI and delegates to specialized sub-controls.
 struct ResizeControl: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
     
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
     private let controlMinWidth: CGFloat = Theme.Metrics.controlMinWidth
@@ -13,9 +13,9 @@ struct ResizeControl: View {
         HStack(spacing: 4) {
             Group {
                 if let sizes = vm.allowedSquareSizes {
-                    SquaresResizeControl(vm: vm, allowedSizes: sizes.sorted())
+                    SquaresResizeControl(allowedSizes: sizes.sorted())
                 } else {
-                    UnrestrictedResizeControl(vm: vm)
+                    UnrestrictedResizeControl()
                 }
             }
             .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, alignment: .leading)

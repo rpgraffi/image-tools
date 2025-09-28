@@ -4,7 +4,7 @@ import AppKit
 /// UI for formats that only support a fixed set of square sizes (e.g., ICNS/ICO).
 /// Uses a discrete pill slider across allowed sizes and a menu to pick exact size.
 struct SquaresResizeControl: View {
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject var vm: ImageToolsViewModel
     let allowedSizes: [Int] // sorted ascending
     @State private var menuHandler: MenuHandler?
 

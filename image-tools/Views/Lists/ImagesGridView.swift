@@ -2,8 +2,8 @@ import SwiftUI
 import AppKit
 
 struct ImagesGridView: View {
+    @EnvironmentObject var vm: ImageToolsViewModel
     let images: [ImageAsset]
-    let vm: ImageToolsViewModel
     let columns: [GridItem]
     @State private var visibleIds: Set<UUID> = []
     @State private var debounceWorkItem: DispatchWorkItem? = nil
@@ -49,7 +49,8 @@ struct ImagesGridView_Previews: PreviewProvider {
         let assets = urls.map { ImageAsset(url: $0) }
         let columns = [GridItem(.adaptive(minimum: 220, maximum: 300), spacing: 12, alignment: .top)]
 
-        return ImagesGridView(images: assets, vm: vm, columns: columns)
+        return ImagesGridView(images: assets, columns: columns)
+            .environmentObject(vm)
             .frame(width: 900, height: 600)
             .padding()
     }
