@@ -11,10 +11,8 @@ extension ImageToolsViewModel {
             resizeHeight: resizeHeight,
             selectedFormat: selectedFormat,
             compressionPercent: compressionPercent,
-            flipH: flipH,
             flipV: flipV,
             removeBackground: removeBackground,
-            overwriteOriginals: overwriteOriginals,
             removeMetadata: removeMetadata,
             exportDirectory: exportDirectory
         )
@@ -51,7 +49,7 @@ extension ImageToolsViewModel {
         }
         shouldBypassPaywallOnce = false
         let pipeline = buildPipeline()
-        let targets = images.filter { $0.isEnabled }
+        let targets = images
         guard !targets.isEmpty else { return }
 
         // Preflight replace confirmation (single dialog for all files)

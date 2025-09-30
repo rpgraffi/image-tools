@@ -7,14 +7,11 @@ struct PipelineBuilder {
                resizeHeight: String,
                selectedFormat: ImageFormat?,
                compressionPercent: Double,
-               flipH: Bool,
                flipV: Bool,
                removeBackground: Bool,
-               overwriteOriginals: Bool,
                removeMetadata: Bool,
                exportDirectory: URL?) -> ProcessingPipeline {
         var pipeline = ProcessingPipeline()
-        pipeline.overwriteOriginals = overwriteOriginals
         pipeline.removeMetadata = removeMetadata
         pipeline.exportDirectory = exportDirectory
         pipeline.finalFormat = selectedFormat
@@ -38,7 +35,6 @@ struct PipelineBuilder {
         // Compression handled at final export via pipeline.compressionPercent
 
         // Flip
-        if flipH { pipeline.add(FlipOperation(direction: .horizontal)) }
         if flipV { pipeline.add(FlipOperation(direction: .vertical)) }
 
         // Remove background
