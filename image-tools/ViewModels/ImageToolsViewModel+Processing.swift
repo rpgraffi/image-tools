@@ -194,7 +194,10 @@ extension ImageToolsViewModel {
             alert.alertStyle = .warning
             alert.messageText = message
             alert.informativeText = info
-            alert.addButton(withTitle: String(localized: "Replace"))
+
+            let replaceButton = alert.addButton(withTitle: String(localized: "Replace"))
+            replaceButton.hasDestructiveAction = true
+
             alert.addButton(withTitle: String(localized: "Cancel"))
             if let icon = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil) {
                 alert.icon = icon

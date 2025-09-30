@@ -149,14 +149,14 @@
         {
           "image-name-specializations" : [
             {
-              "value" : "Pixel_Light.png"
+              "value" : "PixelLight.png"
             },
             {
               "appearance" : "dark",
-              "value" : "Pixel_Dark.png"
+              "value" : "PixelDark.png"
             }
           ],
-          "name" : "Pixel_Dark",
+          "name" : "PixelDark",
           "position" : {
             "scale" : 1,
             "translation-in-points" : [
@@ -166,7 +166,7 @@
           }
         },
         {
-          "image-name" : "Polygon 2.png",
+          "image-name" : "Polygon2.png",
           "name" : "Polygon 2",
           "position" : {
             "scale" : 1,
@@ -177,7 +177,7 @@
           }
         },
         {
-          "image-name" : "Polygon 1.png",
+          "image-name" : "Polygon1.png",
           "name" : "Polygon 1",
           "position" : {
             "scale" : 1,

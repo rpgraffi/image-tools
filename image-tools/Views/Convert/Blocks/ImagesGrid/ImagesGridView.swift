@@ -25,7 +25,6 @@ struct ImagesGridView: View {
                     ImageItem(
                         asset: asset,
                         vm: vm,
-                        recover: asset.backupURL != nil ? { vm.recoverOriginal(asset) } : nil
                     )
                     .aspectRatio(1, contentMode: .fit)
                     .onAppear { visibleIds.insert(asset.id); scheduleEstimation() }

@@ -169,7 +169,6 @@ private func paddedResolutionString(original: CGSize, target: CGSize) -> String 
 private struct HoverControls: View {
     let asset: ImageAsset
     let vm: ImageToolsViewModel
-    let recover: (() -> Void)?
     let isVisible: Bool
     
     @State private var animationTrigger: Int = 0
@@ -198,19 +197,9 @@ private struct HoverControls: View {
                 Image(systemName: "doc.on.doc.fill")
             }
             .buttonStyle(.plain)
-
             .symbolEffect(.bounce.down.wholeSymbol, options: .nonRepeating, value: animationTrigger)
             .help(String(localized: "Copy image to clipboard"))
-            
-            
-            if let recover = recover {
-                Button(action: recover) {
-                    Image(systemName: "clock.arrow.circlepath.fill")
-                }
-                .buttonStyle(.plain)
-                .help(String(localized: "Recover original"))
-            }
-            
+    
             Button(role: .destructive, action: { vm.remove(asset) }) {
                 Image(systemName: "xmark.circle.fill")
             }
@@ -231,7 +220,6 @@ private struct HoverControls: View {
 struct ImageItem: View {
     let asset: ImageAsset
     @ObservedObject var vm: ImageToolsViewModel
-    let recover: (() -> Void)?
     @State private var isHovering: Bool = false
     @State private var isVisible: Bool = false
     private var fileName: String { asset.originalURL.lastPathComponent }
@@ -262,7 +250,6 @@ struct ImageItem: View {
                 HoverControls(
                     asset: asset,
                     vm: vm,
-                    recover: recover,
                     isVisible: isHovering
                 )
             }
@@ -355,7 +342,6 @@ private func formatBytes(_ bytes: Int) -> String {
     ImageItem(
         asset: PreviewData.newImageAsset,
         vm: PreviewData.mockViewModel,
-        recover: nil
     )
     .frame(width: 200, height: 200)
     .padding()
@@ -365,7 +351,6 @@ private func formatBytes(_ bytes: Int) -> String {
     ImageItem(
         asset: PreviewData.editedImageAsset,
         vm: PreviewData.mockViewModel,
-        recover: {}
     )
     .frame(width: 200, height: 200)
     .padding()
@@ -375,7 +360,6 @@ private func formatBytes(_ bytes: Int) -> String {
     ImageItem(
         asset: PreviewData.noThumbnailAsset,
         vm: PreviewData.mockViewModel,
-        recover: nil
     )
     .frame(width: 200, height: 200)
     .padding()

@@ -34,14 +34,7 @@ enum WindowConfigurator {
         window.toolbar = toolbar
 
         installTrailingAccessory(window: window)
-
-        // Set a default starting size once per app run
-        if !didSetInitialSize {
-            let defaultSize = NSSize(width: 850, height: 600)
-            window.setContentSize(defaultSize)
-            window.center()
-            didSetInitialSize = true
-        }
+        window.center()
     }
 
     private static func installTrailingAccessory(window: NSWindow) {
