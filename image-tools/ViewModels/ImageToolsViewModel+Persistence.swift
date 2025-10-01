@@ -90,14 +90,19 @@ extension ImageToolsViewModel {
             }
         }
 
-        // Initialize restrictions after selectedFormat restoration
-        updateRestrictions()
-
         // Load usage tracking events
         loadUsageEvents()
 
         // Load paywall state
         isProUnlocked = defaults.bool(forKey: PersistenceKeys.isProUnlocked)
+
+        // Re-run side effects that used to live in property observers
+        if let directory = exportDirectory {
+            SandboxAccessManager.shared.register(url: directory)
+        }
+
+        onSelectedFormatChanged()
+        handleSizeUnitToggle(to: sizeUnit)
     }
 
     func persistRecentFormats() {

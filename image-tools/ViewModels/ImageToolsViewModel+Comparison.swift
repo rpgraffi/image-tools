@@ -39,10 +39,8 @@ extension ImageToolsViewModel {
                     self.comparisonPreviewTask?.cancel()
                     self.comparisonPreviewTask = nil
                     self.liveRenderDebounceWorkItem?.cancel()
-                } else {
-                    // Ensure we trigger the preview refresh when comparison is presented
-                    self.refreshComparisonPreview()
                 }
+                // Note: Don't trigger refresh here - let ComparisonView do it after animation
             }
             .store(in: &cancellables)
         
@@ -118,12 +116,25 @@ extension ImageToolsViewModel {
     // MARK: - Private
     
     private func loadComparisonPreview(for asset: ImageAsset) async {
-        let original = NSImage(contentsOf: asset.originalURL)
-        comparisonPreview = ComparisonPreviewState(originalImage: original, processedImage: nil, isLoading: true, errorMessage: nil)
+        // Load original image off main thread (lightweight, for hero animation)
+        let original = await Task.detached(priority: .userInitiated) {
+            NSImage(contentsOf: asset.originalURL)
+        }.value
+        
+        // Set original immediately for hero animation, processed starts loading
+        await MainActor.run {
+            comparisonPreview = ComparisonPreviewState(originalImage: original, processedImage: nil, isLoading: true, errorMessage: nil)
+        }
+        
+        // Process image in background
         do {
             let pipeline = buildPipeline()
-            let temporaryURL = try pipeline.renderTemporaryURL(on: asset)
-            let processed = NSImage(contentsOf: temporaryURL)
+            // Render and load processed image entirely off main thread
+            let processed = try await Task.detached(priority: .userInitiated) {
+                let temporaryURL = try pipeline.renderTemporaryURL(on: asset)
+                return NSImage(contentsOf: temporaryURL)
+            }.value
+            
             await MainActor.run {
                 comparisonPreview = ComparisonPreviewState(originalImage: original, processedImage: processed, isLoading: false, errorMessage: nil)
             }

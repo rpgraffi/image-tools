@@ -20,6 +20,7 @@ struct ContentArea: View {
     private var isEmpty: Bool { allImages.isEmpty }
 
     @Environment(\.colorScheme) private var colorScheme
+    @Namespace private var heroNamespace
 
     var body: some View {
         ZStack { content }
@@ -37,7 +38,9 @@ struct ContentArea: View {
         ZStack {
             if let selection = vm.comparisonSelection,
                let asset = vm.images.first(where: { $0.id == selection.assetID }) {
-                ComparisonHostView(asset: asset)
+                ComparisonView(asset: asset, heroNamespace: heroNamespace)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    .zIndex(1)
             } else if isEmpty {
                 ImagesListEmptyState(
                     onPaste: { vm.addFromPasteboard() },
@@ -46,10 +49,12 @@ struct ContentArea: View {
             } else {
                 ImagesGridView(
                     images: allImages,
-                    columns: columns
+                    columns: columns,
+                    heroNamespace: heroNamespace
                 )
             }
         }
+        .animation(.spring(response: 0.45, dampingFraction: 0.82), value: vm.comparisonSelection)
         .background(containerBackground())
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(containerOverlay())
@@ -107,7 +112,7 @@ struct ImagesListView_Previews: PreviewProvider {
                 onPickFromFinder: {}
             )
             .environmentObject(demoVMEmpty())
-            .frame(width: 900, height: 600)
+            .frame(width: 600, height: 400)
             .padding()
 
             // With images
@@ -116,7 +121,7 @@ struct ImagesListView_Previews: PreviewProvider {
                 onPickFromFinder: {}
             )
             .environmentObject(demoVMWithImages())
-            .frame(width: 900, height: 600)
+            .frame(width: 600, height: 400)
             .padding()
 
             // Dropping state + dark mode
@@ -125,7 +130,7 @@ struct ImagesListView_Previews: PreviewProvider {
                 onPickFromFinder: {}
             )
             .environmentObject(demoVMWithImages())
-            .frame(width: 900, height: 600)
+            .frame(width: 600, height: 400)
             .padding()
             .preferredColorScheme(.dark)
         }

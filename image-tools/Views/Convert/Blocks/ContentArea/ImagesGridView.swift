@@ -5,6 +5,7 @@ struct ImagesGridView: View {
     @EnvironmentObject var vm: ImageToolsViewModel
     let images: [ImageAsset]
     let columns: [GridItem]
+    let heroNamespace: Namespace.ID
     @State private var visibleIds: Set<UUID> = []
     @State private var debounceWorkItem: DispatchWorkItem? = nil
 
@@ -25,9 +26,12 @@ struct ImagesGridView: View {
                     ImageItem(
                         asset: asset,
                         vm: vm,
+                        heroNamespace: heroNamespace
                     )
                     .aspectRatio(1, contentMode: .fit)
-                    .onTapGesture { vm.presentComparison(for: asset) }
+                    .onTapGesture { 
+                        vm.presentComparison(for: asset) 
+                    }
                     .onAppear { visibleIds.insert(asset.id); scheduleEstimation() }
                     .onDisappear { visibleIds.remove(asset.id); scheduleEstimation() }
                 }
@@ -49,10 +53,21 @@ struct ImagesGridView_Previews: PreviewProvider {
         let assets = urls.map { ImageAsset(url: $0) }
         let columns = [GridItem(.adaptive(minimum: 220, maximum: 300), spacing: 12, alignment: .top)]
 
-        return ImagesGridView(images: assets, columns: columns)
-            .environmentObject(vm)
-            .frame(width: 900, height: 600)
-            .padding()
+        return PreviewWrapper(assets: assets, columns: columns, vm: vm)
+    }
+    
+    private struct PreviewWrapper: View {
+        let assets: [ImageAsset]
+        let columns: [GridItem]
+        let vm: ImageToolsViewModel
+        @Namespace private var heroNamespace
+        
+        var body: some View {
+            ImagesGridView(images: assets, columns: columns, heroNamespace: heroNamespace)
+                .environmentObject(vm)
+                .frame(width: 900, height: 600)
+                .padding()
+        }
     }
 
     private static func makeTempImageURL(size: NSSize, color: NSColor) -> URL {

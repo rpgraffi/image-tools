@@ -220,6 +220,7 @@ private struct HoverControls: View {
 struct ImageItem: View {
     let asset: ImageAsset
     @ObservedObject var vm: ImageToolsViewModel
+    let heroNamespace: Namespace.ID
     @State private var isHovering: Bool = false
     @State private var isVisible: Bool = false
     private var fileName: String { asset.originalURL.lastPathComponent }
@@ -231,9 +232,11 @@ struct ImageItem: View {
             // Background thumbnail (lazy)
             if let thumb = asset.thumbnail {
                 ImageThumbnail(thumbnail: thumb)
+                    .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
             } else {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(.quaternary)
+                    .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
             }
             
             // Top Left overlay
@@ -328,41 +331,32 @@ private func revealInFinder(_ url: URL) {
     NSWorkspace.shared.activateFileViewerSelecting([url])
 }
 
-private func formatBytes(_ bytes: Int) -> String {
-    let kb = 1024.0
-    let mb = kb * 1024.0
-    let b = Double(bytes)
-    if b >= mb { return String(format: "%.2f MB", b/mb) }
-    if b >= kb { return String(format: "%.0f KB", b/kb) }
-    return "\(bytes) B"
-}
-
 // MARK: - Preview
 #Preview("Image Item - New") {
-    ImageItem(
-        asset: PreviewData.newImageAsset,
-        vm: PreviewData.mockViewModel,
-    )
-    .frame(width: 200, height: 200)
-    .padding()
+    PreviewWrapper(asset: PreviewData.newImageAsset)
 }
 
 #Preview("Image Item - Edited") {
-    ImageItem(
-        asset: PreviewData.editedImageAsset,
-        vm: PreviewData.mockViewModel,
-    )
-    .frame(width: 200, height: 200)
-    .padding()
+    PreviewWrapper(asset: PreviewData.editedImageAsset)
 }
 
 #Preview("Image Item - No Thumbnail") {
-    ImageItem(
-        asset: PreviewData.noThumbnailAsset,
-        vm: PreviewData.mockViewModel,
-    )
-    .frame(width: 200, height: 200)
-    .padding()
+    PreviewWrapper(asset: PreviewData.noThumbnailAsset)
+}
+
+private struct PreviewWrapper: View {
+    let asset: ImageAsset
+    @Namespace private var heroNamespace
+    
+    var body: some View {
+        ImageItem(
+            asset: asset,
+            vm: PreviewData.mockViewModel,
+            heroNamespace: heroNamespace
+        )
+        .frame(width: 200, height: 200)
+        .padding()
+    }
 }
 
 // MARK: - Preview Data

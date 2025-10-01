@@ -104,9 +104,9 @@ final class ImageToolsViewModel: ObservableObject {
     
     init() {
         setupComparisonObservation()
-        setupPersistenceObservation()
         setupUsageTracking()
         loadPersistedState()
+        setupPersistenceObservation()
     }
     
     private func setupUsageTracking() {
