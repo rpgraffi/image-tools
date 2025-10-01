@@ -16,6 +16,7 @@ extension ImageToolsViewModel {
         let compressionPercent = self.compressionPercent
         let removeMetadata = self.removeMetadata
         let removeBackground = self.removeBackground
+        let flipV = self.flipV
 
         estimationTask = Task(priority: .utility) { [weak self] in
             guard let self else { return }

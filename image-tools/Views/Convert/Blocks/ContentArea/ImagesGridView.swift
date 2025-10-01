@@ -27,6 +27,7 @@ struct ImagesGridView: View {
                         vm: vm,
                     )
                     .aspectRatio(1, contentMode: .fit)
+                    .onTapGesture { vm.presentComparison(for: asset) }
                     .onAppear { visibleIds.insert(asset.id); scheduleEstimation() }
                     .onDisappear { visibleIds.remove(asset.id); scheduleEstimation() }
                 }

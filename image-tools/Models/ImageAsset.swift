@@ -65,13 +65,3 @@ enum SizeUnitToggle {
     case pixels
 }
 
-enum HorizontalVertical: String {
-    case horizontal
-    case vertical
-}
-
-enum ImageRotation: Int, CaseIterable, Identifiable {
-    case r0 = 0, r90 = 90, r180 = 180, r270 = 270
-    var id: Int { rawValue }
-}
-

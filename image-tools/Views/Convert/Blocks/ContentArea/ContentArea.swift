@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
 
-struct ImagesListView: View {
+struct ContentArea: View {
     @EnvironmentObject var vm: ImageToolsViewModel
     @Binding var isDropping: Bool
     let onPickFromFinder: () -> Void
@@ -35,7 +35,10 @@ struct ImagesListView: View {
 
     private var content: some View {
         ZStack {
-            if isEmpty {
+            if let selection = vm.comparisonSelection,
+               let asset = vm.images.first(where: { $0.id == selection.assetID }) {
+                ComparisonHostView(asset: asset)
+            } else if isEmpty {
                 ImagesListEmptyState(
                     onPaste: { vm.addFromPasteboard() },
                     onPickFromFinder: onPickFromFinder
@@ -99,7 +102,7 @@ struct ImagesListView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Empty state
-            ImagesListView(
+            ContentArea(
                 isDropping: .constant(false),
                 onPickFromFinder: {}
             )
@@ -108,7 +111,7 @@ struct ImagesListView_Previews: PreviewProvider {
             .padding()
 
             // With images
-            ImagesListView(
+            ContentArea(
                 isDropping: .constant(false),
                 onPickFromFinder: {}
             )
@@ -117,7 +120,7 @@ struct ImagesListView_Previews: PreviewProvider {
             .padding()
 
             // Dropping state + dark mode
-            ImagesListView(
+            ContentArea(
                 isDropping: .constant(true),
                 onPickFromFinder: {}
             )

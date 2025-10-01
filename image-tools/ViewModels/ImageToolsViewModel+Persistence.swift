@@ -1,6 +1,58 @@
 import Foundation
+import Combine
 
 extension ImageToolsViewModel {
+    // Setup persistence state observation
+    func setupPersistenceObservation() {
+        // Observe exportDirectory changes
+        $exportDirectory
+            .dropFirst()
+            .sink { [weak self] directory in
+                guard let self else { return }
+                self.persistExportDirectory()
+                if let directory = directory {
+                    SandboxAccessManager.shared.register(url: directory)
+                }
+            }
+            .store(in: &cancellables)
+        
+        // Observe sizeUnit changes
+        $sizeUnit
+            .dropFirst()
+            .sink { [weak self] newUnit in
+                guard let self else { return }
+                self.handleSizeUnitToggle(to: newUnit)
+                self.persistSizeUnit()
+            }
+            .store(in: &cancellables)
+        
+        // Observe selectedFormat changes
+        $selectedFormat
+            .dropFirst()
+            .sink { [weak self] _ in
+                guard let self else { return }
+                self.persistSelectedFormat()
+                self.onSelectedFormatChanged()
+            }
+            .store(in: &cancellables)
+        
+        // Observe recentFormats changes
+        $recentFormats
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.persistRecentFormats()
+            }
+            .store(in: &cancellables)
+        
+        // Observe isProUnlocked changes
+        $isProUnlocked
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.persistPaywallState()
+            }
+            .store(in: &cancellables)
+    }
+    
     private enum PersistenceKeys {
         static let recentFormats = "image_tools.recent_formats.v1"
         static let selectedFormat = "image_tools.selected_format.v1"
