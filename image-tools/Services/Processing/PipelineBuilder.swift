@@ -35,7 +35,7 @@ struct PipelineBuilder {
         // Compression handled at final export via pipeline.compressionPercent
 
         // Flip
-        if flipV { pipeline.add(FlipOperation(direction: .vertical)) }
+        if flipV { pipeline.add(FlipVerticalOperation()) }
 
         // Remove background
         if removeBackground { pipeline.add(RemoveBackgroundOperation()) }
