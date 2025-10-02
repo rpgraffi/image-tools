@@ -1,0 +1,207 @@
+{
+  "color-space-for-untagged-svg-colors" : "display-p3",
+  "fill-specializations" : [
+    {
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.52206,0.85508,0.98521,1.00000",
+          "display-p3:0.13078,0.25089,0.69730,1.00000"
+        ]
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : {
+        "linear-gradient" : [
+          "display-p3:0.00000,0.33333,0.66667,1.00000",
+          "display-p3:0.00000,0.05882,0.36078,1.00000"
+        ]
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "blend-mode" : "overlay",
+      "layers" : [
+        {
+          "image-name" : "Noise.png",
+          "name" : "Noise",
+          "opacity-specializations" : [
+            {
+              "value" : 0.6
+            },
+            {
+              "appearance" : "dark",
+              "value" : 0.4
+            }
+          ]
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.5
+      }
+    },
+    {
+      "blur-material-specializations" : [
+        {
+          "value" : 0.5
+        },
+        {
+          "appearance" : "dark",
+          "value" : 0.4
+        }
+      ],
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "value" : {
+                "solid" : "display-p3:1.00000,1.00000,1.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "display-p3:0.37107,0.37107,0.37107,1.00000"
+              }
+            }
+          ],
+          "image-name" : "Border.svg",
+          "name" : "Border"
+        }
+      ],
+      "lighting" : "individual",
+      "shadow-specializations" : [
+        {
+          "value" : {
+            "kind" : "neutral",
+            "opacity" : 1
+          }
+        },
+        {
+          "appearance" : "dark",
+          "value" : {
+            "kind" : "neutral",
+            "opacity" : 1
+          }
+        }
+      ],
+      "translucency-specializations" : [
+        {
+          "value" : {
+            "enabled" : true,
+            "value" : 0.6
+          }
+        },
+        {
+          "appearance" : "dark",
+          "value" : {
+            "enabled" : true,
+            "value" : 0.5
+          }
+        }
+      ]
+    },
+    {
+      "blur-material" : 1,
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "automatic-gradient" : "display-p3:0.10773,0.10615,0.10520,1.00000"
+              }
+            }
+          ],
+          "image-name" : "Shape.svg",
+          "name" : "Shape"
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 1
+      },
+      "translucency-specializations" : [
+        {
+          "value" : {
+            "enabled" : true,
+            "value" : 0.3
+          }
+        },
+        {
+          "appearance" : "dark",
+          "value" : {
+            "enabled" : true,
+            "value" : 0.35
+          }
+        }
+      ]
+    },
+    {
+      "layers" : [
+        {
+          "image-name-specializations" : [
+            {
+              "value" : "PixelLight.png"
+            },
+            {
+              "appearance" : "dark",
+              "value" : "PixelDark.png"
+            }
+          ],
+          "name" : "PixelDark",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              255,
+              0
+            ]
+          }
+        },
+        {
+          "image-name" : "Polygon2.png",
+          "name" : "Polygon 2",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              9.153638552566129,
+              182.36958572497315
+            ]
+          }
+        },
+        {
+          "image-name" : "Polygon1.png",
+          "name" : "Polygon 1",
+          "position" : {
+            "scale" : 1,
+            "translation-in-points" : [
+              -164.32523878534545,
+              148.41490644481297
+            ]
+          }
+        }
+      ],
+      "shadow" : {
+        "kind" : "neutral",
+        "opacity" : 0.5
+      },
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.5
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}

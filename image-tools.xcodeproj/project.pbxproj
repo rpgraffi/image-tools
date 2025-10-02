@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		B7438E642E7DA6F3003E7442 /* SDWebImageWebPCoder in Frameworks */ = {isa = PBXBuildFile; productRef = B7438E632E7DA6F3003E7442 /* SDWebImageWebPCoder */; };
-		B7B69C542E8312A700BE3883 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = B7B69C532E8312A700BE3883 /* AppIcon.icon */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -29,7 +28,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		B7B69C532E8312A700BE3883 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		B7B69C582E83FC5700BE3883 /* image-tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "image-tools.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -98,7 +96,6 @@
 				B77ECCC62E45573200C28347 /* image-tools */,
 				B77ECCD52E45573400C28347 /* image-toolsTests */,
 				B77ECCDF2E45573400C28347 /* image-toolsUITests */,
-				B7B69C532E8312A700BE3883 /* AppIcon.icon */,
 				B7B69C582E83FC5700BE3883 /* image-tools.app */,
 				B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */,
 				B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */,
@@ -212,6 +209,7 @@
 				ko,
 				ja,
 				"zh-Hans",
+				"pt-BR",
 			);
 			mainGroup = B77ECCBB2E45573200C28347;
 			minimizedProjectReferenceProxies = 1;
@@ -235,7 +233,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				B7B69C542E8312A700BE3883 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -452,7 +449,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "raffistudio.image-tools";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -500,7 +497,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 14.6;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = "raffistudio.image-tools";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;

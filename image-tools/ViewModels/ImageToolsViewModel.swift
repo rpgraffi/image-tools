@@ -7,91 +7,109 @@ import Combine
 
 @MainActor
 final class ImageToolsViewModel: ObservableObject {
+    
+    // MARK: - Images & Comparison State
+    
     @Published var images: [ImageAsset] = []
-
+    @Published var comparisonSelection: ComparisonSelection? = nil
+    @Published var comparisonPreview: ComparisonPreviewState = .empty
+    var comparisonPreviewTask: Task<Void, Never>? = nil
+    var liveRenderDebounceWorkItem: DispatchWorkItem?
+    
+    // MARK: - Export Configuration
+    
     @Published var overwriteOriginals: Bool = false
-    // Persist selected export directory between sessions
-    @Published var exportDirectory: URL? = nil {
-        didSet {
-            guard exportDirectory != oldValue else { return }
-            persistExportDirectory()
-            if let directory = exportDirectory {
-                SandboxAccessManager.shared.register(url: directory)
-            }
-        }
-    }
-    // Last detected source directory from most recent import
+    @Published var exportDirectory: URL? = nil
     @Published var sourceDirectory: URL? = nil
+    
     var isExportingToSource: Bool {
         guard let source = sourceDirectory?.standardizedFileURL else { return false }
         let export = exportDirectory?.standardizedFileURL
         return export == nil || export == source
     }
-
-    // UI toggles/state
-    @Published var sizeUnit: SizeUnitToggle = .percent { didSet { handleSizeUnitToggle(to: sizeUnit); persistSizeUnit() } }
+    
+    // MARK: - Resize Settings
+    
+    @Published var sizeUnit: SizeUnitToggle = .pixels
     @Published var resizePercent: Double = 1.0
     @Published var resizeWidth: String = ""
     @Published var resizeHeight: String = ""
-    
     @Published var storedPixelWidth: String? = nil
     @Published var storedPixelHeight: String? = nil
-
-    @Published var selectedFormat: ImageFormat? = nil { didSet { persistSelectedFormat(); onSelectedFormatChanged() } }
+    
+    // MARK: - Format Settings
+    
+    @Published var selectedFormat: ImageFormat? = nil
     @Published var allowedSquareSizes: [Int]? = nil
     @Published var restrictionHint: String? = nil
-
+    @Published var recentFormats: [ImageFormat] = []
+    
+    // MARK: - Transform Settings
+    
     @Published var compressionPercent: Double = 0.8
-
-    @Published var rotation: ImageRotation = .r0
-    @Published var flipH: Bool = false
     @Published var flipV: Bool = false
     @Published var removeBackground: Bool = false
     @Published var removeMetadata: Bool = false
-
-    // Recently used formats for prioritization
-    @Published var recentFormats: [ImageFormat] = [] { didSet { persistRecentFormats() } }
-
-    // Estimated sizes per image (bytes); UI displays "--- KB" when nil/absent
+    
+    // MARK: - Estimation State
+    
     @Published var estimatedBytes: [UUID: Int] = [:]
     var estimationTask: Task<Void, Never>? = nil
-
-    // Export progress state
+    
+    // MARK: - Export Progress
+    
     @Published var isExporting: Bool = false
     @Published var exportCompleted: Int = 0
     @Published var exportTotal: Int = 0
+    
     var exportFraction: Double {
         guard isExporting, exportTotal > 0 else { return 0 }
         return Double(exportCompleted) / Double(exportTotal)
     }
-
-    // Ingestion progress state
+    
+    // MARK: - Ingestion Progress
+    
     @Published var isIngesting: Bool = false
     @Published var ingestCompleted: Int = 0
     @Published var ingestTotal: Int = 0
+    
     var ingestFraction: Double {
         guard isIngesting, ingestTotal > 0 else { return 0 }
         return Double(ingestCompleted) / Double(ingestTotal)
     }
+    
     var ingestCounterText: String? {
         guard isIngesting, ingestTotal > 0 else { return nil }
         let displayed = min(ingestCompleted + (ingestCompleted < ingestTotal ? 1 : 0), ingestTotal)
         return String("\(displayed)/\(ingestTotal)")
     }
-
-    // Usage counts
+    
+    // MARK: - Usage Tracking
+    
     @Published private(set) var totalImageConversions: Int = 0
     @Published private(set) var totalPipelineApplications: Int = 0
     private var usageCancellable: AnyCancellable?
-
-    // Paywall / purchase state
-    @Published var isProUnlocked: Bool = false { didSet { persistPaywallState() } }
+    
+    // MARK: - Paywall State
+    
+    @Published var isProUnlocked: Bool = false
     @Published var isPaywallPresented: Bool = false
-    // One-time gate so pressing Continue starts the just-requested apply without re-opening the paywall
     var shouldBypassPaywallOnce: Bool = false
-
-    // MARK: - Init / Persistence
+    
+    // MARK: - Subscriptions
+    
+    var cancellables = Set<AnyCancellable>()
+    
+    // MARK: - Initialization
+    
     init() {
+        setupComparisonObservation()
+        setupUsageTracking()
+        loadPersistedState()
+        setupPersistenceObservation()
+    }
+    
+    private func setupUsageTracking() {
         usageCancellable = UsageTracker.shared.$events
             .receive(on: DispatchQueue.main)
             .sink { [weak self] events in
@@ -100,7 +118,6 @@ final class ImageToolsViewModel: ObservableObject {
                 self.totalPipelineApplications = events.filter { $0.kind == .pipelineApplied }.count
                 self.persistUsageEvents(events)
             }
-        loadPersistedState()
     }
 
     // MARK: - UI State Transitions
@@ -135,5 +152,6 @@ final class ImageToolsViewModel: ObservableObject {
         if exportDirectory == nil {
             sourceDirectory = nil
         }
+        comparisonSelection = nil
     }
 } 

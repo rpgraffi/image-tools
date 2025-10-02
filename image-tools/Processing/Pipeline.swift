@@ -4,7 +4,6 @@ import UniformTypeIdentifiers
 
 struct ProcessingPipeline {
     var operations: [ImageOperation] = []
-    var overwriteOriginals: Bool = false
     var removeMetadata: Bool = false
     var exportDirectory: URL? = nil
     var finalFormat: ImageFormat? = nil
@@ -15,7 +14,7 @@ struct ProcessingPipeline {
     }
 
     func run(on asset: ImageAsset) throws -> ImageAsset {
-        var result = asset
+        let result = asset
         let currentURL = result.originalURL
 
         // Start security-scoped access if needed
@@ -23,15 +22,6 @@ struct ProcessingPipeline {
             throw ImageOperationError.permissionDenied
         }
         defer { sourceToken.stop() }
-
-        // Backup before first edit if overwriting
-        if overwriteOriginals && result.backupURL == nil {
-            let backupURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent(currentURL.deletingPathExtension().lastPathComponent + "_backup_" + UUID().uuidString.prefix(8))
-                .appendingPathExtension(currentURL.pathExtension)
-            try? FileManager.default.copyItem(at: result.originalURL, to: backupURL)
-            result.backupURL = backupURL
-        }
 
         // Process and encode once according to selected format and compression
         let encoded = try processAndEncode(from: currentURL)
@@ -132,9 +122,7 @@ private extension ProcessingPipeline {
         let isTempSource = currentURL.standardizedFileURL.path.hasPrefix(tempDirPath)
 
         let destinationURL: URL
-        if overwriteOriginals {
-            destinationURL = currentURL
-        } else if let exportDir = exportDirectory {
+        if let exportDir = exportDirectory {
             let base = currentURL.deletingPathExtension().lastPathComponent
             destinationURL = exportDir.appendingPathComponent(base + "." + ext)
         } else if isTempSource {

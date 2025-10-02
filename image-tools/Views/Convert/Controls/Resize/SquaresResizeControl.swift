@@ -31,7 +31,7 @@ struct SquaresResizeControl: View {
         vm.sizeUnit = .pixels
         vm.resizeWidth = String(side)
         vm.resizeHeight = String(side)
-        if let asset = (vm.images.first { $0.isEnabled }) ?? vm.images.first,
+        if let asset = (vm.images.first) ?? vm.images.first,
            let base = asset.originalPixelSize, base.width > 0, base.height > 0 {
             let scale = Double(side) / Double(min(base.width, base.height))
             vm.resizePercent = max(0.01, min(1.0, scale))

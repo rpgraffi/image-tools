@@ -55,57 +55,13 @@ private struct ImageThumbnail: View {
     let thumbnail: NSImage
     
     var body: some View {
-            Image(nsImage: thumbnail)
-                    .resizable()
-                    .scaledToFit()
-                    .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
+        Image(nsImage: thumbnail)
+            .resizable()
+            .scaledToFit()
+            .mask(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 }
 
-// Reusable two-line overlay badge used by InfoOverlay
-private struct TwoLineOverlayBadge: View {
-    let topText: String
-    let bottomText: String
-    var alignment: HorizontalAlignment = .leading
-
-    var body: some View {
-        VStack(alignment: alignment, spacing: 2) {
-            Text(topText).foregroundStyle(.secondary)
-            Text(bottomText).foregroundStyle(.primary)
-        }
-        .font(Theme.Fonts.captionMono)
-        .monospaced(true)
-        .padding(6)
-        .background(OverlayBackground(cornerRadius: 6))
-    }
-}
-
-// Shared overlay background (fill + stroke) for all overlay chips/containers
-private struct OverlayBackground: View {
-    let cornerRadius: CGFloat
-
-    var body: some View {
-        RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(Material.ultraThin)
-            .overlay(
-                RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                    .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
-            )
-    }
-}
-
-// Single-line badge using the shared overlay background
-private struct SingleLineOverlayBadge: View {
-    let text: String
-
-    var body: some View {
-        Text(text)
-            .font(Theme.Fonts.captionMono)
-            .monospaced(true)
-            .padding(6)
-            .background(OverlayBackground(cornerRadius: 6))
-    }
-}
 
 private struct InfoOverlay: View {
     let changeInfo: ImageChangeInfo
@@ -151,25 +107,24 @@ private func paddedResolutionString(original: CGSize, target: CGSize) -> String 
     let oh = Int(original.height)
     let tw = Int(target.width)
     let th = Int(target.height)
-
+    
     let owStr = String(ow)
     let ohStr = String(oh)
     let twStr = String(tw)
     let thStr = String(th)
-
+    
     let padW = max(0, owStr.count - twStr.count)
     let padH = max(0, ohStr.count - thStr.count)
-
+    
     let paddedW = String(repeating: " ", count: padW) + twStr
     let paddedH = String(repeating: " ", count: padH) + thStr
-
+    
     return "\(paddedW)×\(paddedH)"
 }
 
 private struct HoverControls: View {
     let asset: ImageAsset
     let vm: ImageToolsViewModel
-    let recover: (() -> Void)?
     let isVisible: Bool
     
     @State private var animationTrigger: Int = 0
@@ -198,18 +153,8 @@ private struct HoverControls: View {
                 Image(systemName: "doc.on.doc.fill")
             }
             .buttonStyle(.plain)
-
             .symbolEffect(.bounce.down.wholeSymbol, options: .nonRepeating, value: animationTrigger)
             .help(String(localized: "Copy image to clipboard"))
-            
-            
-            if let recover = recover {
-                Button(action: recover) {
-                    Image(systemName: "clock.arrow.circlepath.fill")
-                }
-                .buttonStyle(.plain)
-                .help(String(localized: "Recover original"))
-            }
             
             Button(role: .destructive, action: { vm.remove(asset) }) {
                 Image(systemName: "xmark.circle.fill")
@@ -231,7 +176,7 @@ private struct HoverControls: View {
 struct ImageItem: View {
     let asset: ImageAsset
     @ObservedObject var vm: ImageToolsViewModel
-    let recover: (() -> Void)?
+    let heroNamespace: Namespace.ID
     @State private var isHovering: Bool = false
     @State private var isVisible: Bool = false
     private var fileName: String { asset.originalURL.lastPathComponent }
@@ -243,18 +188,22 @@ struct ImageItem: View {
             // Background thumbnail (lazy)
             if let thumb = asset.thumbnail {
                 ImageThumbnail(thumbnail: thumb)
+                    .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
             } else {
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                     .fill(.quaternary)
+                    .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
             }
             
             // Top Left overlay
             ZStack(alignment: .topLeading) {
                 Color.clear
-                if !isHovering {
-                    SingleLineOverlayBadge(text: fileName)
-                        .padding(8)
-                }
+                SingleLineOverlayBadge(text: fileName)
+                    .matchedGeometryEffect(
+                        id: "filename-\(asset.id)",
+                        in: heroNamespace
+                    )
+                    .padding(8)
             }
             // Top right overlay
             ZStack(alignment: .topTrailing) {
@@ -262,7 +211,6 @@ struct ImageItem: View {
                 HoverControls(
                     asset: asset,
                     vm: vm,
-                    recover: recover,
                     isVisible: isHovering
                 )
             }
@@ -272,7 +220,7 @@ struct ImageItem: View {
                 Color.clear
                 InfoOverlay(changeInfo: changeInfo)
             }
-
+            
         }
         .contentShape(Rectangle())
         .onHover { isHovering = $0 }
@@ -328,7 +276,7 @@ private func copyEncodedImageToClipboard(data: Data, uti: UTType) {
     } catch {
         // If file writing fails, still keep the in-memory representation
     }
-
+    
     // 2) Publish NSURL first (preferred by Finder and file-based paste), and a separate item with raw bytes
     let item = NSPasteboardItem()
     let imageType = NSPasteboard.PasteboardType(uti.identifier)
@@ -341,44 +289,32 @@ private func revealInFinder(_ url: URL) {
     NSWorkspace.shared.activateFileViewerSelecting([url])
 }
 
-private func formatBytes(_ bytes: Int) -> String {
-    let kb = 1024.0
-    let mb = kb * 1024.0
-    let b = Double(bytes)
-    if b >= mb { return String(format: "%.2f MB", b/mb) }
-    if b >= kb { return String(format: "%.0f KB", b/kb) }
-    return "\(bytes) B"
-}
-
 // MARK: - Preview
 #Preview("Image Item - New") {
-    ImageItem(
-        asset: PreviewData.newImageAsset,
-        vm: PreviewData.mockViewModel,
-        recover: nil
-    )
-    .frame(width: 200, height: 200)
-    .padding()
+    PreviewWrapper(asset: PreviewData.newImageAsset)
 }
 
 #Preview("Image Item - Edited") {
-    ImageItem(
-        asset: PreviewData.editedImageAsset,
-        vm: PreviewData.mockViewModel,
-        recover: {}
-    )
-    .frame(width: 200, height: 200)
-    .padding()
+    PreviewWrapper(asset: PreviewData.editedImageAsset)
 }
 
 #Preview("Image Item - No Thumbnail") {
-    ImageItem(
-        asset: PreviewData.noThumbnailAsset,
-        vm: PreviewData.mockViewModel,
-        recover: nil
-    )
-    .frame(width: 200, height: 200)
-    .padding()
+    PreviewWrapper(asset: PreviewData.noThumbnailAsset)
+}
+
+private struct PreviewWrapper: View {
+    let asset: ImageAsset
+    @Namespace private var heroNamespace
+    
+    var body: some View {
+        ImageItem(
+            asset: asset,
+            vm: PreviewData.mockViewModel,
+            heroNamespace: heroNamespace
+        )
+        .frame(width: 200, height: 200)
+        .padding()
+    }
 }
 
 // MARK: - Preview Data
@@ -424,4 +360,4 @@ private struct PreviewData {
     static let mockViewModel: ImageToolsViewModel = {
         return ImageToolsViewModel()
     }()
-} 
+}

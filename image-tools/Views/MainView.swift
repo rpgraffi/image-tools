@@ -9,7 +9,7 @@ struct MainView: View {
     var body: some View {
         VStack(spacing: 0) {
             ControlsBar()
-            ImagesListView(isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
+            ContentArea(isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
             SecondaryBar(onPickFromFinder: pickFromOpenPanel)
         }
         .frame(minWidth: 600)

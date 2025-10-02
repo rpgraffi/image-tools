@@ -89,31 +89,13 @@ struct ConstrainSizeOperation: ImageOperation {
     // Disk write handled at pipeline end
 }
 
-// Conversion and compression are handled at final export.
 
-struct RotateOperation: ImageOperation {
-    let rotation: ImageRotation
+struct FlipVerticalOperation: ImageOperation {
     // Reusable pixel transform for in-memory pipelines
-    func transformed(_ input: CIImage) throws -> CIImage {
-        let angle = Double(rotation.rawValue) * Double.pi / 180.0
-        let transform = CGAffineTransform(rotationAngle: angle)
-        return input.transformed(by: transform)
-    }
-    // Disk write handled at pipeline end
-}
-
-struct FlipOperation: ImageOperation {
-    let direction: HorizontalVertical
-    // Reusable pixel transform for in-memory pipelines
+    // Flips along the vertical axis (creates a horizontal mirror / left-to-right flip)
     func transformed(_ input: CIImage) throws -> CIImage {
         let extent = input.extent
-        let transform: CGAffineTransform
-        switch direction {
-        case .horizontal:
-            transform = CGAffineTransform(scaleX: -1, y: 1).translatedBy(x: -extent.width, y: 0)
-        case .vertical:
-            transform = CGAffineTransform(scaleX: 1, y: -1).translatedBy(x: 0, y: -extent.height)
-        }
+        let transform = CGAffineTransform(scaleX: -1, y: 1).translatedBy(x: -extent.width, y: 0)
         return input.transformed(by: transform)
     }
     // Disk write handled at pipeline end

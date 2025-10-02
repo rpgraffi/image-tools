@@ -11,10 +11,8 @@ extension ImageToolsViewModel {
             resizeHeight: resizeHeight,
             selectedFormat: selectedFormat,
             compressionPercent: compressionPercent,
-            flipH: flipH,
             flipV: flipV,
             removeBackground: removeBackground,
-            overwriteOriginals: overwriteOriginals,
             removeMetadata: removeMetadata,
             exportDirectory: exportDirectory
         )
@@ -51,7 +49,7 @@ extension ImageToolsViewModel {
         }
         shouldBypassPaywallOnce = false
         let pipeline = buildPipeline()
-        let targets = images.filter { $0.isEnabled }
+        let targets = images
         guard !targets.isEmpty else { return }
 
         // Preflight replace confirmation (single dialog for all files)
@@ -196,7 +194,10 @@ extension ImageToolsViewModel {
             alert.alertStyle = .warning
             alert.messageText = message
             alert.informativeText = info
-            alert.addButton(withTitle: String(localized: "Replace"))
+
+            let replaceButton = alert.addButton(withTitle: String(localized: "Replace"))
+            replaceButton.hasDestructiveAction = true
+
             alert.addButton(withTitle: String(localized: "Cancel"))
             if let icon = NSImage(systemSymbolName: "exclamationmark.triangle.fill", accessibilityDescription: nil) {
                 alert.icon = icon

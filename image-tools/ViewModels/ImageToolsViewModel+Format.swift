@@ -23,7 +23,7 @@ extension ImageToolsViewModel {
         guard allowedSquareSizes != nil else { return }
         // Choose a reference size from first enabled asset
         let targets: [ImageAsset] = images
-        guard let first = (targets.first { $0.isEnabled }) ?? targets.first else { return }
+        guard let first = (targets.first) ?? targets.first else { return }
         let srcSize = ImageMetadata.pixelSize(for: first.originalURL) ?? first.originalPixelSize ?? .zero
         let caps = ImageIOCapabilities.shared
         if let fmt = selectedFormat, !caps.isValidPixelSize(srcSize, for: fmt.utType) {
@@ -34,8 +34,6 @@ extension ImageToolsViewModel {
                 resizeHeight = String(side)
             }
         }
-        // Also retrigger estimation when format changes
-        scheduleReestimation()
     }
 }
 

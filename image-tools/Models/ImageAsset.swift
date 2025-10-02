@@ -8,7 +8,6 @@ struct ImageAsset: Identifiable, Hashable {
     var workingURL: URL
     var thumbnail: NSImage?
     var isEdited: Bool
-    var isEnabled: Bool
     var backupURL: URL?
 
     // Metadata
@@ -21,7 +20,6 @@ struct ImageAsset: Identifiable, Hashable {
         self.workingURL = url.standardizedFileURL
         self.thumbnail = nil
         self.isEdited = false
-        self.isEnabled = true
         self.backupURL = nil
         self.originalPixelSize = nil
         self.originalFileSizeBytes = nil
@@ -65,15 +63,5 @@ struct FormatCapabilities {
 enum SizeUnitToggle {
     case percent
     case pixels
-}
-
-enum HorizontalVertical: String {
-    case horizontal
-    case vertical
-}
-
-enum ImageRotation: Int, CaseIterable, Identifiable {
-    case r0 = 0, r90 = 90, r180 = 180, r270 = 270
-    var id: Int { rawValue }
 }
 

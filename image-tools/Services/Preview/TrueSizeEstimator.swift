@@ -16,7 +16,6 @@ struct TrueSizeEstimator {
         resizeHeight: String,
         selectedFormat: ImageFormat?,
         compressionPercent: Double,
-        flipH: Bool,
         flipV: Bool,
         removeMetadata: Bool,
         removeBackground: Bool
@@ -42,7 +41,6 @@ struct TrueSizeEstimator {
                             resizeHeight: resizeHeight,
                             selectedFormat: selectedFormat,
                             compressionPercent: compressionPercent,
-                            flipH: flipH,
                             flipV: flipV,
                             removeMetadata: removeMetadata,
                             removeBackground: removeBackground
@@ -69,7 +67,6 @@ struct TrueSizeEstimator {
         resizeHeight: String,
         selectedFormat: ImageFormat?,
         compressionPercent: Double,
-        flipH: Bool,
         flipV: Bool,
         removeMetadata: Bool,
         removeBackground: Bool
@@ -83,10 +80,8 @@ struct TrueSizeEstimator {
                 resizeHeight: resizeHeight,
                 selectedFormat: selectedFormat,
                 compressionPercent: compressionPercent,
-                flipH: flipH,
                 flipV: flipV,
                 removeBackground: removeBackground,
-                overwriteOriginals: false,
                 removeMetadata: removeMetadata,
                 exportDirectory: nil
             )

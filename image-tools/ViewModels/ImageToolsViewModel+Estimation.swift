@@ -16,10 +16,11 @@ extension ImageToolsViewModel {
         let compressionPercent = self.compressionPercent
         let removeMetadata = self.removeMetadata
         let removeBackground = self.removeBackground
+        let flipV = self.flipV
 
         estimationTask = Task(priority: .utility) { [weak self] in
             guard let self else { return }
-            let enabled = visibleAssets.filter { $0.isEnabled }
+            let enabled = visibleAssets
             let map = await TrueSizeEstimator.estimate(
                 assets: enabled,
                 sizeUnit: sizeUnit,
@@ -28,18 +29,12 @@ extension ImageToolsViewModel {
                 resizeHeight: resizeHeight,
                 selectedFormat: selectedFormat,
                 compressionPercent: compressionPercent,
-                flipH: flipH,
                 flipV: flipV,
                 removeMetadata: removeMetadata,
                 removeBackground: removeBackground
             )
             self.mergeEstimatedBytes(with: map)
         }
-    }
-
-    func scheduleReestimation() {
-        // UI should call triggerEstimationForVisible with current viewport items; leave here as a hook if needed.
-        // No-op: orchestrated from Views via onAppear/onChange with visible assets.
     }
 }
 

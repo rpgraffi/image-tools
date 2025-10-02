@@ -44,8 +44,7 @@ struct PixelFieldsView: View {
                 PillBackground(
                     containerSize: containerSize,
                     cornerRadius: corner,
-                    progress: progress,
-                    fadeStart: 2.0
+                    progress: progress
                 )
                 contentRow()
                 .allowsHitTesting(!isDragging)
@@ -148,15 +147,22 @@ struct PixelFieldsView: View {
 
     private func valueToProgress(stops: [Int]) -> Double {
         guard !stops.isEmpty else { return 0 }
+        if activeText.isEmpty {
+            return 1.0
+        }
         let currentValue: Int = Int(activeText) ?? 0
-        if let idx = stops.firstIndex(of: currentValue), stops.count > 1 {
-            return Double(idx) / Double(stops.count - 1)
-        }
-        if !activeText.isEmpty, stops.count > 1 {
+        let maxFillProgress: Double = 0.95
+        guard stops.count > 1 else { return 0 }
+        let denominator = Double(stops.count - 1)
+        let indexProgress: Double
+        if let idx = stops.firstIndex(of: currentValue) {
+            indexProgress = Double(idx) / denominator
+        } else {
             let nearestIdx = stops.enumerated().min(by: { abs($0.element - currentValue) < abs($1.element - currentValue) })?.offset ?? 0
-            return Double(nearestIdx) / Double(stops.count - 1)
+            indexProgress = Double(nearestIdx) / denominator
         }
-        return 0
+        let clamped = min(max(indexProgress, 0), 1)
+        return clamped * maxFillProgress
     }
 
     private func handleStopHaptics(currentIndex: Int) {
@@ -220,7 +226,7 @@ struct PixelFieldsView: View {
         Group {
             if isEditingField {
                 HStack(spacing: 4) {
-                    TextField("", text: $inlineText)
+                    TextField("_empty_", text: $inlineText)
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.trailing)
                         .focused($fieldFocused)

@@ -2,7 +2,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AppKit
 
-struct ImagesListView: View {
+struct ContentArea: View {
     @EnvironmentObject var vm: ImageToolsViewModel
     @Binding var isDropping: Bool
     let onPickFromFinder: () -> Void
@@ -20,6 +20,7 @@ struct ImagesListView: View {
     private var isEmpty: Bool { allImages.isEmpty }
 
     @Environment(\.colorScheme) private var colorScheme
+    @Namespace private var heroNamespace
 
     var body: some View {
         ZStack { content }
@@ -35,7 +36,12 @@ struct ImagesListView: View {
 
     private var content: some View {
         ZStack {
-            if isEmpty {
+            if let selection = vm.comparisonSelection,
+               let asset = vm.images.first(where: { $0.id == selection.assetID }) {
+                ComparisonView(asset: asset, heroNamespace: heroNamespace)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    .zIndex(1)
+            } else if isEmpty {
                 ImagesListEmptyState(
                     onPaste: { vm.addFromPasteboard() },
                     onPickFromFinder: onPickFromFinder
@@ -43,10 +49,12 @@ struct ImagesListView: View {
             } else {
                 ImagesGridView(
                     images: allImages,
-                    columns: columns
+                    columns: columns,
+                    heroNamespace: heroNamespace
                 )
             }
         }
+        .animation(.spring(response: 0.45, dampingFraction: 0.82), value: vm.comparisonSelection)
         .background(containerBackground())
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(containerOverlay())
@@ -99,30 +107,30 @@ struct ImagesListView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Empty state
-            ImagesListView(
+            ContentArea(
                 isDropping: .constant(false),
                 onPickFromFinder: {}
             )
             .environmentObject(demoVMEmpty())
-            .frame(width: 900, height: 600)
+            .frame(width: 600, height: 400)
             .padding()
 
             // With images
-            ImagesListView(
+            ContentArea(
                 isDropping: .constant(false),
                 onPickFromFinder: {}
             )
             .environmentObject(demoVMWithImages())
-            .frame(width: 900, height: 600)
+            .frame(width: 600, height: 400)
             .padding()
 
             // Dropping state + dark mode
-            ImagesListView(
+            ContentArea(
                 isDropping: .constant(true),
                 onPickFromFinder: {}
             )
             .environmentObject(demoVMWithImages())
-            .frame(width: 900, height: 600)
+            .frame(width: 600, height: 400)
             .padding()
             .preferredColorScheme(.dark)
         }
