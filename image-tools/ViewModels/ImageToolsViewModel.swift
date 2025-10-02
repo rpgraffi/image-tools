@@ -30,7 +30,7 @@ final class ImageToolsViewModel: ObservableObject {
     
     // MARK: - Resize Settings
     
-    @Published var sizeUnit: SizeUnitToggle = .percent
+    @Published var sizeUnit: SizeUnitToggle = .pixels
     @Published var resizePercent: Double = 1.0
     @Published var resizeWidth: String = ""
     @Published var resizeHeight: String = ""
