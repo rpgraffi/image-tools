@@ -226,7 +226,7 @@ struct PixelFieldsView: View {
         Group {
             if isEditingField {
                 HStack(spacing: 4) {
-                    TextField("", text: $inlineText)
+                    TextField("_empty_", text: $inlineText)
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.trailing)
                         .focused($fieldFocused)

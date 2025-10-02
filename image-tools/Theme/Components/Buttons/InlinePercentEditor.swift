@@ -16,7 +16,7 @@ struct InlinePercentEditor: View {
         Group {
             if isEditing {
                 HStack(spacing: 2) {
-                    TextField("", text: $text)
+                    TextField(String(localized: "_empty_"), text: $text)
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.trailing)
                         .font(font)
@@ -29,7 +29,7 @@ struct InlinePercentEditor: View {
                                 if filtered != text { text = filtered }
                             }
                         }
-                    Text(String(localized: "%"))
+                    Text(String(localized: "percent"))
                         .font(font)
                         .foregroundStyle(.primary)
                 }

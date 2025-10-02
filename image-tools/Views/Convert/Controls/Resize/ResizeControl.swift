@@ -23,7 +23,7 @@ struct ResizeControl: View {
             
             if vm.allowedSquareSizes == nil {
                 CircleIconButton(action: toggleMode) {
-                    Text(vm.sizeUnit == .percent ? String(localized: "px") : String(localized: "%"))
+                    Text(vm.sizeUnit == .percent ? "px" : String(localized: "percent"))
                 }
                 .transition(.asymmetric(
                     insertion: .opacity.combined(with: .scale(scale: 0.9)),

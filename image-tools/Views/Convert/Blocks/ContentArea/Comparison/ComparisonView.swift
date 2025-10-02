@@ -11,6 +11,7 @@ struct ComparisonView: View {
     @State private var isDragging: Bool = false
     @State private var showUI: Bool = false
     @State private var keyEventMonitor: Any?
+    @State private var previousPosition: CGFloat = 0.5
 
     private var preview: ComparisonPreviewState { vm.comparisonPreview }
     private var fileName: String { asset.originalURL.lastPathComponent }
@@ -142,10 +143,15 @@ struct ComparisonView: View {
             Rectangle()
                 .fill(.regularMaterial)
                 .frame(width: 3, height: height)
+                .overlay(
+                    Rectangle()
+                        .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
+                )
             
             // Draggable handle
             Circle()
                 .fill(.regularMaterial)
+                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
                 .frame(width: size, height: size)
                 .overlay(
                     Image(
@@ -170,6 +176,13 @@ struct ComparisonView: View {
                 let imageStartX = (containerWidth - imageFrame.width) / 2
                 let relativeX = value.location.x - imageStartX
                 let normalized = min(max(0, relativeX / imageFrame.width), 1)
+                
+                // Trigger haptic when reaching a boundary
+                if (normalized == 0 && previousPosition > 0) || (normalized == 1 && previousPosition < 1) {
+                    Haptics.alignment()
+                }
+                
+                previousPosition = normalized
                 sliderPosition = normalized
             }
             .onEnded { _ in
@@ -189,6 +202,10 @@ struct ComparisonView: View {
                 ZStack {
                     Circle()
                         .fill(.regularMaterial)
+                        .overlay(
+                            Circle()
+                                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
+                        )
                     Image(systemName: "xmark")
                         .font(.system(size: 13, weight: .semibold, design: .rounded))
                         .foregroundStyle(.primary)
