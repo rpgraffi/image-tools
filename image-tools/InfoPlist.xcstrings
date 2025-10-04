@@ -22,6 +22,12 @@
             "value" : "Convert & Compress"
           }
         },
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Convert & Compress"
+          }
+        },
         "es" : {
           "stringUnit" : {
             "state" : "translated",
@@ -130,6 +136,12 @@
           }
         },
         "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Image Convert & Compress"
+          }
+        },
+        "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Image Convert & Compress"
