@@ -36,12 +36,7 @@ struct ContentArea: View {
 
     private var content: some View {
         ZStack {
-            if let selection = vm.comparisonSelection,
-               let asset = vm.images.first(where: { $0.id == selection.assetID }) {
-                ComparisonView(asset: asset, heroNamespace: heroNamespace)
-                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
-                    .zIndex(1)
-            } else if isEmpty {
+            if isEmpty {
                 ImagesListEmptyState(
                     onPaste: { vm.addFromPasteboard() },
                     onPickFromFinder: onPickFromFinder
@@ -52,6 +47,13 @@ struct ContentArea: View {
                     columns: columns,
                     heroNamespace: heroNamespace
                 )
+            }
+            
+            if let selection = vm.comparisonSelection,
+               let asset = vm.images.first(where: { $0.id == selection.assetID }) {
+                ComparisonView(asset: asset, heroNamespace: heroNamespace)
+                    .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                    .zIndex(1)
             }
         }
         .animation(.spring(response: 0.45, dampingFraction: 0.82), value: vm.comparisonSelection)

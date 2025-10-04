@@ -126,7 +126,7 @@ extension ImageToolsViewModel {
 
     func persistSizeUnit() {
         let defaults = UserDefaults.standard
-        let value = (sizeUnit == .pixels) ? "pixels" : "percent"
+        let value = (sizeUnit == .pixels) ? "percent" : "pixels"
         defaults.set(value, forKey: PersistenceKeys.sizeUnit)
     }
 
