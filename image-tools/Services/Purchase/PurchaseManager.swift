@@ -1,98 +1,199 @@
 import Foundation
 import StoreKit
 
+@MainActor
 final class PurchaseManager: ObservableObject {
     static let shared = PurchaseManager()
-
-    @Published var isPurchasing: Bool = false
-    @Published var isProUnlocked: Bool = false
-    @Published var purchaseError: String? = nil
-    @Published var lifetimeProduct: Product? = nil
-    @Published var lifetimeRegularProduct: Product? = nil
     
-    var lifetimeDisplayPrice: String? { lifetimeProduct?.displayPrice }
-    var lifetimeRegularDisplayPrice: String? { lifetimeRegularProduct?.displayPrice }
-
-    private var configured = false
-    private let lifetimeProductId: String = "lifetime"
-    private let lifetimeRegularProductId: String = "lifetime_regular"
-    private var proEntitlementProductIds: Set<String> { [lifetimeProductId, lifetimeRegularProductId] }
-
-    private init() {}
-
-    func configure() {
-        guard !configured else { return }
-        configured = true
-        Task { await refreshEntitlement() }
-        Task { await observeTransactions() }
-        Task { await loadProducts() }
+    // MARK: - Published Properties
+    
+    @Published private(set) var isPurchasing = false
+    @Published private(set) var isProUnlocked = false
+    @Published var purchaseError: String?
+    @Published var lifetimeDisplayPrice: String?
+    @Published var lifetimeRegularDisplayPrice: String?
+    
+    // MARK: - Private Properties
+    
+    private var lifetimeProduct: Product?
+    private var lifetimeRegularProduct: Product?
+    private var transactionUpdateTask: Task<Void, Never>?
+    
+    private let lifetimeProductId = "lifetime"
+    private let lifetimeRegularProductId = "lifetime_regular"
+    private var proEntitlementProductIds: Set<String> {
+        [lifetimeProductId, lifetimeRegularProductId]
     }
-
+    
+    // MARK: - Initialization
+    
+    private init() {}
+    
+    deinit {
+        transactionUpdateTask?.cancel()
+    }
+    
+    // MARK: - Configuration
+    
+    func configure() {
+        guard transactionUpdateTask == nil else { return }
+        
+        transactionUpdateTask = Task {
+            await observeTransactions()
+        }
+        
+        Task {
+            await checkEntitlements()
+            await loadProducts()
+        }
+    }
+    
+    // MARK: - Products
+    
     func loadProducts() async {
         do {
             let products = try await Product.products(for: [lifetimeProductId, lifetimeRegularProductId])
-            await MainActor.run {
-                self.lifetimeProduct = products.first(where: { $0.id == lifetimeProductId })
-                self.lifetimeRegularProduct = products.first(where: { $0.id == lifetimeRegularProductId })
-            }
+            
+            lifetimeProduct = products.first(where: { $0.id == lifetimeProductId })
+            lifetimeRegularProduct = products.first(where: { $0.id == lifetimeRegularProductId })
+            
+            lifetimeDisplayPrice = lifetimeProduct?.displayPrice
+            lifetimeRegularDisplayPrice = lifetimeRegularProduct?.displayPrice
+            
+            #if DEBUG
+            print("🔵 PurchaseManager: Loaded \(products.count) products")
+            #endif
         } catch {
-            // Keep silent; UI can retry via purchase
+            #if DEBUG
+            print("🔴 PurchaseManager: Failed to load products - \(error)")
+            #endif
         }
     }
-
-    func refreshEntitlement() async {
+    
+    // MARK: - Entitlements
+    
+    func checkEntitlements() async {
+        var hasEntitlement = false
+        
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result, proEntitlementProductIds.contains(transaction.productID) {
-                await MainActor.run { self.isProUnlocked = true }
+            guard case .verified(let transaction) = result else {
+                continue
+            }
+            
+            if proEntitlementProductIds.contains(transaction.productID) {
+                hasEntitlement = true
+                break
             }
         }
+        
+        isProUnlocked = hasEntitlement
+        
+        #if DEBUG
+        print("🔵 PurchaseManager: Pro unlocked = \(isProUnlocked)")
+        #endif
     }
-
-    func observeTransactions() async {
-        for await update in Transaction.updates {
-            if case .verified(let transaction) = update {
-                if proEntitlementProductIds.contains(transaction.productID) {
-                    await MainActor.run { self.isProUnlocked = true }
-                }
-                await transaction.finish()
+    
+    private func observeTransactions() async {
+        for await result in Transaction.updates {
+            guard case .verified(let transaction) = result else {
+                continue
             }
+            
+            #if DEBUG
+            print("🔵 PurchaseManager: Transaction update - \(transaction.productID)")
+            #endif
+            
+            if proEntitlementProductIds.contains(transaction.productID) {
+                isProUnlocked = true
+            }
+            
+            await transaction.finish()
         }
     }
-
+    
+    // MARK: - Purchase
+    
     func purchaseLifetime() async {
-        if lifetimeProduct == nil && lifetimeRegularProduct == nil { await loadProducts() }
+        guard !isPurchasing else { return }
+        
+        // Load products if needed
+        if lifetimeProduct == nil && lifetimeRegularProduct == nil {
+            await loadProducts()
+        }
+        
         guard let product = lifetimeProduct ?? lifetimeRegularProduct else {
-            await MainActor.run { self.purchaseError = "Product not available. Please try again." }
+            purchaseError = "Product not available. Please try again."
             return
         }
-        await MainActor.run { self.isPurchasing = true }
-        defer { Task { await MainActor.run { self.isPurchasing = false } } }
+        
+        isPurchasing = true
+        purchaseError = nil
+        
+        defer { isPurchasing = false }
+        
         do {
             let result = try await product.purchase()
+            
             switch result {
             case .success(let verification):
-                if case .verified(let transaction) = verification {
-                    if proEntitlementProductIds.contains(transaction.productID) {
-                        await MainActor.run { self.isProUnlocked = true }
-                    }
-                    await transaction.finish()
+                guard case .verified(let transaction) = verification else {
+                    purchaseError = "Purchase verification failed."
+                    return
                 }
-            case .userCancelled, .pending: break
-            @unknown default: break
+                
+                if proEntitlementProductIds.contains(transaction.productID) {
+                    isProUnlocked = true
+                }
+                
+                await transaction.finish()
+                
+                #if DEBUG
+                print("🟢 PurchaseManager: Purchase successful")
+                #endif
+                
+            case .userCancelled:
+                #if DEBUG
+                print("🟡 PurchaseManager: Purchase cancelled by user")
+                #endif
+                
+            case .pending:
+                #if DEBUG
+                print("🟡 PurchaseManager: Purchase pending")
+                #endif
+                
+            @unknown default:
+                break
             }
         } catch {
-            await MainActor.run { self.purchaseError = "Purchase failed. Please try again." }
+            purchaseError = "Purchase failed. Please try again."
+            #if DEBUG
+            print("🔴 PurchaseManager: Purchase error - \(error)")
+            #endif
         }
     }
-
+    
+    // MARK: - Restore
+    
     func restorePurchases() async {
-        await MainActor.run { self.isPurchasing = true }
-        defer { Task { await MainActor.run { self.isPurchasing = false } } }
+        guard !isPurchasing else { return }
+        
+        isPurchasing = true
+        purchaseError = nil
+        
+        defer { isPurchasing = false }
+        
         do {
             try await AppStore.sync()
-            await refreshEntitlement()
+            await checkEntitlements()
+            
+            #if DEBUG
+            print("🟢 PurchaseManager: Restore successful")
+            #endif
         } catch {
-            await MainActor.run { self.purchaseError = "Restore failed. Please try again." }
+            purchaseError = "Restore failed. Please try again."
+            #if DEBUG
+            print("🔴 PurchaseManager: Restore error - \(error)")
+            #endif
         }
     }
 }
