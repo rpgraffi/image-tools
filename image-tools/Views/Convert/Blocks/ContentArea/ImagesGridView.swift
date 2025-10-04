@@ -8,6 +8,7 @@ struct ImagesGridView: View {
     let heroNamespace: Namespace.ID
     @State private var visibleIds: Set<UUID> = []
     @State private var debounceWorkItem: DispatchWorkItem? = nil
+    @State private var appearedIds: Set<UUID> = []
 
     private func scheduleEstimation() {
         debounceWorkItem?.cancel()
@@ -29,10 +30,20 @@ struct ImagesGridView: View {
                         heroNamespace: heroNamespace
                     )
                     .aspectRatio(1, contentMode: .fit)
+                    .opacity(appearedIds.contains(asset.id) ? 1 : 0)
+                    .scaleEffect(appearedIds.contains(asset.id) ? 1 : 0.94)
+                    .animation(.spring(response: 0.45, dampingFraction: 0.75), value: appearedIds.contains(asset.id))
                     .onTapGesture { 
                         vm.presentComparison(for: asset) 
                     }
-                    .onAppear { visibleIds.insert(asset.id); scheduleEstimation() }
+                    .onAppear {
+                        visibleIds.insert(asset.id)
+                        scheduleEstimation()
+                        // Trigger animation with slight delay for stagger effect
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.02) {
+                            appearedIds.insert(asset.id)
+                        }
+                    }
                     .onDisappear { visibleIds.remove(asset.id); scheduleEstimation() }
                 }
             }

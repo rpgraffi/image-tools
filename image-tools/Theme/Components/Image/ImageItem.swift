@@ -179,6 +179,7 @@ struct ImageItem: View {
     let heroNamespace: Namespace.ID
     @State private var isHovering: Bool = false
     @State private var isVisible: Bool = false
+    @State private var keyEventMonitor: Any?
     private var fileName: String { asset.originalURL.lastPathComponent }
     
     var body: some View {
@@ -223,7 +224,14 @@ struct ImageItem: View {
             
         }
         .contentShape(Rectangle())
-        .onHover { isHovering = $0 }
+        .onHover { hovering in
+            isHovering = hovering
+            if hovering {
+                installKeyMonitor()
+            } else {
+                removeKeyMonitor()
+            }
+        }
         .animation(.easeInOut(duration: 0.15), value: isHovering)
         // Re-estimate on relevant control changes for this visible item
         .onChange(of: vm.sizeUnit) { vm.triggerEstimationForVisible([asset]) }
@@ -239,6 +247,34 @@ struct ImageItem: View {
                 .stroke(Color.secondary, lineWidth: 1.5)
                 .opacity(isHovering ? 0.6 : 0)
                 .animation(.easeInOut(duration: 0.15), value: isHovering)
+        }
+        .onDisappear {
+            removeKeyMonitor()
+        }
+    }
+}
+
+// MARK: - Keyboard Handling
+private extension ImageItem {
+    func installKeyMonitor() {
+        removeKeyMonitor()
+        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak vm, asset] event in
+            if event.keyCode == 49 { // Spacebar
+                vm?.presentComparison(for: asset)
+                return nil
+            }
+            if event.keyCode == 7 { // X key
+                vm?.remove(asset)
+                return nil
+            }
+            return event
+        }
+    }
+    
+    func removeKeyMonitor() {
+        if let monitor = keyEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            keyEventMonitor = nil
         }
     }
 }
