@@ -5,8 +5,6 @@ import AppKit
 struct ResizeControl: View {
     @EnvironmentObject var vm: ImageToolsViewModel
     
-    private let controlHeight: CGFloat = Theme.Metrics.controlHeight
-    private let controlMinWidth: CGFloat = Theme.Metrics.controlMinWidth
     private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
     
     var body: some View {
@@ -18,21 +16,19 @@ struct ResizeControl: View {
                     UnrestrictedResizeControl()
                 }
             }
-            .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, alignment: .leading)
-            .frame(height: controlHeight)
+            .frame(minWidth: Theme.Metrics.controlMinWidth)
+            
             
             if vm.allowedSquareSizes == nil {
                 CircleIconButton(action: toggleMode) {
                     Text(vm.sizeUnit == .percent ? "px" : String(localized: "percent"))
                 }
-                .transition(.asymmetric(
-                    insertion: .opacity.combined(with: .scale(scale: 0.9)),
-                    removal: .opacity.combined(with: .scale(scale: 0.9))
-                ))
+                .transition(.opacity.combined(with: .scale(scale: 0.9)))
                 .animation(Theme.Animations.spring(), value: vm.sizeUnit)
             }
         }
-        .frame(minWidth: controlMinWidth + 36, maxWidth: controlMaxWidth + 36)
+        .frame(height: Theme.Metrics.controlHeight)
+        .frame(maxWidth: controlMaxWidth + 36)
         .animation(Theme.Animations.spring(), value: vm.sizeUnit)
         .onChange(of: vm.sizeUnit) { _, newValue in
             withAnimation(Theme.Animations.spring()) {

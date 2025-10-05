@@ -65,7 +65,8 @@ struct ComparisonView: View {
                         containerWidth: containerWidth
                     )
                 }
-                .background(.ultraThickMaterial)
+                .background(.thickMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .onAppear {
             sliderPosition = 0.5

@@ -64,7 +64,6 @@ struct FormatControl: View {
         .frame(height: controlHeight)
         .padding(.horizontal, 8)
         .background(shape.fill(Theme.Colors.controlBackground))
-        .fixedSize(horizontal: true, vertical: false)
         .onAppear { installKeyMonitor() }
         .onDisappear { removeKeyMonitor() }
     }

@@ -208,7 +208,6 @@ struct PixelFieldsView: View {
             Text(activeDimension == .width ? String(localized: "Width") : String(localized: "Height"))
                 .contentTransition(.opacity)
                 .fixedSize(horizontal: true, vertical: false)
-                .layoutPriority(1)
                 .padding(.horizontal, 8)
                 .frame(height: Theme.Metrics.controlHeight - 10)
                 .background(
