@@ -39,7 +39,7 @@ enum WindowConfigurator {
 
     private static func installTrailingAccessory(window: NSWindow) {
         let hosting = NSHostingController(rootView: WindowTitleBar())
-        hosting.view.frame.size = NSSize(width: 160, height: 24)
+        hosting.view.frame.size = NSSize(width: 200, height: 24)
 
         let accessory = NSTitlebarAccessoryViewController()
         accessory.identifier = NSUserInterfaceItemIdentifier("UsageAccessory")
