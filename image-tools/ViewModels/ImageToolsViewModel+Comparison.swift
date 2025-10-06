@@ -86,6 +86,20 @@ extension ImageToolsViewModel {
         comparisonSelection = nil
     }
     
+    func navigateToNextImage() {
+        guard let selection = comparisonSelection else { return }
+        guard let currentIndex = images.firstIndex(where: { $0.id == selection.assetID }) else { return }
+        let nextIndex = (currentIndex + 1) % images.count
+        comparisonSelection = ComparisonSelection(assetID: images[nextIndex].id)
+    }
+    
+    func navigateToPreviousImage() {
+        guard let selection = comparisonSelection else { return }
+        guard let currentIndex = images.firstIndex(where: { $0.id == selection.assetID }) else { return }
+        let previousIndex = (currentIndex - 1 + images.count) % images.count
+        comparisonSelection = ComparisonSelection(assetID: images[previousIndex].id)
+    }
+    
     func refreshComparisonPreviewIfNeeded() {
         guard let selection = comparisonSelection else { return }
         guard images.contains(where: { $0.id == selection.assetID }) else {
@@ -97,6 +111,15 @@ extension ImageToolsViewModel {
     func refreshComparisonPreview() {
         guard let selection = comparisonSelection,
               let asset = images.first(where: { $0.id == selection.assetID }) else { return }
+        
+        // Immediately show thumbnail for instant feedback
+        comparisonPreview = ComparisonPreviewState(
+            originalImage: asset.thumbnail,
+            processedImage: nil,
+            isLoading: true,
+            errorMessage: nil
+        )
+        
         comparisonPreviewTask?.cancel()
         comparisonPreviewTask = Task { [weak self] in
             await self?.loadComparisonPreview(for: asset)
@@ -116,33 +139,59 @@ extension ImageToolsViewModel {
     // MARK: - Private
     
     private func loadComparisonPreview(for asset: ImageAsset) async {
-        // Load original image off main thread (lightweight, for hero animation)
+        let assetID = asset.id
+        
+        // Load original image off main thread
         let original = await Task.detached(priority: .userInitiated) {
             NSImage(contentsOf: asset.originalURL)
         }.value
         
-        // Set original immediately for hero animation, processed starts loading
+        // Check if this asset is still selected before updating
+        guard await isStillSelected(assetID) else { return }
+        
         await MainActor.run {
-            comparisonPreview = ComparisonPreviewState(originalImage: original, processedImage: nil, isLoading: true, errorMessage: nil)
+            comparisonPreview = ComparisonPreviewState(
+                originalImage: original,
+                processedImage: nil,
+                isLoading: true,
+                errorMessage: nil
+            )
         }
         
         // Process image in background
         do {
             let pipeline = buildPipeline()
-            // Render and load processed image entirely off main thread
             let processed = try await Task.detached(priority: .userInitiated) {
                 let temporaryURL = try pipeline.renderTemporaryURL(on: asset)
                 return NSImage(contentsOf: temporaryURL)
             }.value
             
+            guard await isStillSelected(assetID) else { return }
+            
             await MainActor.run {
-                comparisonPreview = ComparisonPreviewState(originalImage: original, processedImage: processed, isLoading: false, errorMessage: nil)
+                comparisonPreview = ComparisonPreviewState(
+                    originalImage: original,
+                    processedImage: processed,
+                    isLoading: false,
+                    errorMessage: nil
+                )
             }
         } catch {
+            guard await isStillSelected(assetID) else { return }
+            
             await MainActor.run {
-                comparisonPreview = ComparisonPreviewState(originalImage: original, processedImage: nil, isLoading: false, errorMessage: error.localizedDescription)
+                comparisonPreview = ComparisonPreviewState(
+                    originalImage: original,
+                    processedImage: nil,
+                    isLoading: false,
+                    errorMessage: error.localizedDescription
+                )
             }
         }
+    }
+    
+    private func isStillSelected(_ assetID: UUID) async -> Bool {
+        await MainActor.run { comparisonSelection?.assetID == assetID }
     }
 }
 

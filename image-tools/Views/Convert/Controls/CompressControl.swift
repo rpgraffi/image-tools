@@ -6,10 +6,6 @@ struct CompressControl: View {
     
     @FocusState private var kbFieldFocused: Bool
     
-    private let controlHeight: CGFloat = Theme.Metrics.controlHeight
-    private let controlMinWidth: CGFloat = Theme.Metrics.controlMinWidth
-    private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
-    
     var body: some View {
         PercentPill(
             label: String(localized: "Quality"),
@@ -18,6 +14,7 @@ struct CompressControl: View {
             showsTenPercentHaptics: true,
             showsFullBoundaryHaptic: true
         )
-        .frame(minWidth: controlMinWidth, maxWidth: controlMaxWidth, minHeight: controlHeight, maxHeight: controlHeight)
+        .frame(minWidth: Theme.Metrics.controlMinWidth, maxWidth: Theme.Metrics.controlMaxWidth)
+        .frame(height: Theme.Metrics.controlHeight)
     }
 }

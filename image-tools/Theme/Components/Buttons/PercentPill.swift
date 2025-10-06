@@ -25,11 +25,13 @@ struct PercentPill: View {
             let progress = clamped
             ZStack(alignment: .leading) {
                 PillBackground(containerSize: container, cornerRadius: corner, progress: progress)
-                HStack(spacing: 8) {
+                HStack{
                     Text(label)
                         .font(Theme.Fonts.button)
                         .foregroundColor(Color.secondary)
-                    Spacer(minLength: 0)
+                        .fixedSize(horizontal: true, vertical: false)
+                        
+                    Spacer()
                     if isEditing {
                         InlinePercentEditor(
                             isEditing: $isEditing,
@@ -41,7 +43,10 @@ struct PercentPill: View {
                         Text("\(Int(clamped * 100))%")
                             .font(Theme.Fonts.button)
                             .foregroundStyle(.primary)
+                            .lineLimit(1)
                             .monospacedDigit()
+                            .fixedSize(horizontal: true, vertical: false)
+                            .multilineTextAlignment(.trailing)
                             .contentTransition(.numericText())
                             .animation(Theme.Animations.fastSpring(), value: clamped)
                             .contentShape(Rectangle())

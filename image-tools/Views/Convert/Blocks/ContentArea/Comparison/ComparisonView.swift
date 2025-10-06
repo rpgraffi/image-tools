@@ -65,7 +65,8 @@ struct ComparisonView: View {
                         containerWidth: containerWidth
                     )
                 }
-                .background(.ultraThickMaterial)
+                .background(.thickMaterial)
+                .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
         }
         .onAppear {
             sliderPosition = 0.5
@@ -74,6 +75,12 @@ struct ComparisonView: View {
                 showUI = true
             }
             installKeyMonitor()
+        }
+        .onChange(of: asset.id) { _, _ in
+            // Reset slider position when changing images
+            sliderPosition = 0.5
+            // Refresh preview for new image
+            vm.refreshComparisonPreview()
         }
         .onChange(of: preview.processedImage) { _, newImage in
             if newImage != nil {
@@ -358,11 +365,19 @@ struct ComparisonView: View {
     private func installKeyMonitor() {
         removeKeyMonitor()
         keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak vm] event in
-            if event.keyCode == 49 || event.keyCode == 53 { // Spacebar or Escape
+            switch event.keyCode {
+            case 49, 53: // Spacebar or Escape
                 vm?.dismissComparison()
                 return nil
+            case 123: // Left arrow
+                vm?.navigateToPreviousImage()
+                return nil
+            case 124: // Right arrow
+                vm?.navigateToNextImage()
+                return nil
+            default:
+                return event
             }
-            return event
         }
     }
     

@@ -12,25 +12,23 @@ struct MainView: View {
             ContentArea(isDropping: $isDropping, onPickFromFinder: pickFromOpenPanel)
             SecondaryBar(onPickFromFinder: pickFromOpenPanel)
         }
-        .frame(minWidth: 600)
+        .frame(minWidth: 680)
         .onAppear {
             WindowConfigurator.configureMainWindow()
             PurchaseManager.shared.configure()
         }
         .focusable()
         .focusEffectDisabled()
+        .onCommand(#selector(NSText.paste(_:))) {
+            vm.addFromPasteboard()
+        }
         .background(.regularMaterial)
-        .onPasteCommand(of: [.fileURL, .image], perform: handlePaste)
         .sheet(isPresented: $vm.isPaywallPresented) {
             PaywallView(
                 purchase: PurchaseManager.shared,
                 onContinue: { vm.paywallContinueFree() }
             )
         }
-    }
-
-    private func handlePaste(providers: [NSItemProvider]) {
-        vm.addProvidersStreaming(providers, batchSize: 16)
     }
 
     private func handleDrop(providers: [NSItemProvider]) -> Bool {
