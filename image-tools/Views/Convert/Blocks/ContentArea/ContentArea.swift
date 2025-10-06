@@ -56,7 +56,7 @@ struct ContentArea: View {
                     .zIndex(1)
             }
         }
-        .animation(.spring(response: 0.45, dampingFraction: 0.82), value: vm.comparisonSelection)
+        .animation(.spring(response: 0.45, dampingFraction: 0.82), value: vm.comparisonSelection != nil)
         .background(containerBackground())
         .clipShape(RoundedRectangle(cornerRadius: cornerRadius, style: .continuous))
         .overlay(containerOverlay())
