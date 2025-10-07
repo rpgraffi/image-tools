@@ -39,7 +39,6 @@ struct ControlsBar: View {
         if let f = vm.selectedFormat {
             return ImageIOCapabilities.shared.capabilities(for: f).supportsQuality
         }
-        // No format selected: allow generic compression for lossy default (PNG fallback is lossless; quality would be ignored)
         return true
     }
     
@@ -50,34 +49,5 @@ struct ControlsBar: View {
         return true
     }
     
-}
-
-#Preview("Resizable") {
-    VStack{
-        ControlsBar()
-            .environmentObject(ImageToolsViewModel())
-            .frame(width: 300, height: 60)
-            .background(.primary.opacity(0.1))
-        ControlsBar()
-            .environmentObject(ImageToolsViewModel())
-            .frame(width: 400, height: 60)
-            .background(.primary.opacity(0.1))
-        ControlsBar()
-            .environmentObject(ImageToolsViewModel())
-            .frame(width: 430, height: 60)
-            .background(.primary.opacity(0.1))
-        ControlsBar()
-            .environmentObject(ImageToolsViewModel())
-            .frame(width: 470, height: 60)
-            .background(.primary.opacity(0.1))
-        ControlsBar()
-            .environmentObject(ImageToolsViewModel())
-            .frame(width: 600, height: 60)
-            .background(.primary.opacity(0.1))
-        ControlsBar()
-            .environmentObject(ImageToolsViewModel())
-            .frame(width: 700, height: 60)
-            .background(.primary.opacity(0.1))
-    }
 }
 

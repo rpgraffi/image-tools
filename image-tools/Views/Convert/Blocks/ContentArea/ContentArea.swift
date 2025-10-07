@@ -81,9 +81,6 @@ struct ContentArea: View {
                 .offset(y: 3)
                 .mask(
                     RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-                        // .fill(
-                        //     LinearGradient(colors: [Color.black, Color.clear], startPoint: .center, endPoint: .bottom)
-                        // )
                 )
 
             if isEmpty || isDropping {

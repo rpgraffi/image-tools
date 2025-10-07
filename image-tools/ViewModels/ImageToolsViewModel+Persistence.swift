@@ -134,12 +134,12 @@ extension ImageToolsViewModel {
     func loadUsageEvents() {
         let defaults = UserDefaults.standard
         guard let data = defaults.data(forKey: PersistenceKeys.usageEvents) else { return }
-        if let decoded = try? JSONDecoder().decode([UsageEvent].self, from: data) {
+        if let decoded = try? JSONDecoder().decode([UsageEventModel].self, from: data) {
             UsageTracker.shared.replaceAll(decoded)
         }
     }
 
-    func persistUsageEvents(_ events: [UsageEvent]) {
+    func persistUsageEvents(_ events: [UsageEventModel]) {
         let defaults = UserDefaults.standard
         if let data = try? JSONEncoder().encode(events) {
             defaults.set(data, forKey: PersistenceKeys.usageEvents)

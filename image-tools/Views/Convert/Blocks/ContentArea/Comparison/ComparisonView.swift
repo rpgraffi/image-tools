@@ -77,9 +77,7 @@ struct ComparisonView: View {
             installKeyMonitor()
         }
         .onChange(of: asset.id) { _, _ in
-            // Reset slider position when changing images
             sliderPosition = 0.5
-            // Refresh preview for new image
             vm.refreshComparisonPreview()
         }
         .onChange(of: preview.processedImage) { _, newImage in
@@ -99,7 +97,6 @@ struct ComparisonView: View {
         ZStack {
             heroImage(for: preview.originalImage ?? asset.thumbnail)
             
-            // Processed image overlay (masked from left - shows on right side starting at sliderPosition)
             if let processedImage = preview.processedImage, showUI {
                 processedOverlay(for: processedImage)
                     .mask(alignment: .trailing) {
