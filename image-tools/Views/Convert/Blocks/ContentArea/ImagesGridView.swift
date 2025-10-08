@@ -9,7 +9,7 @@ struct ImagesGridView: View {
     @State private var visibleIds: Set<UUID> = []
     @State private var debounceWorkItem: DispatchWorkItem? = nil
     @State private var appearedIds: Set<UUID> = []
-
+    
     private func scheduleEstimation() {
         debounceWorkItem?.cancel()
         let work = DispatchWorkItem { [visibleIds, images] in
@@ -19,7 +19,7 @@ struct ImagesGridView: View {
         debounceWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.15, execute: work)
     }
-
+    
     var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 12) {
@@ -63,7 +63,7 @@ struct ImagesGridView_Previews: PreviewProvider {
         ]
         let assets = urls.map { ImageAsset(url: $0) }
         let columns = [GridItem(.adaptive(minimum: 220, maximum: 300), spacing: 12, alignment: .top)]
-
+        
         return PreviewWrapper(assets: assets, columns: columns, vm: vm)
     }
     
@@ -80,7 +80,7 @@ struct ImagesGridView_Previews: PreviewProvider {
                 .padding()
         }
     }
-
+    
     private static func makeTempImageURL(size: NSSize, color: NSColor) -> URL {
         let image = NSImage(size: size)
         image.lockFocus()

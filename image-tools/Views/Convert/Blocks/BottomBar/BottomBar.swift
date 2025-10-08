@@ -1,9 +1,8 @@
 import SwiftUI
 
-struct SecondaryBar: View {
+struct BottomBar: View {
     @EnvironmentObject var vm: ImageToolsViewModel
-    let onPickFromFinder: () -> Void
-
+    
     var body: some View {
         HStack(spacing: 8) {
             HStack(spacing: 8) {
@@ -15,19 +14,12 @@ struct SecondaryBar: View {
                 .disabled(vm.images.isEmpty)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-
-            PrimaryApplyControl(
-                isDisabled: vm.images.isEmpty,
-                isInProgress: vm.isExporting,
-                progress: vm.exportFraction,
-                counterText: vm.isExporting ? "\(vm.exportCompleted)/\(vm.exportTotal)" : nil,
-                ingestText: vm.ingestCounterText,
-                ingestProgress: vm.ingestFraction,
-                perform: { vm.applyPipelineAsync() }
-            ).frame(maxWidth: .infinity)
-
+            
+            PrimaryApplyControl()
+                .frame(maxWidth: .infinity)
+            
             HStack(spacing: 8) {
-                ExportDirectoryPill(
+                ExportDirectoryControl(
                     directory: $vm.exportDirectory,
                     sourceDirectory: vm.sourceDirectory,
                     hasActiveImages: !vm.images.isEmpty

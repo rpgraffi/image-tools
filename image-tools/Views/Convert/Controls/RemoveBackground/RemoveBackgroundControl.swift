@@ -1,8 +1,8 @@
 import SwiftUI
 
-struct BackgroundRemovalControl: View {
+struct RemoveBackgroundControl: View {
     @EnvironmentObject var vm: ImageToolsViewModel
-
+    
     var body: some View {
         CircleIconToggle(
             isOn: $vm.removeBackground,

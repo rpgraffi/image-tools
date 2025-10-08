@@ -3,7 +3,7 @@ import SwiftUI
 struct ImagesListEmptyState: View {
     let onPaste: () -> Void
     let onPickFromFinder: () -> Void
-
+    
     var body: some View {
         VStack(spacing: 12) {
             VStack(spacing: 6) {
@@ -18,7 +18,7 @@ struct ImagesListEmptyState: View {
                 }
                 .multilineTextAlignment(.center)
                 .frame(maxWidth: .infinity)
-
+                
                 HStack(spacing: 0) {
                     Text(String(localized: "Or select"))
                     Button(action: onPickFromFinder) {

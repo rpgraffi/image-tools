@@ -17,7 +17,7 @@ struct ControlsBar: View {
             }
             
             FlipControl()
-            BackgroundRemovalControl()
+            RemoveBackgroundControl()
             
             if shouldShowMetadata {
                 MetadataControl()

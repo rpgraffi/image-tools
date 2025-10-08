@@ -119,8 +119,9 @@ struct PaywallView: View {
             .foregroundStyle(.secondary)
         }
         .padding(8)
-        
+        .background(.regularMaterial)
         .frame(minWidth: 760, minHeight: 420)
+        // TODO: Refactor this
         .alert(item: Binding(
             get: { purchase.purchaseError.map { LocalizedErrorWrapper(message: $0) } },
             set: { _ in purchase.purchaseError = nil }
@@ -130,7 +131,6 @@ struct PaywallView: View {
         .onChange(of: purchase.isProUnlocked) {
             if purchase.isProUnlocked { onContinue() }
         }
-        .background(.regularMaterial)
     }
 }
 

@@ -5,13 +5,13 @@ import UniformTypeIdentifiers
 // Shared entry type for the format dropdown
 enum FormatDropdownEntry: Identifiable, Equatable {
     case format(ImageFormat)
-
+    
     var id: String {
         switch self {
         case .format(let f): return f.id
         }
     }
-
+    
     var title: String {
         switch self {
         case .format(let f): return f.displayName
@@ -31,14 +31,14 @@ extension FormatDropdownController {
     func filteredAndSortedEntries(vm: ImageToolsViewModel) -> [FormatDropdownEntry] {
         let allFormats = ImageIOCapabilities.shared.writableFormats()
         let q = query.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-
+        
         let filteredFormats: [ImageFormat]
         if q.isEmpty {
             filteredFormats = allFormats
         } else {
             filteredFormats = allFormats.filter { $0.displayName.lowercased().contains(q) }
         }
-
+        
         let sorted = filteredFormats.sorted(by: { [recent = vm.recentFormats] a, b in
             let ai = recent.firstIndex(of: a)
             let bi = recent.firstIndex(of: b)
@@ -47,5 +47,5 @@ extension FormatDropdownController {
         })
         return sorted.map { .format($0) }
     }
-
+    
 } 

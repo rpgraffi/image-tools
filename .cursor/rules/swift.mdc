@@ -2,4 +2,8 @@
 alwaysApply: true
 ---
 
-No need to check for the latest version of the SDK, macOS, iOS, etc. Just assume the latest version is used.
+We are using macOS >= 14.6 and Swift 6.2
+Write clean code, dont overengineer.
+When not confident, research for the latest best pracices and apis.
+When possible, implement stateless components.
+

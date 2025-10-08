@@ -2,17 +2,17 @@ import SwiftUI
 
 struct FlipControl: View {
     @EnvironmentObject var vm: ImageToolsViewModel
-
+    
     @State private var vFlipRotation: Double = 0
-
+    
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
-
+    
     var body: some View {
         HStack(spacing: 8) {
             flipButton()
         }
     }
-
+    
     private func flipButton() -> some View {
         Button(action: { vm.flipV.toggle() }) {
             ZStack {

@@ -7,7 +7,7 @@ struct SquaresResizeControl: View {
     @EnvironmentObject var vm: ImageToolsViewModel
     let allowedSizes: [Int] // sorted ascending
     @State private var menuHandler: MenuHandler?
-
+    
     var body: some View {
         GeometryReader { geo in
             let size = geo.size
@@ -18,7 +18,7 @@ struct SquaresResizeControl: View {
                 }
         }
     }
-
+    
     private func sizesMenu(_ sizes: [Int]) -> some View {
         Group {
             ForEach(sizes, id: \.self) { s in
@@ -26,7 +26,7 @@ struct SquaresResizeControl: View {
             }
         }
     }
-
+    
     private func selectSquare(_ side: Int) {
         vm.sizeUnit = .pixels
         vm.resizeWidth = String(side)
@@ -37,7 +37,7 @@ struct SquaresResizeControl: View {
             vm.resizePercent = max(0.01, min(1.0, scale))
         }
     }
-
+    
     private func discretePercentPill(containerSize: CGSize, corner: CGFloat, sizes: [Int]) -> some View {
         let progress = valueToProgress(sizes: sizes)
         return ZStack(alignment: .leading) {
@@ -63,6 +63,11 @@ struct SquaresResizeControl: View {
             .padding(.horizontal, 12)
         }
         .contentShape(Rectangle())
+        .scrollGesture(totalSteps: sizes.count) { steps in
+            let currentIdx = sizes.firstIndex(of: Int(vm.resizeWidth) ?? 0) ?? 0
+            let newIdx = (currentIdx + steps).clamped(to: 0...(sizes.count - 1))
+            selectSquare(sizes[newIdx])
+        }
         .gesture(
             DragGesture(minimumDistance: 2)
                 .onChanged { value in
@@ -73,7 +78,7 @@ struct SquaresResizeControl: View {
                 }
         )
     }
-
+    
     private func currentSizeLabel(sizes: [Int]) -> String {
         let w = Int(vm.resizeWidth) ?? 0
         let h = Int(vm.resizeHeight) ?? 0
@@ -81,27 +86,27 @@ struct SquaresResizeControl: View {
         let nearest = sizes.min(by: { abs($0 - w) < abs($1 - w) }) ?? sizes.first ?? 0
         return "\(nearest)x\(nearest)"
     }
-
+    
     private func valueToProgress(sizes: [Int]) -> Double {
         let current = Int(vm.resizeWidth) ?? sizes.first ?? 0
         guard let idx = sizes.firstIndex(of: current), sizes.count > 1 else { return 0 }
         return Double(idx) / Double(sizes.count - 1)
     }
-
+    
     private func progressToNearestValue(_ p: Double, sizes: [Int]) {
         let count = max(sizes.count, 1)
         let idx = Int((p * Double(count - 1)).rounded())
         let side = sizes[min(max(0, idx), count - 1)]
         selectSquare(side)
     }
-
+    
     private func showSizesMenuAtMouseLocation(sizes: [Int]) {
         let handler = MenuHandler { side in
             selectSquare(side)
             self.menuHandler = nil
         }
         self.menuHandler = handler
-
+        
         let menu = NSMenu()
         for s in sizes {
             let item = NSMenuItem(title: "\(s)x\(s)", action: #selector(MenuHandler.handleSelect(_:)), keyEquivalent: "")
@@ -109,7 +114,7 @@ struct SquaresResizeControl: View {
             item.tag = s
             menu.addItem(item)
         }
-
+        
         let screenPoint = NSEvent.mouseLocation
         menu.popUp(positioning: nil, at: screenPoint, in: nil)
     }

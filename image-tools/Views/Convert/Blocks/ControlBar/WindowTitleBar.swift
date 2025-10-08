@@ -4,7 +4,7 @@ struct WindowTitleBar: View {
     @StateObject private var vm = ImageToolsViewModel()
     @StateObject private var purchaseManager = PurchaseManager.shared
     @State private var isHovered: Bool = false
-
+    
     var body: some View {
         HStack(spacing: 8) {
             Text(isHovered ? "Converted: \(vm.totalImageConversions)" : "\(vm.totalImageConversions)")
