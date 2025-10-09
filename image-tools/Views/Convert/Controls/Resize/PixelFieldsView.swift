@@ -47,14 +47,30 @@ struct PixelFieldsView: View {
                     progress: progress
                 )
                 contentRow()
-                .allowsHitTesting(!isDragging)
-                .padding(.horizontal, 0)
+                    .allowsHitTesting(!isDragging)
+                    .padding(.horizontal, 0)
             }
             .font(Theme.Fonts.button)
             .onTapGesture {
                 if !isDragging {
                     beginEditing()
                 }
+            }
+            .scrollGesture(
+                totalSteps: stops.count + 1,
+                sensitivity: 7.0,
+                isEnabled: !isEditingField && !fieldFocused
+            ) { steps in
+                let current = Int(activeText) ?? 0
+                let currentIdx = current == 0 ? stops.count : (stops.firstIndex(of: current) ?? 0)
+                let newIdx = (currentIdx + steps).clamped(to: 0...stops.count)
+                
+                if newIdx >= stops.count {
+                    assignActive(nil)
+                } else {
+                    assignActive(String(stops[newIdx]))
+                }
+                handleStopHaptics(currentIndex: newIdx)
             }
             .highPriorityGesture(
                 DragGesture(minimumDistance: 2)
@@ -131,12 +147,12 @@ struct PixelFieldsView: View {
             selectAllInFirstResponder()
         }
     }
-
+    
     // MARK: - Stops and drag mapping
     private func hardcodedStops() -> [Int] {
         return [32, 64, 128, 256, 512, 1024, 1080, 1500, 1920, 2048, 2160, 3840]
     }
-
+    
     private func allowedStopsForActiveDimension() -> [Int] {
         let all = hardcodedStops()
         guard let base = baseSize else { return all }
@@ -144,7 +160,7 @@ struct PixelFieldsView: View {
         if cap <= 0 { return all }
         return all.filter { $0 <= cap }
     }
-
+    
     private func valueToProgress(stops: [Int]) -> Double {
         guard !stops.isEmpty else { return 0 }
         if activeText.isEmpty {
@@ -164,14 +180,14 @@ struct PixelFieldsView: View {
         let clamped = min(max(indexProgress, 0), 1)
         return clamped * maxFillProgress
     }
-
+    
     private func handleStopHaptics(currentIndex: Int) {
         if lastStopIndex != currentIndex {
             Haptics.alignment()
             lastStopIndex = currentIndex
         }
     }
-
+    
     private func commitInlineEdit() {
         let text = inlineText.filter { $0.isNumber }
         assignActive(text)
@@ -179,25 +195,25 @@ struct PixelFieldsView: View {
         fieldFocused = false
         NSApp.keyWindow?.endEditing(for: nil)
     }
-
+    
     private func trailingLabelText() -> String {
         if isEditingField { return String(localized: "px") }
         return activeText.isEmpty ? String(localized: "Original") : String(localized: "px")
     }
-
+    
     // MARK: - Extracted logic for readability / type-checker performance
     @ViewBuilder
     private func contentRow() -> some View {
         HStack(spacing: 8) {
             toggleButton()
-            .font(Theme.Fonts.button)
-            .foregroundStyle(.primary)
-            .padding(.leading, 6)
+                .font(Theme.Fonts.button)
+                .foregroundStyle(.primary)
+                .padding(.leading, 6)
             trailingValue()
-            .frame(maxWidth: .infinity, alignment: .trailing)
+                .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
-
+    
     @ViewBuilder
     private func toggleButton() -> some View {
         Button(action: {
@@ -219,7 +235,7 @@ struct PixelFieldsView: View {
         .buttonStyle(.plain)
         .animation(Theme.Animations.fastSpring(), value: activeDimension)
     }
-
+    
     @ViewBuilder
     private func trailingValue() -> some View {
         Group {
@@ -266,7 +282,7 @@ struct PixelFieldsView: View {
             }
         }
     }
-
+    
     private func toggleActiveDimensionKeepValue() {
         let value = activeText
         activeDimension = (activeDimension == .width) ? .height : .width

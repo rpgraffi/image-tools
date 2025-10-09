@@ -1,10 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
-<dict>
-	<key>LSApplicationCategoryType</key>
-	<string>public.app-category.utilities</string>
-	<key>LSHasLocalizedDisplayName</key>
-	<true/>
-</dict>
+	<dict>
+		<key>LSApplicationCategoryType</key>
+		<string>public.app-category.utilities</string>
+		<key>LSHasLocalizedDisplayName</key>
+		<true/>
+		<key>CFBundleDocumentTypes</key>
+		<array>
+			<dict>
+				<key>CFBundleTypeName</key>
+				<string>Image</string>
+				<key>LSItemContentTypes</key>
+				<array>
+					<string>public.image</string>
+				</array>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+				<key>LSHandlerRank</key>
+				<string>Alternate</string>
+			</dict>
+			<dict>
+				<key>CFBundleTypeName</key>
+				<string>Folder</string>
+				<key>LSItemContentTypes</key>
+				<array>
+					<string>public.folder</string>
+				</array>
+				<key>CFBundleTypeRole</key>
+				<string>Viewer</string>
+				<key>LSHandlerRank</key>
+				<string>Alternate</string>
+			</dict>
+		</array>
+		<key>LSMultipleInstancesProhibited</key>
+		<true/>
+	</dict>
 </plist>

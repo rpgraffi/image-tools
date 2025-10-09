@@ -4,16 +4,16 @@ import AppKit
 
 struct FormatControl: View {
     @EnvironmentObject var vm: ImageToolsViewModel
-
+    
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
-
+    
     @State private var keyEventMonitor: Any?
-
+    
     private var pinnedFormats: [ImageFormat] {
         [ImageFormat(utType: .png), ImageFormat(utType: .jpeg), ImageFormat(utType: .heic), ImageFormat(utType: .webP)]
             .filter { ImageIOCapabilities.shared.supportsWriting(utType: $0.utType) }
     }
-
+    
     private var otherFormats: [ImageFormat] {
         let pinnedIds = Set(pinnedFormats.map { $0.id })
         return ImageIOCapabilities.shared
@@ -21,11 +21,11 @@ struct FormatControl: View {
             .filter { !pinnedIds.contains($0.id) }
             .sorted { $0.displayName < $1.displayName }
     }
-
+    
     private var selectedLabel: String {
         vm.selectedFormat?.displayName ?? String(localized: "Format")
     }
-
+    
     private func shortcutFor(format: ImageFormat) -> String? {
         switch format.utType {
         case .png: return "P"
@@ -35,15 +35,15 @@ struct FormatControl: View {
         default: return nil
         }
     }
-
+    
     private func selectFormat(_ format: ImageFormat?) {
         vm.selectedFormat = format
         if let f = format { vm.bumpRecentFormats(f) }
     }
-
+    
     var body: some View {
         let shape = Capsule()
-
+        
         Menu {
             recentSection()
             pinnedSection()
@@ -53,7 +53,7 @@ struct FormatControl: View {
                 Image(systemName: "photo.on.rectangle.angled.fill")
                     .font(Theme.Fonts.button)
                     .foregroundStyle(vm.selectedFormat != nil ? Color.accentColor : .primary)
-
+                
                 Text(selectedLabel)
                     .foregroundStyle(.primary)
                     .font(Theme.Fonts.button)
@@ -84,7 +84,7 @@ private extension FormatControl {
             }
         }
     }
-
+    
     @ViewBuilder
     func pinnedSection() -> some View {
         Section {
@@ -93,7 +93,7 @@ private extension FormatControl {
             }
         }
     }
-
+    
     @ViewBuilder
     func moreSection() -> some View {
         if !otherFormats.isEmpty {
@@ -105,7 +105,7 @@ private extension FormatControl {
             }
         }
     }
-
+    
     @ViewBuilder
     func pinnedRowButton(_ f: ImageFormat) -> some View {
         if f.utType == .png {
@@ -151,7 +151,7 @@ private extension FormatControl {
             return event
         }
     }
-
+    
     func removeKeyMonitor() {
         if let monitor = keyEventMonitor { NSEvent.removeMonitor(monitor); keyEventMonitor = nil }
     }

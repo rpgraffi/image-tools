@@ -116,7 +116,6 @@ final class ImageIOCapabilities {
             UTType.heif.identifier,     // HEIF - full EXIF support
         ]
         
-        // Check if it's a known privacy-sensitive format
         if privacyMetadataFormats.contains(utType.identifier) {
             return true
         }
@@ -143,13 +142,10 @@ final class ImageIOCapabilities {
 
     // MARK: - Alpha channel support
     private func supportsAlphaChannel(utType: UTType) -> Bool {
-        // Common alpha-capable formats
         if utType == .png || utType == .tiff || utType == .gif || utType == UTType.heic || utType == UTType.heif || utType == UTType.webP || utType == .bmp || utType == .icns { // BMP can have alpha in some variants; be permissive
             return true
         }
-        // JPEG typically doesn't support alpha
         if utType == .jpeg { return false }
-        // Otherwise, default to true when unsure to avoid forcing white background unnecessarily
         return true
     }
 

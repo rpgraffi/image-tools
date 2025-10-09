@@ -3,7 +3,7 @@ import AppKit
 
 struct UnrestrictedResizeControl: View {
     @EnvironmentObject var vm: ImageToolsViewModel
-
+    
     var body: some View {
         ZStack {
             GeometryReader { geo in
@@ -32,7 +32,7 @@ struct UnrestrictedResizeControl: View {
             }
         }
     }
-
+    
     private func basePixelSizeForCurrentSelection() -> CGSize? {
         let sizes = vm.images.compactMap { $0.originalPixelSize }
         guard !sizes.isEmpty else { return nil }

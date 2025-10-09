@@ -16,5 +16,6 @@ struct CompressControl: View {
         )
         .frame(minWidth: Theme.Metrics.controlMinWidth, maxWidth: Theme.Metrics.controlMaxWidth)
         .frame(height: Theme.Metrics.controlHeight)
+        .help(String(localized: "Change image quality"))
     }
 }

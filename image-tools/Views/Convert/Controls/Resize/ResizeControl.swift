@@ -17,12 +17,14 @@ struct ResizeControl: View {
                 }
             }
             .frame(minWidth: Theme.Metrics.controlMinWidth)
+            .help(String(localized: "Change image size"))
             
             
             if vm.allowedSquareSizes == nil {
                 CircleIconButton(action: toggleMode) {
                     Text(vm.sizeUnit == .percent ? "px" : String(localized: "percent"))
                 }
+                .help(String(localized: "Toggle between pixels and percent"))
                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
                 .animation(Theme.Animations.spring(), value: vm.sizeUnit)
             }
