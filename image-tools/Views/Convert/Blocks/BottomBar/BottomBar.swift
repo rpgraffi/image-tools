@@ -11,6 +11,7 @@ struct BottomBar: View {
                 } label: {
                     Text(String(localized: "Clear"))
                 }
+                .help(String(localized: "Clear all images"))
                 .disabled(vm.images.isEmpty)
             }
             .frame(maxWidth: .infinity, alignment: .leading)

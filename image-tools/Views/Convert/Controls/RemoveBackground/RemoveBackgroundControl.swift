@@ -9,7 +9,7 @@ struct RemoveBackgroundControl: View {
             icon: Image(systemName: "person.and.background.dotted"),
             text: nil
         )
-        .help(String(localized: vm.removeBackground ? "Remove background enabled" : "Remove background"))
+        .help(String(localized:"Remove background"))
     }
 }
 
