@@ -154,7 +154,14 @@ struct ComparisonView: View {
                     Circle()
                         .glassEffect(.clear)
                         .frame(width: size, height: size)
-                        .onHover { hovering in isHandleHovering = hovering }
+                        .onHover { isHovering in
+                            isHandleHovering = isHovering
+                            if isHovering {
+                                NSCursor.resizeLeftRight.push()
+                            } else {
+                                NSCursor.pop()
+                            }
+                        }
                 } 
             }
         } else {
