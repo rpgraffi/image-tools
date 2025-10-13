@@ -197,7 +197,7 @@
 					};
 				};
 			};
-			buildConfigurationList = B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "image-tools" */;
+			buildConfigurationList = B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "convert-compress" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -616,7 +616,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "image-tools" */ = {
+		B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "convert-compress" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B77ECCE42E45573400C28347 /* Debug */,

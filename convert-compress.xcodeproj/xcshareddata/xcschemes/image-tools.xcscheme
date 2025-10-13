@@ -22,7 +22,7 @@
                BlueprintIdentifier = "B77ECCD12E45573400C28347"
                BuildableName = "image-toolsTests.xctest"
                BlueprintName = "image-toolsTests"
-               ReferencedContainer = "container:image-tools.xcodeproj">
+               ReferencedContainer = "container:convert-compress.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -45,7 +45,7 @@
             BlueprintIdentifier = "B77ECCC32E45573200C28347"
             BuildableName = "image-tools.app"
             BlueprintName = "image-tools"
-            ReferencedContainer = "container:image-tools.xcodeproj">
+            ReferencedContainer = "container:convert-compress.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
       <AdditionalOptions>
@@ -71,7 +71,7 @@
             BlueprintIdentifier = "B77ECCC32E45573200C28347"
             BuildableName = "image-tools.app"
             BlueprintName = "image-tools"
-            ReferencedContainer = "container:image-tools.xcodeproj">
+            ReferencedContainer = "container:convert-compress.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
    </ProfileAction>
