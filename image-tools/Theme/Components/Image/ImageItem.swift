@@ -55,7 +55,7 @@ struct ImageChangeInfo {
 // MARK: Main View
 struct ImageItem: View {
     let asset: ImageAsset
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     let heroNamespace: Namespace.ID
     
     @State private var isHovering: Bool = false

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct BottomBar: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     
     var body: some View {
         HStack(spacing: 8) {
@@ -29,6 +29,7 @@ struct BottomBar: View {
             .frame(maxWidth: .infinity, alignment: .trailing)
             .animation(Theme.Animations.spring(), value: vm.isExportingToSource)
         }
-        .padding(8)
+        .padding(.horizontal, 8)
+        .padding(.bottom, 8)
     }
 }

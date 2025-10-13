@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 import AppKit
 
 struct FormatControl: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     
     private let controlHeight: CGFloat = Theme.Metrics.controlHeight
     

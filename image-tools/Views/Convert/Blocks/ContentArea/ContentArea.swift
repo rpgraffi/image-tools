@@ -3,7 +3,7 @@ import UniformTypeIdentifiers
 import AppKit
 
 struct ContentArea: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     @State private var isDropping: Bool = false
     
     // Layout

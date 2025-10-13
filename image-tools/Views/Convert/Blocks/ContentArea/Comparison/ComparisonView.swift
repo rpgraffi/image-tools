@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 struct ComparisonView: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     let asset: ImageAsset
     let heroNamespace: Namespace.ID
     

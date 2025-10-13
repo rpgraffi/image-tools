@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 struct ResizeCropView: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     
     var body: some View {
         HStack(spacing: 2) {

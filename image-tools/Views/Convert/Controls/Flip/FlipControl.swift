@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct FlipControl: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     
     @State private var vFlipRotation: Double = 0
     

@@ -3,7 +3,7 @@ import AppKit
 
 /// Orchestrates resize UI and delegates to specialized sub-controls.
 struct ResizeControl: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     
     private let controlMaxWidth: CGFloat = Theme.Metrics.controlMaxWidth
     

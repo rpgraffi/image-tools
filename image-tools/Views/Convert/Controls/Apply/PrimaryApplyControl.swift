@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct PrimaryApplyControl: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     @State private var labelSize: CGSize = .zero
     @State private var showDoneText: Bool = false
     

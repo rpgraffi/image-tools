@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct MetadataControl: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     
     var body: some View {
         StrikePillToggle(isOn: $vm.removeMetadata) {
