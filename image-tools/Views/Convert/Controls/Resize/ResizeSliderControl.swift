@@ -3,7 +3,7 @@ import AppKit
 
 /// Single numeric pixel field with inline dimension toggle ("long" / "high").
 /// The field edits either `widthText` or `heightText` based on the active toggle.
-struct PixelFieldsView: View {
+struct ResizeSliderControl: View {
     @Binding var widthText: String
     @Binding var heightText: String
     let baseSize: CGSize?

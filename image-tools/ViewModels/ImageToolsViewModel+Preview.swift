@@ -4,8 +4,7 @@ extension ImageToolsViewModel {
     func previewInfo(for asset: ImageAsset) -> PreviewInfo {
         PreviewEstimator().estimate(
             for: asset,
-            sizeUnit: sizeUnit,
-            resizePercent: resizePercent,
+            resizeMode: resizeMode,
             resizeWidth: resizeWidth,
             resizeHeight: resizeHeight,
             compressionPercent: compressionPercent,

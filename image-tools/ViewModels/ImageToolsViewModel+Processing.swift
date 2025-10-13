@@ -5,8 +5,7 @@ import AppKit
 extension ImageToolsViewModel {
     func buildPipeline() -> ProcessingPipeline {
         let pipeline = PipelineBuilder().build(
-            sizeUnit: sizeUnit,
-            resizePercent: resizePercent,
+            resizeMode: resizeMode,
             resizeWidth: resizeWidth,
             resizeHeight: resizeHeight,
             selectedFormat: selectedFormat,

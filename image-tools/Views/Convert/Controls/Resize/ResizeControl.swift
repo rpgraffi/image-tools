@@ -22,29 +22,25 @@ struct ResizeControl: View {
             
             if vm.allowedSquareSizes == nil {
                 CircleIconButton(action: toggleMode) {
-                    Text(vm.sizeUnit == .percent ? "px" : String(localized: "percent"))
+                    Image(systemName: vm.resizeMode == .resize ? "crop" : "arrow.down.forward.and.arrow.up.backward")
+                        .font(.system(size: 11, weight: .medium))
                 }
-                .help(String(localized: "Toggle between pixels and percent"))
+                .help(vm.resizeMode == .resize ? String(localized: "Switch to crop mode") : String(localized: "Switch to resize mode"))
                 .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                .animation(Theme.Animations.spring(), value: vm.sizeUnit)
+                .animation(Theme.Animations.spring(), value: vm.resizeMode)
             }
         }
         .frame(height: Theme.Metrics.controlHeight)
         .frame(maxWidth: controlMaxWidth + 36)
-        .animation(Theme.Animations.spring(), value: vm.sizeUnit)
-        .onChange(of: vm.sizeUnit) { _, newValue in
-            withAnimation(Theme.Animations.spring()) {
-                vm.handleSizeUnitToggle(to: newValue)
-            }
-        }
+        .animation(Theme.Animations.spring(), value: vm.resizeMode)
     }
     
     private func toggleMode() {
         withAnimation(Theme.Animations.spring()) {
-            if vm.sizeUnit == .percent {
-                vm.sizeUnit = .pixels
+            if vm.resizeMode == .resize {
+                vm.resizeMode = .crop
             } else {
-                vm.sizeUnit = .percent
+                vm.resizeMode = .resize
             }
         }
     }

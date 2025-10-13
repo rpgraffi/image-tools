@@ -27,8 +27,8 @@ extension ImageToolsViewModel {
         let srcSize = ImageMetadata.pixelSize(for: first.originalURL) ?? first.originalPixelSize ?? .zero
         let caps = ImageIOCapabilities.shared
         if let fmt = selectedFormat, !caps.isValidPixelSize(srcSize, for: fmt.utType) {
-            // Force pixel mode and prefill suggestion
-            sizeUnit = .pixels
+            // Force resize mode and prefill suggestion
+            resizeMode = .resize
             if let side = caps.suggestedSquareSide(for: fmt.utType, source: srcSize) {
                 resizeWidth = String(side)
                 resizeHeight = String(side)

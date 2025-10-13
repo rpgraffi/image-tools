@@ -6,7 +6,7 @@ struct PrimaryApplyControl: View {
     @State private var showDoneText: Bool = false
     
     var body: some View {
-        // vm states
+        // vm states (we could construct the state with an enum like PrimaryApplyControlState: disabled, progressing, active, done)
         let isDisabled: Bool = vm.images.isEmpty
         let isInProgress: Bool = vm.isExporting
         let progress: Double = vm.exportFraction

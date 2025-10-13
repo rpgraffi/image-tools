@@ -10,8 +10,7 @@ struct TrueSizeEstimator {
     // Estimate encoded byte sizes for assets concurrently. Skips flips for speed as requested.
     static func estimate(
         assets: [ImageAsset],
-        sizeUnit: SizeUnitToggle,
-        resizePercent: Double,
+        resizeMode: ResizeMode,
         resizeWidth: String,
         resizeHeight: String,
         selectedFormat: ImageFormat?,
@@ -35,8 +34,7 @@ struct TrueSizeEstimator {
                     group.addTask(priority: .utility) {
                         return estimateOne(
                             asset: asset,
-                            sizeUnit: sizeUnit,
-                            resizePercent: resizePercent,
+                            resizeMode: resizeMode,
                             resizeWidth: resizeWidth,
                             resizeHeight: resizeHeight,
                             selectedFormat: selectedFormat,
@@ -61,8 +59,7 @@ struct TrueSizeEstimator {
 
     private static func estimateOne(
         asset: ImageAsset,
-        sizeUnit: SizeUnitToggle,
-        resizePercent: Double,
+        resizeMode: ResizeMode,
         resizeWidth: String,
         resizeHeight: String,
         selectedFormat: ImageFormat?,
@@ -74,8 +71,7 @@ struct TrueSizeEstimator {
         do {
             // Build a pipeline identical to the real processing path
             let pipeline = PipelineBuilder().build(
-                sizeUnit: sizeUnit,
-                resizePercent: resizePercent,
+                resizeMode: resizeMode,
                 resizeWidth: resizeWidth,
                 resizeHeight: resizeHeight,
                 selectedFormat: selectedFormat,

@@ -9,17 +9,8 @@ struct UnrestrictedResizeControl: View {
             GeometryReader { geo in
                 let size = geo.size
                 Group {
-                    if vm.sizeUnit == .percent {
-                        PercentPill(
-                            label: String(localized: "Resize"),
-                            value01: $vm.resizePercent,
-                            dragStep: 0.01,
-                            showsTenPercentHaptics: false,
-                            showsFullBoundaryHaptic: true
-                        )
-                        .transition(.opacity)
-                    } else {
-                        PixelFieldsView(
+                    if vm.resizeMode == .resize {
+                        ResizeSliderControl(
                             widthText: $vm.resizeWidth,
                             heightText: $vm.resizeHeight,
                             baseSize: basePixelSizeForCurrentSelection(),
@@ -27,6 +18,9 @@ struct UnrestrictedResizeControl: View {
                             squareLocked: false
                         )
                         .transition(.opacity)
+                    } else {
+                        ResizeCropView()
+                            .transition(.opacity)
                     }
                 }
             }

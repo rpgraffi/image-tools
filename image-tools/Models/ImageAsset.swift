@@ -60,8 +60,8 @@ struct FormatCapabilities {
     let resizeRestricted: Bool
 }
 
-enum SizeUnitToggle {
-    case percent
-    case pixels
+enum ResizeMode {
+    case resize
+    case crop
 }
 

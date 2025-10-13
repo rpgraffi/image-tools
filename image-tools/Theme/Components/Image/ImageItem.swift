@@ -77,8 +77,7 @@ struct ImageItem: View {
         .contentShape(Rectangle())
         .onHover(perform: handleHover)
         .animation(.easeInOut(duration: 0.15), value: isHovering)
-        .onChange(of: vm.sizeUnit) { vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.resizePercent) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizeMode) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.resizeWidth) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.resizeHeight) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.selectedFormat) { vm.triggerEstimationForVisible([asset]) }

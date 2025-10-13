@@ -25,7 +25,7 @@ struct ControlsBar: View {
             }
         }
         .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.selectedFormat)
-        .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.sizeUnit)
+        .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.resizeMode)
         .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.overwriteOriginals)
         .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.removeMetadata)
         .animation(.spring(response: 0.6, dampingFraction: 0.85), value: vm.allowedSquareSizes)

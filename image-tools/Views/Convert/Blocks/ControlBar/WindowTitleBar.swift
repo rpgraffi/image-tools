@@ -11,7 +11,6 @@ struct WindowTitleBar: View {
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(minWidth: 130, alignment: .trailing)
-                .contentShape(Rectangle())
                 .onHover { hovering in
                     withAnimation(.easeInOut(duration: 0.18)) {
                         isHovered = hovering
@@ -57,7 +56,6 @@ struct WindowTitleBar: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
-            .fixedSize()
         }
     }
     

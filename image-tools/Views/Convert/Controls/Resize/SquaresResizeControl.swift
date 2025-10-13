@@ -28,14 +28,9 @@ struct SquaresResizeControl: View {
     }
     
     private func selectSquare(_ side: Int) {
-        vm.sizeUnit = .pixels
+        vm.resizeMode = .resize
         vm.resizeWidth = String(side)
         vm.resizeHeight = String(side)
-        if let asset = (vm.images.first) ?? vm.images.first,
-           let base = asset.originalPixelSize, base.width > 0, base.height > 0 {
-            let scale = Double(side) / Double(min(base.width, base.height))
-            vm.resizePercent = max(0.01, min(1.0, scale))
-        }
     }
     
     private func discretePercentPill(containerSize: CGSize, corner: CGFloat, sizes: [Int]) -> some View {

@@ -1,6 +1,5 @@
 import SwiftUI
 
-// MARK: - Overlay Background
 struct OverlayBackground: View {
     let cornerRadius: CGFloat
     

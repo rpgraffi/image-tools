@@ -46,10 +46,10 @@ extension ImageToolsViewModel {
         
         // Observe pipeline-affecting properties and trigger comparison refresh
         Publishers.CombineLatest4(
-            $sizeUnit,
-            $resizePercent,
+            $resizeMode,
             $selectedFormat,
-            $compressionPercent
+            $compressionPercent,
+            $resizeWidth
         )
         .dropFirst() // Skip initial value
         .sink { [weak self] _ in
@@ -57,11 +57,10 @@ extension ImageToolsViewModel {
         }
         .store(in: &cancellables)
         
-        Publishers.CombineLatest4(
+        Publishers.CombineLatest3(
             $flipV,
             $removeBackground,
-            $removeMetadata,
-            $resizeWidth
+            $removeMetadata
         )
         .dropFirst()
         .sink { [weak self] _ in

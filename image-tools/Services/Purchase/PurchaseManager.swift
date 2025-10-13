@@ -60,13 +60,7 @@ final class PurchaseManager: ObservableObject {
             lifetimeDisplayPrice = lifetimeProduct?.displayPrice
             lifetimeRegularDisplayPrice = lifetimeRegularProduct?.displayPrice
             
-            #if DEBUG
-            print("🔵 PurchaseManager: Loaded \(products.count) products")
-            #endif
         } catch {
-            #if DEBUG
-            print("🔴 PurchaseManager: Failed to load products - \(error)")
-            #endif
         }
     }
     
@@ -88,9 +82,6 @@ final class PurchaseManager: ObservableObject {
         
         isProUnlocked = hasEntitlement
         
-        #if DEBUG
-        print("🔵 PurchaseManager: Pro unlocked = \(isProUnlocked)")
-        #endif
     }
     
     private func observeTransactions() async {
@@ -99,9 +90,6 @@ final class PurchaseManager: ObservableObject {
                 continue
             }
             
-            #if DEBUG
-            print("🔵 PurchaseManager: Transaction update - \(transaction.productID)")
-            #endif
             
             if proEntitlementProductIds.contains(transaction.productID) {
                 isProUnlocked = true
@@ -147,28 +135,15 @@ final class PurchaseManager: ObservableObject {
                 
                 await transaction.finish()
                 
-                #if DEBUG
-                print("🟢 PurchaseManager: Purchase successful")
-                #endif
-                
             case .userCancelled:
-                #if DEBUG
-                print("🟡 PurchaseManager: Purchase cancelled by user")
-                #endif
-                
+                print("User cancelled purchase")
             case .pending:
-                #if DEBUG
-                print("🟡 PurchaseManager: Purchase pending")
-                #endif
-                
+                print("Purchase Pending")
             @unknown default:
                 break
             }
         } catch {
             purchaseError = "Purchase failed. Please try again."
-            #if DEBUG
-            print("🔴 PurchaseManager: Purchase error - \(error)")
-            #endif
         }
     }
     
@@ -185,17 +160,8 @@ final class PurchaseManager: ObservableObject {
         do {
             try await AppStore.sync()
             await checkEntitlements()
-            
-            #if DEBUG
-            print("🟢 PurchaseManager: Restore successful")
-            #endif
         } catch {
             purchaseError = "Restore failed. Please try again."
-            #if DEBUG
-            print("🔴 PurchaseManager: Restore error - \(error)")
-            #endif
         }
     }
 }
-
-
