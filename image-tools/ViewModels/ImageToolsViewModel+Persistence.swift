@@ -124,7 +124,7 @@ extension ImageToolsViewModel {
 
     func persistResizeMode() {
         let defaults = UserDefaults.standard
-        let value = (resizeMode == .resize) ? "resize" : "crop"
+        let value = (resizeMode == .resize) ? "crop" : "resize"
         defaults.set(value, forKey: PersistenceKeys.resizeMode)
     }
 

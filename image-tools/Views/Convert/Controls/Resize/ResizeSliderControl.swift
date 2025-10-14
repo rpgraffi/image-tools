@@ -1,8 +1,8 @@
 import SwiftUI
 import AppKit
 
-/// Single numeric pixel field with inline dimension toggle ("long" / "high").
-/// The field edits either `widthText` or `heightText` based on the active toggle.
+/// Single numeric pixel field with inline dimension toggle ("width" / "height").
+/// Supports dragging, scrolling, and text input to change values.
 struct ResizeSliderControl: View {
     @Binding var widthText: String
     @Binding var heightText: String
@@ -13,11 +13,10 @@ struct ResizeSliderControl: View {
     private enum ActiveDimension { case width, height }
     
     @State private var activeDimension: ActiveDimension = .width
-    @FocusState private var fieldFocused: Bool
     @State private var lastStopIndex: Int? = nil
     @State private var isDragging: Bool = false
-    @State private var isEditingField: Bool = false
-    @State private var inlineText: String = ""
+    @State private var isEditing: Bool = false
+    @FocusState private var fieldFocused: Bool
     
     private var activeText: String {
         activeDimension == .width ? widthText : heightText
@@ -48,18 +47,17 @@ struct ResizeSliderControl: View {
                 )
                 contentRow()
                     .allowsHitTesting(!isDragging)
-                    .padding(.horizontal, 0)
             }
             .font(Theme.Fonts.button)
             .onTapGesture {
                 if !isDragging {
-                    beginEditing()
+                    isEditing = true
                 }
             }
             .scrollGesture(
                 totalSteps: stops.count + 1,
                 sensitivity: 7.0,
-                isEnabled: !isEditingField && !fieldFocused
+                isEnabled: !isEditing
             ) { steps in
                 let current = Int(activeText) ?? 0
                 let currentIdx = current == 0 ? stops.count : (stops.firstIndex(of: current) ?? 0)
@@ -76,23 +74,21 @@ struct ResizeSliderControl: View {
                 DragGesture(minimumDistance: 2)
                     .onChanged { value in
                         isDragging = true
-                        // End editing so drag doesn't fight the text field
-                        if fieldFocused {
-                            NSApp.keyWindow?.endEditing(for: nil)
-                            fieldFocused = false
+                        if isEditing {
+                            isEditing = false
                         }
                         guard !stops.isEmpty else { return }
-                        let totalStops = stops.count + 1 // include original stop
+                        let totalStops = stops.count + 1
                         let width = max(containerSize.width, 1)
                         let x = min(max(0, value.location.x), width)
                         let p = Double(x / width)
                         let idx = Int((p * Double(max(totalStops - 1, 1))).rounded())
                         let clampedIdx = min(max(0, idx), max(totalStops - 1, 0))
+                        
                         if clampedIdx >= stops.count {
                             assignActive(nil)
                         } else {
-                            let side = stops[clampedIdx]
-                            assignActive(String(side))
+                            assignActive(String(stops[clampedIdx]))
                         }
                         handleStopHaptics(currentIndex: clampedIdx)
                     }
@@ -104,12 +100,9 @@ struct ResizeSliderControl: View {
         }
         .onAppear {
             initializeActiveDimension()
-            refocusAndSelectAll()
         }
         .onChange(of: activeDimension) {
-            refocusAndSelectAll()
             lastStopIndex = nil
-            isEditingField = false
         }
     }
     
@@ -120,31 +113,6 @@ struct ResizeSliderControl: View {
         } else {
             activeDimension = .width
             heightText = ""
-        }
-    }
-    
-    private func refocusAndSelectAll() {
-        // Attempt to select all text in the current first responder text field
-        // Avoid creating a field editor explicitly; only act when a session exists.
-        DispatchQueue.main.async {
-            fieldFocused = true
-            selectAllInFirstResponder()
-        }
-    }
-    
-    private func selectAllInFirstResponder() {
-        if let window = NSApp.keyWindow,
-           let textView = window.firstResponder as? NSTextView {
-            textView.selectAll(nil)
-        }
-    }
-    
-    private func beginEditing() {
-        isEditingField = true
-        inlineText = activeText
-        DispatchQueue.main.async {
-            fieldFocused = true
-            selectAllInFirstResponder()
         }
     }
     
@@ -188,105 +156,90 @@ struct ResizeSliderControl: View {
         }
     }
     
-    private func commitInlineEdit() {
-        let text = inlineText.filter { $0.isNumber }
-        assignActive(text)
-        isEditingField = false
-        fieldFocused = false
-        NSApp.keyWindow?.endEditing(for: nil)
-    }
-    
-    private func trailingLabelText() -> String {
-        if isEditingField { return String(localized: "px") }
-        return activeText.isEmpty ? String(localized: "Original") : String(localized: "px")
-    }
-    
-    // MARK: - Extracted logic for readability / type-checker performance
     @ViewBuilder
     private func contentRow() -> some View {
         HStack(spacing: 8) {
-            toggleButton()
-                .font(Theme.Fonts.button)
-                .foregroundStyle(.primary)
-                .padding(.leading, 6)
+            Button(action: {
+                withAnimation(Theme.Animations.fastSpring()) {
+                    let value = activeText
+                    activeDimension = (activeDimension == .width) ? .height : .width
+                    assignActive(value)
+                }
+            }) {
+                Text(activeDimension == .width ? String(localized: "Width") : String(localized: "Height"))
+                    .contentTransition(.opacity)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .padding(.horizontal, 8)
+                    .frame(height: Theme.Metrics.controlHeight - 10)
+                    .background(
+                        Capsule(style: .continuous)
+                            .stroke(Color.secondary.opacity(0.2), lineWidth: 2)
+                    )
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.plain)
+            .animation(Theme.Animations.fastSpring(), value: activeDimension)
+            .padding(.leading, 6)
+            
             trailingValue()
                 .frame(maxWidth: .infinity, alignment: .trailing)
         }
     }
     
     @ViewBuilder
-    private func toggleButton() -> some View {
-        Button(action: {
-            withAnimation(Theme.Animations.fastSpring()) {
-                toggleActiveDimensionKeepValue()
-            }
-        }) {
-            Text(activeDimension == .width ? String(localized: "Width") : String(localized: "Height"))
-                .contentTransition(.opacity)
-                .fixedSize(horizontal: true, vertical: false)
-                .padding(.horizontal, 8)
-                .frame(height: Theme.Metrics.controlHeight - 10)
-                .background(
-                    Capsule(style: .continuous)
-                        .stroke(Color.secondary.opacity(0.2), lineWidth: 2)
-                )
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-        .animation(Theme.Animations.fastSpring(), value: activeDimension)
-    }
-    
-    @ViewBuilder
     private func trailingValue() -> some View {
-        Group {
-            if isEditingField {
-                HStack(spacing: 4) {
-                    TextField("_empty_", text: $inlineText)
-                        .textFieldStyle(.plain)
-                        .multilineTextAlignment(.trailing)
-                        .focused($fieldFocused)
-                        .onSubmit { commitInlineEdit() }
-                        .fixedSize(horizontal: true, vertical: false)
-                        .monospacedDigit()
-                        .tint(Color.primary)
-                        .onChange(of: inlineText) { _, newValue in
-                            let filtered = newValue.filter { $0.isNumber }
-                            if filtered != inlineText { inlineText = filtered }
-                        }
-                        .onAppear {
-                            inlineText = activeText
-                            DispatchQueue.main.async {
-                                fieldFocused = true
-                                if let window = NSApp.keyWindow, let textView = window.firstResponder as? NSTextView { textView.selectAll(nil) }
+        HStack(spacing: 4) {
+            if isEditing {
+                TextField("", text: activeTextBinding())
+                    .textFieldStyle(.plain)
+                    .multilineTextAlignment(.trailing)
+                    .focused($fieldFocused)
+                    .fixedSize(horizontal: true, vertical: false)
+                    .monospacedDigit()
+                    .font(Theme.Fonts.button)
+                    .foregroundStyle(.primary)
+                    .onAppear {
+                        fieldFocused = true
+                        DispatchQueue.main.async {
+                            if let window = NSApp.keyWindow,
+                               let textView = window.firstResponder as? NSTextView {
+                                textView.selectAll(nil)
                             }
                         }
-                    Text(String(localized: "px"))
-                        .fixedSize(horizontal: true, vertical: false)
-                        .padding(.trailing, 10)
-                }
+                    }
+                    .onSubmit {
+                        isEditing = false
+                    }
             } else {
-                HStack(spacing: 4) {
-                    Text(activeText.isEmpty ? "" : activeText)
-                        .font(Theme.Fonts.button)
-                        .foregroundStyle(.primary)
-                        .monospacedDigit()
-                        .fixedSize(horizontal: true, vertical: false)
-                        .contentTransition(.numericText())
-                        .onTapGesture {
-                            beginEditing()
-                        }
-                    Text(trailingLabelText())
-                        .padding(.trailing, 10)
-                        .fixedSize(horizontal: true, vertical: false)
-                }
+                Text(activeText.isEmpty ? "" : activeText)
+                    .font(Theme.Fonts.button)
+                    .foregroundStyle(.primary)
+                    .monospacedDigit()
+                    .fixedSize(horizontal: true, vertical: false)
+                    .contentTransition(.numericText())
             }
+            
+            Text(labelText())
+                .fixedSize(horizontal: true, vertical: false)
+                .padding(.trailing, 10)
         }
     }
     
-    private func toggleActiveDimensionKeepValue() {
-        let value = activeText
-        activeDimension = (activeDimension == .width) ? .height : .width
-        assignActive(value)
+    private func labelText() -> String {
+        if isEditing || !activeText.isEmpty {
+            return String(localized: "px")
+        }
+        return String(localized: "Original")
+    }
+    
+    private func activeTextBinding() -> Binding<String> {
+        Binding(
+            get: { activeText },
+            set: { newValue in
+                let filtered = newValue.filter { $0.isNumber }
+                assignActive(filtered.isEmpty ? nil : filtered)
+            }
+        )
     }
 }
 

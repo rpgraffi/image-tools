@@ -70,8 +70,6 @@ struct PrimaryApplyControl: View {
                         .frame(width: w)
                         .animation(Theme.Animations.spring(), value: displayedProgress)
                 }
-                .frame(height: height) // constrain GeometryReader to pill height
-                .allowsHitTesting(false)
                 
                 HStack(spacing: 8) {
                     Image(systemName: iconName)
@@ -83,11 +81,9 @@ struct PrimaryApplyControl: View {
                 }
                 .font(Theme.Fonts.button)
                 .foregroundStyle(Color.white)
-                .frame(height: height)
                 .padding(.horizontal, horizontalPadding)
                 .frame(maxWidth: .infinity, alignment: .center)
                 // Measure intrinsic label size to hug width in default state
-                // TODO: Refactor (Simplify)
                 .background(
                     GeometryReader { proxy in
                         Color.clear
@@ -95,27 +91,22 @@ struct PrimaryApplyControl: View {
                     }
                 )
                 .onPreferenceChange(SizePreferenceKey.self) { newSize in
-                    if labelSize != newSize {
-                        labelSize = newSize
-                    }
+                    labelSize = newSize
                 }
-                // Drive numeric content transition
-                .animation(Theme.Animations.spring(), value: counterText)
-                .animation(Theme.Animations.spring(), value: ingestText)
             }
             .frame(width: targetWidth, height: height)
+            .background(.secondary.opacity(0.2))
+            .clipShape(RoundedRectangle(cornerRadius: .infinity, style: .continuous))
+            .contentShape(Rectangle())
         }
         .keyboardShortcut(.defaultAction)
         .buttonStyle(.plain)
-        .background(.secondary.opacity(0.2))
-        .clipShape(RoundedRectangle(cornerRadius: .infinity, style: .continuous))
-        .frame(maxWidth: maxWidth)
+        .shadow(color: Color.accentColor.opacity((isDisabled || isInProgress || ingestText != nil) ? 0 : 0.25), radius: 8, x: 0, y: 2)
         .disabled(isDisabled || ingestText != nil)
         .allowsHitTesting(!isInProgress && ingestText == nil)
-        .shadow(color: Color.accentColor.opacity((isDisabled || isInProgress || ingestText != nil) ? 0 : 0.25), radius: 8, x: 0, y: 2)
         .help(String(localized: "Save images"))
         .onChange(of: isInProgress) { _, isNowInProgress in
-            if isNowInProgress == false {
+            if !isNowInProgress {
                 // Show "Done" briefly when progress finishes
                 withAnimation(Theme.Animations.spring()) {
                     showDoneText = true
@@ -128,15 +119,12 @@ struct PrimaryApplyControl: View {
                 }
             } else {
                 // Reset immediately when starting again
-                withAnimation(Theme.Animations.spring()) {
-                    showDoneText = false
-                }
+                showDoneText = false
             }
         }
         .animation(Theme.Animations.spring(), value: isInProgress)
         .animation(Theme.Animations.spring(), value: showDoneText)
         .animation(Theme.Animations.spring(), value: ingestText)
-        .animation(Theme.Animations.spring(), value: ingestProgress)
     }
 } 
 
