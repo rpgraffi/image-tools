@@ -13,8 +13,19 @@ struct ComparisonPreviewState {
     var processedImage: NSImage?
     var isLoading: Bool
     var errorMessage: String?
+    var cropRegion: CGRect?
+    var originalSize: CGSize?
+    var processedSize: CGSize?
 
-    static let empty = ComparisonPreviewState(originalImage: nil, processedImage: nil, isLoading: false, errorMessage: nil)
+    static let empty = ComparisonPreviewState(
+        originalImage: nil,
+        processedImage: nil,
+        isLoading: false,
+        errorMessage: nil,
+        cropRegion: nil,
+        originalSize: nil,
+        processedSize: nil
+    )
 }
 
 // MARK: - Comparison Logic
@@ -111,12 +122,18 @@ extension ImageToolsViewModel {
         guard let selection = comparisonSelection,
               let asset = images.first(where: { $0.id == selection.assetID }) else { return }
         
+        // Calculate crop region immediately for consistency
+        let cropRegion = calculateCropRegion(for: asset)
+        
         // Immediately show thumbnail for instant feedback
         comparisonPreview = ComparisonPreviewState(
             originalImage: asset.thumbnail,
             processedImage: nil,
             isLoading: true,
-            errorMessage: nil
+            errorMessage: nil,
+            cropRegion: cropRegion,
+            originalSize: asset.originalPixelSize,
+            processedSize: nil
         )
         
         comparisonPreviewTask?.cancel()
@@ -140,10 +157,15 @@ extension ImageToolsViewModel {
     private func loadComparisonPreview(for asset: ImageAsset) async {
         let assetID = asset.id
         
+        // Calculate crop region
+        let cropRegion = await MainActor.run { calculateCropRegion(for: asset) }
+        
         // Load original image off main thread
         let original = await Task.detached(priority: .userInitiated) {
             NSImage(contentsOf: asset.originalURL)
         }.value
+        
+        let originalSize = original?.size
         
         // Check if this asset is still selected before updating
         guard await isStillSelected(assetID) else { return }
@@ -153,7 +175,10 @@ extension ImageToolsViewModel {
                 originalImage: original,
                 processedImage: nil,
                 isLoading: true,
-                errorMessage: nil
+                errorMessage: nil,
+                cropRegion: cropRegion,
+                originalSize: originalSize,
+                processedSize: nil
             )
         }
         
@@ -165,6 +190,8 @@ extension ImageToolsViewModel {
                 return NSImage(contentsOf: temporaryURL)
             }.value
             
+            let processedSize = processed?.size
+            
             guard await isStillSelected(assetID) else { return }
             
             await MainActor.run {
@@ -172,7 +199,10 @@ extension ImageToolsViewModel {
                     originalImage: original,
                     processedImage: processed,
                     isLoading: false,
-                    errorMessage: nil
+                    errorMessage: nil,
+                    cropRegion: cropRegion,
+                    originalSize: originalSize,
+                    processedSize: processedSize
                 )
             }
         } catch {
@@ -183,7 +213,10 @@ extension ImageToolsViewModel {
                     originalImage: original,
                     processedImage: nil,
                     isLoading: false,
-                    errorMessage: error.localizedDescription
+                    errorMessage: error.localizedDescription,
+                    cropRegion: cropRegion,
+                    originalSize: originalSize,
+                    processedSize: nil
                 )
             }
         }
@@ -191,6 +224,52 @@ extension ImageToolsViewModel {
     
     private func isStillSelected(_ assetID: UUID) async -> Bool {
         await MainActor.run { comparisonSelection?.assetID == assetID }
+    }
+    
+    /// Calculate the normalized crop region (0-1 coordinates) on the original image
+    func calculateCropRegion(for asset: ImageAsset) -> CGRect? {
+        guard resizeMode == .crop,
+              let targetWidth = Int(resizeWidth),
+              let targetHeight = Int(resizeHeight),
+              let originalSize = asset.originalPixelSize,
+              originalSize.width > 0,
+              originalSize.height > 0 else {
+            return nil
+        }
+        
+        let currentWidth = originalSize.width
+        let currentHeight = originalSize.height
+        let targetW = CGFloat(targetWidth)
+        let targetH = CGFloat(targetHeight)
+        
+        // Calculate scale to COVER the target dimensions (matching CropOperation logic)
+        let scaleX = targetW / currentWidth
+        let scaleY = targetH / currentHeight
+        let scale = max(scaleX, scaleY)
+        
+        // Size after scaling
+        let scaledWidth = currentWidth * scale
+        let scaledHeight = currentHeight * scale
+        
+        // Center crop position (in scaled space)
+        let cropX = (scaledWidth - targetW) / 2
+        let cropY = (scaledHeight - targetH) / 2
+        
+        // Convert back to original image space
+        let originXInOriginal = cropX / scale
+        let originYInOriginal = cropY / scale
+        let widthInOriginal = targetW / scale
+        let heightInOriginal = targetH / scale
+        
+        // Normalize to 0-1 range
+        let normalizedRect = CGRect(
+            x: originXInOriginal / currentWidth,
+            y: originYInOriginal / currentHeight,
+            width: widthInOriginal / currentWidth,
+            height: heightInOriginal / currentHeight
+        )
+        
+        return normalizedRect
     }
 }
 

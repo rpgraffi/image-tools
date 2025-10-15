@@ -54,7 +54,9 @@ struct InputPillField: View {
                 }
                 .onChange(of: text) { _, newValue in
                     let filtered = newValue.filter { $0.isNumber }
-                    if filtered != text { text = filtered }
+                    if filtered != newValue {
+                        text = filtered
+                    }
                 }
                 .frame(alignment: .trailing)
                 .padding(.trailing, 10)

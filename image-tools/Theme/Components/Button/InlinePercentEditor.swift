@@ -26,7 +26,9 @@ struct InlinePercentEditor: View {
                         .onChange(of: text) { _, newValue in
                             if let filter = onChangeFilter {
                                 let filtered = filter(newValue)
-                                if filtered != text { text = filtered }
+                                if filtered != newValue {
+                                    text = filtered
+                                }
                             }
                         }
                     Text(String(localized: "percent"))

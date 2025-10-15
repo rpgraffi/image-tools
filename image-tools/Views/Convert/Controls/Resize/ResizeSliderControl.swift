@@ -237,7 +237,10 @@ struct ResizeSliderControl: View {
             get: { activeText },
             set: { newValue in
                 let filtered = newValue.filter { $0.isNumber }
-                assignActive(filtered.isEmpty ? nil : filtered)
+                // Only update if we actually filtered something out, or if the value changed
+                if filtered != newValue || filtered != activeText {
+                    assignActive(filtered.isEmpty ? nil : filtered)
+                }
             }
         )
     }
