@@ -93,6 +93,8 @@ struct PrimaryApplyControl: View {
                 .onPreferenceChange(SizePreferenceKey.self) { newSize in
                     labelSize = newSize
                 }
+                .animation(Theme.Animations.spring(), value: counterText)
+                .animation(Theme.Animations.spring(), value: ingestText)
             }
             .frame(width: targetWidth, height: height)
             .background(.secondary.opacity(0.2))

@@ -129,8 +129,9 @@ struct CropOperation: ImageOperation {
         let scaledExtent = scaled.extent
         
         // Now center crop to exact target dimensions
-        let x = (scaledExtent.width - targetW) / 2
-        let y = (scaledExtent.height - targetH) / 2
+        // Round x and y to avoid sub-pixel positioning that can cause off-by-one errors
+        let x = ((scaledExtent.width - targetW) / 2).rounded(.toNearestOrEven)
+        let y = ((scaledExtent.height - targetH) / 2).rounded(.toNearestOrEven)
         
         let cropRect = CGRect(x: x, y: y, width: targetW, height: targetH)
         return scaled.cropped(to: cropRect)

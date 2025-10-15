@@ -157,7 +157,7 @@ struct ComparisonView: View {
                         .onHover { isHovering in
                             isHandleHovering = isHovering
                             if isHovering {
-                                NSCursor.resizeLeftRight.push()
+                                NSCursor.frameResize(position: .right, directions: .all).push()
                             } else {
                                 NSCursor.pop()
                             }
