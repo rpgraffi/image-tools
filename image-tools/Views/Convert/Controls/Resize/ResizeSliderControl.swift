@@ -23,12 +23,11 @@ struct ResizeSliderControl: View {
     }
     
     private func assignActive(_ newValue: String?) {
-        let sanitized = newValue?.filter { $0.isNumber } ?? ""
         if activeDimension == .width {
-            widthText = sanitized
+            widthText = newValue ?? ""
             heightText = ""
         } else {
-            heightText = sanitized
+            heightText = newValue ?? ""
             widthText = ""
         }
     }
@@ -236,13 +235,9 @@ struct ResizeSliderControl: View {
         Binding(
             get: { activeText },
             set: { newValue in
-                let filtered = newValue.filter { $0.isNumber }
-                // Only update if we actually filtered something out, or if the value changed
-                if filtered != newValue || filtered != activeText {
-                    assignActive(filtered.isEmpty ? nil : filtered)
-                }
+                assignActive(newValue.isEmpty ? nil : newValue)
             }
-        )
+        ).numericOnly()
     }
 }
 

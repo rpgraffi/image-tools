@@ -16,21 +16,13 @@ struct InlinePercentEditor: View {
         Group {
             if isEditing {
                 HStack(spacing: 2) {
-                    TextField(String(localized: "_empty_"), text: $text)
+                    TextField(String(localized: "_empty_"), text: onChangeFilter.map { $text.filtered(by: $0) } ?? $text)
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.trailing)
                         .font(font)
                         .focused($fieldFocused)
                         .frame(minWidth: minWidth, maxWidth: maxWidth)
                         .onSubmit { onCommit?(); isEditing = false; fieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
-                        .onChange(of: text) { _, newValue in
-                            if let filter = onChangeFilter {
-                                let filtered = filter(newValue)
-                                if filtered != newValue {
-                                    text = filtered
-                                }
-                            }
-                        }
                     Text(String(localized: "percent"))
                         .font(font)
                         .foregroundStyle(.primary)

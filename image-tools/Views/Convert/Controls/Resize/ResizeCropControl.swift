@@ -41,7 +41,7 @@ struct InputPillField: View {
             
             Spacer()
             
-            TextField("px", text: $text)
+            TextField("px", text: $text.numericOnly())
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.trailing)
                 .focused($isFocused)
@@ -51,12 +51,6 @@ struct InputPillField: View {
                 .onSubmit {
                     isFocused = false
                     NSApp.keyWindow?.makeFirstResponder(nil)
-                }
-                .onChange(of: text) { _, newValue in
-                    let filtered = newValue.filter { $0.isNumber }
-                    if filtered != newValue {
-                        text = filtered
-                    }
                 }
                 .frame(alignment: .trailing)
                 .padding(.trailing, 10)

@@ -44,6 +44,10 @@ struct ComparisonView: View {
                 }
                 .background(.thickMaterial)
                 .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+                .matchedGeometryEffect(
+                    id: "hero-\(asset.id)",
+                    in: heroNamespace,
+                )
                 
                 // Handle overlay
                 if showUI {
@@ -158,12 +162,12 @@ struct ComparisonView: View {
                     break
                 }
             }
+            .onTapGesture(count: 2) {
+                zoomPanState.reset(animated: true)
+            }
             .gesture(panGesture())
             .simultaneousGesture(magnificationGesture(containerSize: containerSize))
-        }.matchedGeometryEffect(
-            id: "hero-\(asset.id)",
-            in: heroNamespace,
-        )
+        }
     }
     
     private func originalImageLayer(imageFrame: CGRect) -> some View {

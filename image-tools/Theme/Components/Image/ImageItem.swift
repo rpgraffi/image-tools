@@ -92,14 +92,16 @@ struct ImageItem: View {
 private extension ImageItem {
     @ViewBuilder
     var thumbnailLayer: some View {
-        if let thumb = asset.thumbnail {
-            ImageThumbnail(thumbnail: thumb)
-                .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
-        } else {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.quaternary)
-                .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
+        ZStack {
+            if let thumb = asset.thumbnail {
+                ImageThumbnail(thumbnail: thumb)
+            } else {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(.quaternary)
+            }
         }
+        .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
+        .opacity(vm.comparisonSelection?.assetID == asset.id ? 0 : 1)
     }
     
     var fileNameOverlay: some View {
