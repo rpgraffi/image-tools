@@ -229,7 +229,7 @@ struct ResizeSliderControl: View {
             .textFieldStyle(.plain)
             .multilineTextAlignment(.trailing)
             .focused($fieldFocused)
-            .fixedSize(horizontal: true, vertical: false)
+            .frame(minWidth: 30, maxWidth: 60)
             .monospacedDigit()
             .font(Theme.Fonts.button)
             .foregroundStyle(.primary)

@@ -29,7 +29,7 @@ struct SquaresResizeControl: View {
     }
     
     private func selectSquare(_ side: Int) {
-        vm.resizeMode = .resize
+        vm.resizeMode = .crop
         vm.resizeWidth = String(side)
         vm.resizeHeight = String(side)
     }

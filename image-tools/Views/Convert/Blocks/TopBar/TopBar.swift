@@ -13,12 +13,11 @@ struct TopBar: View {
             HStack(spacing: 8) {
                 Text(isHovered ? "Converted: \(vm.totalImageConversions)" : "\(vm.totalImageConversions)")
                     .font(.system(.caption, design: .monospaced))
-                    .foregroundStyle(.secondary)
+                    // .foregroundStyle(.secondary)
+                    .animation(.easeInOut(duration: 0.18), value: isHovered)
                     .frame(minWidth: 130, alignment: .trailing)
                     .onHover { hovering in
-                        withAnimation(.easeInOut(duration: 0.18)) {
-                            isHovered = hovering
-                        }
+                        isHovered = hovering
                     }
                 
                 Menu {
@@ -51,13 +50,15 @@ struct TopBar: View {
                 } label: {
                     Image(systemName: "ellipsis")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(.secondary)
+                        // .foregroundColor(.secondary)
                         .frame(width: 24, height: 24)
                 }
                 .menuStyle(.borderlessButton)
                 .menuIndicator(.hidden)
+                // .foregroundColor(.secondary)
             }
         }
+        .foregroundColor(.secondary)
         .frame(height: 56)
         .padding(.trailing, 16)
         .padding(.leading, 70) // Traffic Lights Padding

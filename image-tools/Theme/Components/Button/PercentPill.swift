@@ -43,8 +43,6 @@ struct PercentPill: View {
                         Text("\(Int(progress * 100))%")
                             .font(Theme.Fonts.button)
                             .monospacedDigit()
-                            .contentTransition(.numericText())
-                            .animation(Theme.Animations.fastSpring(), value: progress)
                     }
                 }
                 .padding(.horizontal, 12)

@@ -5,44 +5,54 @@ struct InlinePercentEditor: View {
     @Binding var isEditing: Bool
     @Binding var text: String
     @FocusState private var fieldFocused: Bool
-
+    
     var minWidth: CGFloat = 28
     var maxWidth: CGFloat = 44
     var font: Font = Theme.Fonts.button
     var onCommit: (() -> Void)?
     var onChangeFilter: ((String) -> String)?
-
+    
     var body: some View {
         Group {
             if isEditing {
                 HStack(spacing: 2) {
-                    TextField(String(localized: "_empty_"), text: onChangeFilter.map { $text.filtered(by: $0) } ?? $text)
+                    TextField("", text: textBinding())
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.trailing)
                         .font(font)
                         .focused($fieldFocused)
                         .frame(minWidth: minWidth, maxWidth: maxWidth)
-                        .onSubmit { onCommit?(); isEditing = false; fieldFocused = false; NSApp.keyWindow?.endEditing(for: nil) }
-                    Text(String(localized: "percent"))
+                        .onSubmit {
+                            commitAndClose()
+                        }
+                    Text("percent")
                         .font(font)
                         .foregroundStyle(.primary)
                 }
                 .contentShape(Rectangle())
-                .onChange(of: fieldFocused) { _, focused in
-                    if !focused && isEditing {
-                        onCommit?()
-                        isEditing = false
+                .onChange(of: fieldFocused) { _, isFocused in
+                    if !isFocused && isEditing {
+                        commitAndClose()
                     }
                 }
                 .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
-                        if isEditing && !fieldFocused {
-                            fieldFocused = true
-                            NSApp.sendAction(#selector(NSText.selectAll(_:)), to: nil, from: nil)
-                        }
-                    }
+                    fieldFocused = true
+                    TextFieldUtilities.selectAllText()
                 }
             }
         }
     }
-} 
+    
+    private func textBinding() -> Binding<String> {
+        if let filter = onChangeFilter {
+            return $text.filtered(by: filter)
+        }
+        return $text
+    }
+    
+    private func commitAndClose() {
+        onCommit?()
+        isEditing = false
+        fieldFocused = false
+    }
+}
