@@ -20,6 +20,7 @@ struct WindowTitleBar: View {
             Menu {
                 if !purchaseManager.isProUnlocked {
                     Button {
+                        vm.paywallContext = .manual
                         vm.isPaywallPresented = true
                     } label: {
                         Label("Buy Lifetime", systemImage: "sparkle") 

@@ -43,6 +43,7 @@ extension ImageToolsViewModel {
     func applyPipelineAsync() {
         // Show paywall first when user is not unlocked, unless explicitly bypassed for this request.
         if !PurchaseManager.shared.isProUnlocked && !shouldBypassPaywallOnce {
+            paywallContext = .beforeExport
             isPaywallPresented = true
             return
         }

@@ -93,8 +93,14 @@ final class ImageToolsViewModel: ObservableObject {
     
     // MARK: - Paywall State
     
+    enum PaywallContext {
+        case manual // Opened from menu
+        case beforeExport // Opened before processing/export
+    }
+    
     @Published var isProUnlocked: Bool = false
     @Published var isPaywallPresented: Bool = false
+    var paywallContext: PaywallContext = .manual
     var shouldBypassPaywallOnce: Bool = false
     
     // MARK: - Subscriptions
@@ -126,7 +132,11 @@ final class ImageToolsViewModel: ObservableObject {
     func paywallContinueFree() {
         isPaywallPresented = false
         shouldBypassPaywallOnce = true
-        applyPipelineAsync()
+        
+        // Only start processing if paywall was opened from export/save action
+        if paywallContext == .beforeExport {
+            applyPipelineAsync()
+        }
     }
 
     // MARK: - Clear all images
