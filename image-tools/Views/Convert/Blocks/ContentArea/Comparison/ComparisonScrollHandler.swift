@@ -10,10 +10,8 @@ struct ComparisonScrollHandler: ViewModifier {
     
     func body(content: Content) -> some View {
         content
-            .onAppear {
-                if isEnabled {
-                    installScrollMonitor()
-                }
+            .onHover { isHovering in
+                isHovering && isEnabled ? installScrollMonitor() : removeScrollMonitor()
             }
             .onDisappear {
                 removeScrollMonitor()

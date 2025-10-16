@@ -13,7 +13,7 @@ struct ResizeSliderControl: View {
     private enum ActiveDimension { case width, height }
     
     @State private var activeDimension: ActiveDimension = .width
-    @State private var lastStopIndex: Int? = nil
+    @State private var hapticTracker = HapticStopTracker()
     @State private var isDragging: Bool = false
     @State private var isEditing: Bool = false
     @FocusState private var fieldFocused: Bool
@@ -37,7 +37,7 @@ struct ResizeSliderControl: View {
         let stops = allowedStopsForActiveDimension()
         let progress = valueToProgress(stops: stops)
         
-        return HStack(spacing: 0) {
+        HStack(spacing: 0) {
             ZStack {
                 PillBackground(
                     containerSize: containerSize,
@@ -49,47 +49,19 @@ struct ResizeSliderControl: View {
             }
             .font(Theme.Fonts.button)
             .onTapGesture {
-                if !isDragging {
-                    isEditing = true
-                }
+                isEditing = true
             }
             .scrollGesture(
                 totalSteps: stops.count + 1,
                 sensitivity: 7.0,
                 isEnabled: !isEditing
             ) { steps in
-                let current = Int(activeText) ?? 0
-                let currentIdx = current == 0 ? stops.count : (stops.firstIndex(of: current) ?? 0)
-                let newIdx = (currentIdx + steps).clamped(to: 0...stops.count)
-                
-                if newIdx >= stops.count {
-                    assignActive(nil)
-                } else {
-                    assignActive(String(stops[newIdx]))
-                }
-                handleStopHaptics(currentIndex: newIdx)
+                handleScrollGesture(steps: steps, stops: stops)
             }
             .highPriorityGesture(
                 DragGesture(minimumDistance: 2)
                     .onChanged { value in
-                        isDragging = true
-                        if isEditing {
-                            isEditing = false
-                        }
-                        guard !stops.isEmpty else { return }
-                        let totalStops = stops.count + 1
-                        let width = max(containerSize.width, 1)
-                        let x = min(max(0, value.location.x), width)
-                        let p = Double(x / width)
-                        let idx = Int((p * Double(max(totalStops - 1, 1))).rounded())
-                        let clampedIdx = min(max(0, idx), max(totalStops - 1, 0))
-                        
-                        if clampedIdx >= stops.count {
-                            assignActive(nil)
-                        } else {
-                            assignActive(String(stops[clampedIdx]))
-                        }
-                        handleStopHaptics(currentIndex: clampedIdx)
+                        handleDragGesture(value: value, stops: stops)
                     }
                     .onEnded { _ in
                         isDragging = false
@@ -101,7 +73,7 @@ struct ResizeSliderControl: View {
             initializeActiveDimension()
         }
         .onChange(of: activeDimension) {
-            lastStopIndex = nil
+            hapticTracker.reset()
         }
     }
     
@@ -115,70 +87,87 @@ struct ResizeSliderControl: View {
         }
     }
     
-    // MARK: - Stops and drag mapping
+    // MARK: - Gesture Handlers
+    
+    private func handleScrollGesture(steps: Int, stops: [Int]) {
+        let currentValue = Int(activeText) ?? 0
+        let currentIndex = currentValue == 0 ? stops.count : (stops.firstIndex(of: currentValue) ?? 0)
+        let newIndex = (currentIndex + steps).clamped(to: 0...stops.count)
+        
+        applyStopAtIndex(newIndex, stops: stops)
+    }
+    
+    private func handleDragGesture(value: DragGesture.Value, stops: [Int]) {
+        isDragging = true
+        if isEditing {
+            isEditing = false
+        }
+        guard !stops.isEmpty else { return }
+        
+        let stopIndex = calculateStopIndex(from: value.location.x, totalStops: stops.count + 1)
+        applyStopAtIndex(stopIndex, stops: stops)
+    }
+    
+    private func calculateStopIndex(from xPosition: CGFloat, totalStops: Int) -> Int {
+        let width = max(containerSize.width, 1)
+        let clampedX = min(max(0, xPosition), width)
+        let progress = Double(clampedX / width)
+        let rawIndex = Int((progress * Double(max(totalStops - 1, 1))).rounded())
+        return min(max(0, rawIndex), max(totalStops - 1, 0))
+    }
+    
+    private func applyStopAtIndex(_ index: Int, stops: [Int]) {
+        if index >= stops.count {
+            assignActive(nil)
+        } else {
+            assignActive(String(stops[index]))
+        }
+        hapticTracker.handleStopChange(currentIndex: index)
+    }
+    
+    // MARK: - Stops and Progress
+    
     private func hardcodedStops() -> [Int] {
-        return [32, 64, 128, 256, 512, 1024, 1080, 1500, 1920, 2048, 2160, 3840]
+        ResizeConstants.presetSizes
     }
     
     private func allowedStopsForActiveDimension() -> [Int] {
-        let all = hardcodedStops()
-        guard let base = baseSize else { return all }
-        let cap = activeDimension == .width ? Int(base.width) : Int(base.height)
-        if cap <= 0 { return all }
-        return all.filter { $0 <= cap }
+        let allStops = hardcodedStops()
+        guard let base = baseSize, base.width > 0, base.height > 0 else { return allStops }
+        
+        let maxValue = activeDimension == .width ? Int(base.width) : Int(base.height)
+        return allStops.filter { $0 <= maxValue }
     }
     
     private func valueToProgress(stops: [Int]) -> Double {
-        guard !stops.isEmpty else { return 0 }
+        guard !stops.isEmpty, stops.count > 1 else { return 0 }
+        
         if activeText.isEmpty {
             return 1.0
         }
-        let currentValue: Int = Int(activeText) ?? 0
-        let maxFillProgress: Double = 0.95
-        guard stops.count > 1 else { return 0 }
-        let denominator = Double(stops.count - 1)
-        let indexProgress: Double
-        if let idx = stops.firstIndex(of: currentValue) {
-            indexProgress = Double(idx) / denominator
+        
+        let currentValue = Int(activeText) ?? 0
+        let index: Int
+        
+        if let exactIndex = stops.firstIndex(of: currentValue) {
+            index = exactIndex
         } else {
-            let nearestIdx = stops.enumerated().min(by: { abs($0.element - currentValue) < abs($1.element - currentValue) })?.offset ?? 0
-            indexProgress = Double(nearestIdx) / denominator
+            index = stops.enumerated()
+                .min(by: { abs($0.element - currentValue) < abs($1.element - currentValue) })?
+                .offset ?? 0
         }
-        let clamped = min(max(indexProgress, 0), 1)
-        return clamped * maxFillProgress
+        
+        let normalizedProgress = Double(index) / Double(stops.count - 1)
+        return min(max(normalizedProgress, 0), 1) * 0.95
     }
     
-    private func handleStopHaptics(currentIndex: Int) {
-        if lastStopIndex != currentIndex {
-            Haptics.alignment()
-            lastStopIndex = currentIndex
-        }
-    }
+    // MARK: - UI Components
     
     @ViewBuilder
     private func contentRow() -> some View {
         HStack(spacing: 8) {
-            Button(action: {
-                withAnimation(Theme.Animations.fastSpring()) {
-                    let value = activeText
-                    activeDimension = (activeDimension == .width) ? .height : .width
-                    assignActive(value)
-                }
-            }) {
-                Text(activeDimension == .width ? String(localized: "Width") : String(localized: "Height"))
-                    .contentTransition(.opacity)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .padding(.horizontal, 8)
-                    .frame(height: Theme.Metrics.controlHeight - 10)
-                    .background(
-                        Capsule(style: .continuous)
-                            .stroke(Color.secondary.opacity(0.2), lineWidth: 2)
-                    )
-                    .contentShape(Rectangle())
-            }
-            .buttonStyle(.plain)
-            .animation(Theme.Animations.fastSpring(), value: activeDimension)
-            .padding(.leading, 6)
+            dimensionToggleButton()
+                .padding(.leading, 6)
             
             trailingValue()
                 .frame(maxWidth: .infinity, alignment: .trailing)
@@ -186,49 +175,75 @@ struct ResizeSliderControl: View {
     }
     
     @ViewBuilder
+    private func dimensionToggleButton() -> some View {
+        Button {
+            withAnimation(Theme.Animations.fastSpring()) {
+                let value = activeText
+                activeDimension = activeDimension == .width ? .height : .width
+                assignActive(value)
+            }
+        } label: {
+            Text(activeDimension == .width ? String(localized: "Width") : String(localized: "Height"))
+                .contentTransition(.opacity)
+                .fixedSize(horizontal: true, vertical: false)
+                .padding(.horizontal, 8)
+                .frame(height: Theme.Metrics.controlHeight - 10)
+                .background(
+                    Capsule(style: .continuous)
+                        .stroke(Color.secondary.opacity(0.2), lineWidth: 2)
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .animation(Theme.Animations.fastSpring(), value: activeDimension)
+    }
+    
+    @ViewBuilder
     private func trailingValue() -> some View {
         HStack(spacing: 4) {
             if isEditing {
-                TextField("", text: activeTextBinding())
-                    .textFieldStyle(.plain)
-                    .multilineTextAlignment(.trailing)
-                    .focused($fieldFocused)
-                    .fixedSize(horizontal: true, vertical: false)
-                    .monospacedDigit()
-                    .font(Theme.Fonts.button)
-                    .foregroundStyle(.primary)
-                    .onAppear {
-                        fieldFocused = true
-                        DispatchQueue.main.async {
-                            if let window = NSApp.keyWindow,
-                               let textView = window.firstResponder as? NSTextView {
-                                textView.selectAll(nil)
-                            }
-                        }
-                    }
-                    .onSubmit {
-                        isEditing = false
-                    }
+                editableTextField()
             } else {
                 Text(activeText.isEmpty ? "" : activeText)
                     .font(Theme.Fonts.button)
                     .foregroundStyle(.primary)
                     .monospacedDigit()
                     .fixedSize(horizontal: true, vertical: false)
-                    .contentTransition(.numericText())
+                    .animation(nil, value: activeText)
             }
             
             Text(labelText())
                 .fixedSize(horizontal: true, vertical: false)
                 .padding(.trailing, 10)
         }
+        .onChange(of: fieldFocused) { _, isFocused in
+            if !isFocused && isEditing {
+                isEditing = false
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private func editableTextField() -> some View {
+        TextField("", text: activeTextBinding())
+            .textFieldStyle(.plain)
+            .multilineTextAlignment(.trailing)
+            .focused($fieldFocused)
+            .fixedSize(horizontal: true, vertical: false)
+            .monospacedDigit()
+            .font(Theme.Fonts.button)
+            .foregroundStyle(.primary)
+            .onAppear {
+                fieldFocused = true
+                TextFieldUtilities.selectAllText()
+            }
+            .onSubmit {
+                isEditing = false
+            }
     }
     
     private func labelText() -> String {
-        if isEditing || !activeText.isEmpty {
-            return String(localized: "px")
-        }
-        return String(localized: "Original")
+        (isEditing || !activeText.isEmpty) ? String(localized: "px") : String(localized: "Original")
     }
     
     private func activeTextBinding() -> Binding<String> {

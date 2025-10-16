@@ -1,7 +1,7 @@
 import SwiftUI
 import AppKit
 
-struct CompressControl: View {
+struct QualityControl: View {
     @EnvironmentObject private var vm: ImageToolsViewModel
     
     @FocusState private var kbFieldFocused: Bool

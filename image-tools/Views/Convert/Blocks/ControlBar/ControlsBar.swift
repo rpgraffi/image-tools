@@ -12,7 +12,7 @@ struct ControlsBar: View {
                 .transition(.opacity.combined(with: .scale))
             
             if shouldShowCompression {
-                CompressControl()
+                QualityControl()
                     .transition(.opacity.combined(with: .scale))
             }
             

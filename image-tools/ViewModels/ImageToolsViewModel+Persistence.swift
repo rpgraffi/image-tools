@@ -28,10 +28,10 @@ extension ImageToolsViewModel {
         // Observe selectedFormat changes
         $selectedFormat
             .dropFirst()
-            .sink { [weak self] _ in
+            .sink { [weak self] newFormat in
                 guard let self else { return }
                 self.persistSelectedFormat()
-                self.onSelectedFormatChanged()
+                self.onSelectedFormatChanged(newFormat)
             }
             .store(in: &cancellables)
         
@@ -100,7 +100,7 @@ extension ImageToolsViewModel {
             SandboxAccessManager.shared.register(url: directory)
         }
 
-        onSelectedFormatChanged()
+        onSelectedFormatChanged(selectedFormat)
     }
 
     func persistRecentFormats() {
