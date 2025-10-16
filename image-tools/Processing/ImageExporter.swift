@@ -51,7 +51,7 @@ struct ImageExporter {
         }
 
         // Custom encoder if available for this UTType
-        if let encoder = CustomImageEncoderRegistry.shared.encoder(for: actualUTI) {
+        if let encoder = CustomImageEncoderRegistry.encoder(for: actualUTI) {
             let size = CGSize(width: ciImage.extent.width, height: ciImage.extent.height)
             let data = try encoder.encode(cgImage: cgImage, pixelSize: size, utType: actualUTI, compressionQuality: compressionQuality, stripMetadata: stripMetadata)
             return (data, actualUTI)

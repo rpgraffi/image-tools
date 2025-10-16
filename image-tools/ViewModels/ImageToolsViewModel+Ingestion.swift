@@ -155,7 +155,7 @@ extension ImageToolsViewModel {
         let fileName = asset.originalURL.lastPathComponent
         Self.ingestionLogger.debug("Thumbnail load begin: \(fileName, privacy: .public)")
         
-        let output = await ThumbnailGenerator.shared.load(for: asset.originalURL)
+        let output = await ThumbnailGenerator.load(for: asset.originalURL)
         
         Self.ingestionLogger.debug("""
             Thumbnail load done: \(fileName, privacy: .public) \

@@ -37,6 +37,12 @@ struct TopBar: View {
                         Label("Send Feedback", systemImage: "envelope")
                     }
                     
+                    Button {
+                        RatingService.requestReview()
+                    } label: {
+                        Label("Rate App", systemImage: "star")
+                    }
+                    
                     Link(destination: URL(string: "https://www.image-tool.app")!) {
                         Label("Website", systemImage: "globe")
                     }

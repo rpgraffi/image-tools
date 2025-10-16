@@ -7,17 +7,13 @@ protocol CustomImageEncoder {
     func encode(cgImage: CGImage, pixelSize: CGSize, utType: UTType, compressionQuality: Double?, stripMetadata: Bool) throws -> Data
 }
 
-final class CustomImageEncoderRegistry {
-    static let shared = CustomImageEncoderRegistry()
-    private var encoders: [CustomImageEncoder] = []
+struct CustomImageEncoderRegistry {
+    private static let encoders: [CustomImageEncoder] = [
+        WebPEncoder()
+    ]
 
-    private init() {
-        // Register built-in custom encoders here
-        encoders.append(WebPEncoder())
-    }
-
-    func encoder(for utType: UTType) -> CustomImageEncoder? {
-        return encoders.first { $0.canEncode(utType: utType) }
+    static func encoder(for utType: UTType) -> CustomImageEncoder? {
+        encoders.first { $0.canEncode(utType: utType) }
     }
 }
 
