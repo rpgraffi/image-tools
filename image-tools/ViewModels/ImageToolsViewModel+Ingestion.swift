@@ -7,8 +7,7 @@ extension ImageToolsViewModel {
     nonisolated static let ingestionLogger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "image-tools", category: "Ingestion")
     func addURLs(_ urls: [URL]) {
         Task(priority: .userInitiated) { [weak self] in
-            guard let self else { return }
-            await self.ingest(urls: urls)
+            await self?.ingest(urls: urls)
         }
     }
 
@@ -47,101 +46,141 @@ extension ImageToolsViewModel {
     }
 
     func prefillPixelsIfPossible() {
-        let targets: [ImageAsset] = images
-        guard let first = (targets.first) ?? targets.first else { return }
-        if let size = ImageMetadata.pixelSize(for: first.originalURL) {
-            let w = Int(size.width.rounded())
-            let h = Int(size.height.rounded())
-            let same = targets.allSatisfy { asset in
-                if let other = ImageMetadata.pixelSize(for: asset.originalURL) {
-                    return Int(other.width.rounded()) == w && Int(other.height.rounded()) == h
-                }
+        guard let firstAsset = images.first,
+              let firstSize = ImageMetadata.pixelSize(for: firstAsset.originalURL) else {
+            return
+        }
+        
+        let targetSize = (width: Int(firstSize.width.rounded()), height: Int(firstSize.height.rounded()))
+        
+        let allSameSize = images.allSatisfy { asset in
+            guard let size = ImageMetadata.pixelSize(for: asset.originalURL) else {
                 return false
             }
-            if same {
-                resizeWidth = String(w)
-                resizeHeight = String(h)
-            } else {
-                resizeWidth = ""
-                resizeHeight = ""
-            }
+            return Int(size.width.rounded()) == targetSize.width &&
+                   Int(size.height.rounded()) == targetSize.height
+        }
+        
+        if allSameSize {
+            resizeWidth = String(targetSize.width)
+            resizeHeight = String(targetSize.height)
+        } else {
+            resizeWidth = ""
+            resizeHeight = ""
         }
     }
 
-    func bumpRecentFormats(_ fmt: ImageFormat) {
-        recentFormats.removeAll { $0 == fmt }
-        recentFormats.insert(fmt, at: 0)
-        if recentFormats.count > 3 { recentFormats = Array(recentFormats.prefix(3)) }
+    func bumpRecentFormats(_ format: ImageFormat) {
+        recentFormats.removeAll { $0 == format }
+        recentFormats.insert(format, at: 0)
+        if recentFormats.count > 3 {
+            recentFormats = Array(recentFormats.prefix(3))
+        }
     }
+    
+    // MARK: - Private Methods
 
     private func ingest(urls: [URL]) async {
-        let readable = urls
-            .filter { ImageIOCapabilities.shared.isReadableURL($0) }
-            .map { $0.standardizedFileURL }
-        guard !readable.isEmpty else {
+        let readableURLs = filterReadableURLs(from: urls)
+        guard !readableURLs.isEmpty else {
             Self.ingestionLogger.debug("Ingest skip: no readable URLs from \(urls.count, privacy: .public) inputs")
             return
         }
 
-        Self.ingestionLogger.debug("Ingest start: \(readable.count, privacy: .public) readable URLs")
+        Self.ingestionLogger.debug("Ingest start: \(readableURLs.count, privacy: .public) readable URLs")
 
-        let existing: Set<URL> = Set(images.map { $0.originalURL })
-        let fresh = readable.filter { !existing.contains($0) }
-        if let firstDir = fresh.first?.deletingLastPathComponent() {
-            sourceDirectory = firstDir
-        }
-
-        guard !fresh.isEmpty else {
+        let newURLs = filterNewURLs(from: readableURLs)
+        guard !newURLs.isEmpty else {
             Self.ingestionLogger.debug("Ingest skip: all URLs already present")
             return
         }
 
-        Self.ingestionLogger.debug("Ingest new URLs: \(fresh.count, privacy: .public)")
+        Self.ingestionLogger.debug("Ingest new URLs: \(newURLs.count, privacy: .public)")
+        
+        updateSourceDirectory(from: newURLs)
+        let newAssets = newURLs.map { ImageAsset(url: $0) }
+        prepareIngestionState(for: newAssets.count)
+        images.append(contentsOf: newAssets)
+        
+        Self.ingestionLogger.debug("Appended assets. Total images: \(self.images.count, privacy: .public)")
 
-        let assets: [ImageAsset] = fresh.map { ImageAsset(url: $0) }
-
+        await loadThumbnails(for: newAssets)
+        Self.ingestionLogger.debug("Ingest complete for batch of \(newURLs.count, privacy: .public) URLs")
+    }
+    
+    private func filterReadableURLs(from urls: [URL]) -> [URL] {
+        urls
+            .filter { ImageIOCapabilities.shared.isReadableURL($0) }
+            .map { $0.standardizedFileURL }
+    }
+    
+    private func filterNewURLs(from urls: [URL]) -> [URL] {
+        let existingURLs = Set(images.map { $0.originalURL })
+        return urls.filter { !existingURLs.contains($0) }
+    }
+    
+    private func updateSourceDirectory(from urls: [URL]) {
+        if let firstDirectory = urls.first?.deletingLastPathComponent() {
+            sourceDirectory = firstDirectory
+        }
+    }
+    
+    private func prepareIngestionState(for count: Int) {
         if !isIngesting {
             ingestCompleted = 0
             ingestTotal = 0
         }
-        ingestTotal += fresh.count
+        ingestTotal += count
         if ingestTotal > ingestCompleted {
             isIngesting = true
         }
-        images.append(contentsOf: assets)
-        Self.ingestionLogger.debug("Appended assets. Total images: \(self.images.count, privacy: .public)")
-
+    }
+    
+    private func loadThumbnails(for assets: [ImageAsset]) async {
         let semaphore = AsyncSemaphore(value: 16)
 
         await withTaskGroup(of: Void.self) { group in
             for asset in assets {
-                let fileName = asset.originalURL.lastPathComponent
                 group.addTask(priority: .userInitiated) { [weak self] in
-                    await semaphore.acquire()
-                    guard let self else {
-                        await semaphore.release()
-                        return
-                    }
-                    Self.ingestionLogger.debug("Thumbnail load begin: \(fileName, privacy: .public)")
-                    let output = await ThumbnailGenerator.shared.load(for: asset.originalURL)
-                    Self.ingestionLogger.debug("Thumbnail load done: \(fileName, privacy: .public) thumb? \(output.thumbnail != nil) size? \(output.pixelSize != nil) bytes? \(output.fileSizeBytes != nil)")
-                    await self.applyThumbnailUpdate(for: asset, output: output)
-                    await self.incrementIngestionProgress()
-                    await semaphore.release()
+                    await self?.loadThumbnail(for: asset, semaphore: semaphore)
                 }
             }
         }
-        Self.ingestionLogger.debug("Ingest complete for batch of \(fresh.count, privacy: .public) URLs")
+    }
+    
+    private func loadThumbnail(for asset: ImageAsset, semaphore: AsyncSemaphore) async {
+        await semaphore.acquire()
+        defer { Task { await semaphore.release() } }
+        
+        let fileName = asset.originalURL.lastPathComponent
+        Self.ingestionLogger.debug("Thumbnail load begin: \(fileName, privacy: .public)")
+        
+        let output = await ThumbnailGenerator.shared.load(for: asset.originalURL)
+        
+        Self.ingestionLogger.debug("""
+            Thumbnail load done: \(fileName, privacy: .public) \
+            thumb? \(output.thumbnail != nil) \
+            size? \(output.pixelSize != nil) \
+            bytes? \(output.fileSizeBytes != nil)
+            """)
+        
+        applyThumbnailUpdate(for: asset, output: output)
+        incrementIngestionProgress()
     }
 
     private func applyThumbnailUpdate(for asset: ImageAsset, output: ThumbnailGenerator.Output) {
-        guard let idx = images.firstIndex(where: { $0.id == asset.id }) else {
-            Self.ingestionLogger.warning("Thumbnail update skipped; asset missing: \(asset.originalURL.lastPathComponent, privacy: .public)")
+        guard let index = images.firstIndex(where: { $0.id == asset.id }) else {
+            Self.ingestionLogger.warning("""
+                Thumbnail update skipped; asset missing: \
+                \(asset.originalURL.lastPathComponent, privacy: .public)
+                """)
             return
         }
-        images[idx].thumbnail = output.thumbnail
-        images[idx].originalPixelSize = output.pixelSize
-        images[idx].originalFileSizeBytes = output.fileSizeBytes
+        
+        images[index].thumbnail = output.thumbnail
+        images[index].originalPixelSize = output.pixelSize
+        images[index].originalFileSizeBytes = output.fileSizeBytes
+        
         Self.ingestionLogger.debug("Thumbnail applied: \(asset.originalURL.lastPathComponent, privacy: .public)")
     }
 

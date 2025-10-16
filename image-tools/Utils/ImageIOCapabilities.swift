@@ -176,7 +176,7 @@ final class ImageIOCapabilities {
         // ICNS
         if utType == UTType.icns {
             // Common ICNS pixel variants (backed by Apple's icon sizes)
-            return Set([16, 32, 64, 128, 256, 512])
+            return Set([16, 32, 128, 256, 512])
         }
         // ICO – identifier varies; resolve via extension when possible
         if utType.identifier.lowercased().contains("ico") || utType.preferredFilenameExtension == "ico" {

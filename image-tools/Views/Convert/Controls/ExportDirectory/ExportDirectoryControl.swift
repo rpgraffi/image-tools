@@ -30,6 +30,7 @@ struct ExportDirectoryControl: View {
             }
         }
         .padding(.horizontal, 12)
+        .contentShape(Rectangle())
         .onTapGesture { pickDirectory() }
         .background(
             RoundedRectangle(cornerRadius: corner, style: .continuous)

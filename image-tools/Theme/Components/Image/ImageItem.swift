@@ -55,7 +55,7 @@ struct ImageChangeInfo {
 // MARK: Main View
 struct ImageItem: View {
     let asset: ImageAsset
-    @ObservedObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     let heroNamespace: Namespace.ID
     
     @State private var isHovering: Bool = false
@@ -77,8 +77,7 @@ struct ImageItem: View {
         .contentShape(Rectangle())
         .onHover(perform: handleHover)
         .animation(.easeInOut(duration: 0.15), value: isHovering)
-        .onChange(of: vm.sizeUnit) { vm.triggerEstimationForVisible([asset]) }
-        .onChange(of: vm.resizePercent) { vm.triggerEstimationForVisible([asset]) }
+        .onChange(of: vm.resizeMode) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.resizeWidth) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.resizeHeight) { vm.triggerEstimationForVisible([asset]) }
         .onChange(of: vm.selectedFormat) { vm.triggerEstimationForVisible([asset]) }
@@ -93,14 +92,16 @@ struct ImageItem: View {
 private extension ImageItem {
     @ViewBuilder
     var thumbnailLayer: some View {
-        if let thumb = asset.thumbnail {
-            ImageThumbnail(thumbnail: thumb)
-                .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
-        } else {
-            RoundedRectangle(cornerRadius: 10, style: .continuous)
-                .fill(.quaternary)
-                .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
+        ZStack {
+            if let thumb = asset.thumbnail {
+                ImageThumbnail(thumbnail: thumb)
+            } else {
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(.quaternary)
+            }
         }
+        .matchedGeometryEffect(id: "hero-\(asset.id)", in: heroNamespace)
+        .opacity(vm.comparisonSelection?.assetID == asset.id ? 0 : 1)
     }
     
     var fileNameOverlay: some View {

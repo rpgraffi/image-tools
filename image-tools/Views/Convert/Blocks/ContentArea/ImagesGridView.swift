@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 
 struct ImagesGridView: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     let images: [ImageAsset]
     let columns: [GridItem]
     let heroNamespace: Namespace.ID
@@ -26,7 +26,6 @@ struct ImagesGridView: View {
                 ForEach(images) { asset in
                     ImageItem(
                         asset: asset,
-                        vm: vm,
                         heroNamespace: heroNamespace
                     )
                     .aspectRatio(1, contentMode: .fit)

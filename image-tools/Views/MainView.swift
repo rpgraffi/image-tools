@@ -3,16 +3,18 @@ import AppKit
 import UniformTypeIdentifiers
 
 struct MainView: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     
     var body: some View {
-        VStack() {
+        VStack(spacing: 0) {
+            TopBar()
             ControlsBar()
             ContentArea()
             BottomBar()
         }
         .frame(minWidth: 680)
         .background(.regularMaterial)
+        .ignoresSafeArea(.all, edges: .top)
         .onAppear {
             WindowConfigurator.configureMainWindow()
             PurchaseManager.shared.configure()
@@ -23,10 +25,7 @@ struct MainView: View {
             vm.addFromPasteboard()
         }
         .sheet(isPresented: $vm.isPaywallPresented) {
-            PaywallView(
-                purchase: PurchaseManager.shared,
-                onContinue: { vm.paywallContinueFree() }
-            )
+            PaywallView()
         }
     }
 }

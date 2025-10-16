@@ -23,19 +23,20 @@ final class ImageToolsViewModel: ObservableObject {
     @Published var sourceDirectory: URL? = nil
     
     var isExportingToSource: Bool {
-        guard let source = sourceDirectory?.standardizedFileURL else { return false }
-        let export = exportDirectory?.standardizedFileURL
-        return export == nil || export == source
+        guard let source = sourceDirectory?.standardizedFileURL else {
+            return false
+        }
+        guard let export = exportDirectory?.standardizedFileURL else {
+            return true
+        }
+        return export == source
     }
     
     // MARK: - Resize Settings
     
-    @Published var sizeUnit: SizeUnitToggle = .pixels
-    @Published var resizePercent: Double = 1.0
+    @Published var resizeMode: ResizeMode = .resize
     @Published var resizeWidth: String = ""
     @Published var resizeHeight: String = ""
-    @Published var storedPixelWidth: String? = nil
-    @Published var storedPixelHeight: String? = nil
     
     // MARK: - Format Settings
     
@@ -120,21 +121,6 @@ final class ImageToolsViewModel: ObservableObject {
             }
     }
 
-    // MARK: - UI State Transitions
-    func handleSizeUnitToggle(to newUnit: SizeUnitToggle) {
-        switch newUnit {
-        case .pixels:
-            if let w = storedPixelWidth, let h = storedPixelHeight, (!w.isEmpty || !h.isEmpty) {
-                resizeWidth = w
-                resizeHeight = h
-            } else {
-                prefillPixelsIfPossible()
-            }
-        case .percent:
-            storedPixelWidth = resizeWidth
-            storedPixelHeight = resizeHeight
-        }
-    }
 
     // MARK: - Paywall actions
     func paywallContinueFree() {

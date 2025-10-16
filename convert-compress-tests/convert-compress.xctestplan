@@ -13,11 +13,10 @@
   },
   "testTargets" : [
     {
-      "parallelizable" : true,
       "target" : {
-        "containerPath" : "container:image-tools.xcodeproj",
+        "containerPath" : "container:convert-compress.xcodeproj",
         "identifier" : "B77ECCD12E45573400C28347",
-        "name" : "image-toolsTests"
+        "name" : "convert-compress-tests"
       }
     }
   ],

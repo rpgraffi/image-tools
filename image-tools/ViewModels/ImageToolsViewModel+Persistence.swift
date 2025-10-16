@@ -16,23 +16,22 @@ extension ImageToolsViewModel {
             }
             .store(in: &cancellables)
         
-        // Observe sizeUnit changes
-        $sizeUnit
+        // Observe resizeMode changes
+        $resizeMode
             .dropFirst()
-            .sink { [weak self] newUnit in
+            .sink { [weak self] _ in
                 guard let self else { return }
-                self.handleSizeUnitToggle(to: newUnit)
-                self.persistSizeUnit()
+                self.persistResizeMode()
             }
             .store(in: &cancellables)
         
         // Observe selectedFormat changes
         $selectedFormat
             .dropFirst()
-            .sink { [weak self] _ in
+            .sink { [weak self] newFormat in
                 guard let self else { return }
                 self.persistSelectedFormat()
-                self.onSelectedFormatChanged()
+                self.onSelectedFormatChanged(newFormat)
             }
             .store(in: &cancellables)
         
@@ -57,7 +56,7 @@ extension ImageToolsViewModel {
         static let recentFormats = "image_tools.recent_formats.v1"
         static let selectedFormat = "image_tools.selected_format.v1"
         static let exportDirectory = "image_tools.export_directory.v1"
-        static let sizeUnit = "image_tools.size_unit.v1"
+        static let resizeMode = "image_tools.resize_mode.v1"
         static let usageEvents = "image_tools.usage_events.v1"
         static let isProUnlocked = "image_tools.is_pro_unlocked.v1"
     }
@@ -80,13 +79,13 @@ extension ImageToolsViewModel {
             exportDirectory = URL(fileURLWithPath: exportPath)
         }
 
-        if let unitRaw = defaults.string(forKey: PersistenceKeys.sizeUnit) {
-            switch unitRaw {
-            case "pixels":
-                sizeUnit = .pixels
-            case "percent": fallthrough
+        if let modeRaw = defaults.string(forKey: PersistenceKeys.resizeMode) {
+            switch modeRaw {
+            case "crop":
+                resizeMode = .crop
+            case "resize": fallthrough
             default:
-                sizeUnit = .percent
+                resizeMode = .resize
             }
         }
 
@@ -101,8 +100,7 @@ extension ImageToolsViewModel {
             SandboxAccessManager.shared.register(url: directory)
         }
 
-        onSelectedFormatChanged()
-        handleSizeUnitToggle(to: sizeUnit)
+        onSelectedFormatChanged(selectedFormat)
     }
 
     func persistRecentFormats() {
@@ -124,10 +122,10 @@ extension ImageToolsViewModel {
         }
     }
 
-    func persistSizeUnit() {
+    func persistResizeMode() {
         let defaults = UserDefaults.standard
-        let value = (sizeUnit == .pixels) ? "percent" : "pixels"
-        defaults.set(value, forKey: PersistenceKeys.sizeUnit)
+        let value = (resizeMode == .resize) ? "crop" : "resize"
+        defaults.set(value, forKey: PersistenceKeys.resizeMode)
     }
 
     // MARK: - Usage tracking persistence

@@ -4,9 +4,10 @@ import AppKit
 /// UI for formats that only support a fixed set of square sizes (e.g., ICNS/ICO).
 /// Uses a discrete pill slider across allowed sizes and a menu to pick exact size.
 struct SquaresResizeControl: View {
-    @EnvironmentObject var vm: ImageToolsViewModel
+    @EnvironmentObject private var vm: ImageToolsViewModel
     let allowedSizes: [Int] // sorted ascending
     @State private var menuHandler: MenuHandler?
+    @State private var hapticTracker = HapticStopTracker()
     
     var body: some View {
         GeometryReader { geo in
@@ -28,14 +29,9 @@ struct SquaresResizeControl: View {
     }
     
     private func selectSquare(_ side: Int) {
-        vm.sizeUnit = .pixels
+        vm.resizeMode = .crop
         vm.resizeWidth = String(side)
         vm.resizeHeight = String(side)
-        if let asset = (vm.images.first) ?? vm.images.first,
-           let base = asset.originalPixelSize, base.width > 0, base.height > 0 {
-            let scale = Double(side) / Double(min(base.width, base.height))
-            vm.resizePercent = max(0.01, min(1.0, scale))
-        }
     }
     
     private func discretePercentPill(containerSize: CGSize, corner: CGFloat, sizes: [Int]) -> some View {
@@ -57,16 +53,15 @@ struct SquaresResizeControl: View {
                     .font(Theme.Fonts.button)
                     .foregroundStyle(.primary)
                     .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .animation(Theme.Animations.fastSpring(), value: progress)
             }
             .padding(.horizontal, 12)
         }
         .contentShape(Rectangle())
-        .scrollGesture(totalSteps: sizes.count) { steps in
+        .scrollGesture(totalSteps: sizes.count, sensitivity: 10.0) { steps in
             let currentIdx = sizes.firstIndex(of: Int(vm.resizeWidth) ?? 0) ?? 0
             let newIdx = (currentIdx + steps).clamped(to: 0...(sizes.count - 1))
             selectSquare(sizes[newIdx])
+            hapticTracker.handleStopChange(currentIndex: newIdx)
         }
         .gesture(
             DragGesture(minimumDistance: 2)
@@ -74,7 +69,11 @@ struct SquaresResizeControl: View {
                     let width = max(containerSize.width, 1)
                     let x = min(max(0, value.location.x), width)
                     let p = Double(x / width)
-                    progressToNearestValue(p, sizes: sizes)
+                    let count = max(sizes.count, 1)
+                    let idx = Int((p * Double(count - 1)).rounded())
+                    let clampedIdx = min(max(0, idx), count - 1)
+                    selectSquare(sizes[clampedIdx])
+                    hapticTracker.handleStopChange(currentIndex: clampedIdx)
                 }
         )
     }
@@ -91,13 +90,6 @@ struct SquaresResizeControl: View {
         let current = Int(vm.resizeWidth) ?? sizes.first ?? 0
         guard let idx = sizes.firstIndex(of: current), sizes.count > 1 else { return 0 }
         return Double(idx) / Double(sizes.count - 1)
-    }
-    
-    private func progressToNearestValue(_ p: Double, sizes: [Int]) {
-        let count = max(sizes.count, 1)
-        let idx = Int((p * Double(count - 1)).rounded())
-        let side = sizes[min(max(0, idx), count - 1)]
-        selectSquare(side)
     }
     
     private func showSizesMenuAtMouseLocation(sizes: [Int]) {

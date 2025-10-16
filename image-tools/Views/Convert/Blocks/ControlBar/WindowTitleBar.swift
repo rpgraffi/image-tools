@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct WindowTitleBar: View {
-    @StateObject private var vm = ImageToolsViewModel()
+    @EnvironmentObject private var vm: ImageToolsViewModel
     @StateObject private var purchaseManager = PurchaseManager.shared
     @State private var isHovered: Bool = false
     
@@ -11,7 +11,6 @@ struct WindowTitleBar: View {
                 .font(.system(.caption, design: .monospaced))
                 .foregroundStyle(.secondary)
                 .frame(minWidth: 130, alignment: .trailing)
-                .contentShape(Rectangle())
                 .onHover { hovering in
                     withAnimation(.easeInOut(duration: 0.18)) {
                         isHovered = hovering
@@ -21,13 +20,10 @@ struct WindowTitleBar: View {
             Menu {
                 if !purchaseManager.isProUnlocked {
                     Button {
-                        Task {
-                            await purchaseManager.purchaseLifetime()
-                        }
+                        vm.isPaywallPresented = true
                     } label: {
-                        Label("Buy Lifetime", systemImage: "sparkle")
+                        Label("Buy Lifetime", systemImage: "sparkle") 
                     }
-                    
                     Divider()
                 }
                 
@@ -37,15 +33,15 @@ struct WindowTitleBar: View {
                     Label("Send Feedback", systemImage: "envelope")
                 }
                 
-                Link(destination: URL(string: "https://www.image-tool.app")!) {
+                Link(destination: URL(string: "https://convert-compress.com")!) {
                     Label("Website", systemImage: "globe")
                 }
                 
-                ShareLink(item: URL(string: "https://www.image-tool.app")!) {
+                ShareLink(item: URL(string: "https://convert-compress.com")!) {
                     Label("Share App", systemImage: "square.and.arrow.up")
                 }
                 
-                Link(destination: URL(string: "https://github.com/rpgraffi/image-tools")!) {
+                Link(destination: URL(string: "https://github.com/rpgraffi/convert-compress")!) {
                     Label("GitHub", systemImage: "chevron.left.forwardslash.chevron.right")
                 }
             } label: {
@@ -57,7 +53,6 @@ struct WindowTitleBar: View {
             }
             .menuStyle(.borderlessButton)
             .menuIndicator(.hidden)
-            .fixedSize()
         }
     }
     

@@ -1,8 +1,7 @@
 import Foundation
 
 struct PipelineBuilder {
-    func build(sizeUnit: SizeUnitToggle,
-               resizePercent: Double,
+    func build(resizeMode: ResizeMode,
                resizeWidth: String,
                resizeHeight: String,
                selectedFormat: ImageFormat?,
@@ -17,11 +16,16 @@ struct PipelineBuilder {
         pipeline.finalFormat = selectedFormat
         pipeline.compressionPercent = compressionPercent
 
-        // Resize
-        if sizeUnit == .percent, resizePercent != 1.0 {
-            pipeline.add(ResizeOperation(mode: .percent(resizePercent)))
-        } else if sizeUnit == .pixels, (Int(resizeWidth) != nil || Int(resizeHeight) != nil) {
-            pipeline.add(ResizeOperation(mode: .pixels(width: Int(resizeWidth), height: Int(resizeHeight))))
+        let widthInt = Int(resizeWidth)
+        let heightInt = Int(resizeHeight)
+        
+        // Handle resize or crop based on mode
+        if resizeMode == .crop, let w = widthInt, let h = heightInt {
+            // Both dimensions filled in crop mode: CropOperation handles resize + crop internally
+            pipeline.add(CropOperation(targetWidth: w, targetHeight: h))
+        } else if widthInt != nil || heightInt != nil {
+            // One or both dimensions filled in resize mode, or only one dimension in crop mode: resize maintaining aspect ratio
+            pipeline.add(ResizeOperation(mode: .pixels(width: widthInt, height: heightInt)))
         }
 
         // Enforce format-specific size constraints before conversion

@@ -1,8 +1,8 @@
 import SwiftUI
 
 struct PaywallView: View {
-    @ObservedObject var purchase: PurchaseManager
-    let onContinue: () -> Void
+    @EnvironmentObject private var vm: ImageToolsViewModel
+    @ObservedObject private var purchase = PurchaseManager.shared
     
     var body: some View {
         VStack(spacing: 16) {
@@ -18,7 +18,7 @@ struct PaywallView: View {
                             .foregroundStyle(.secondary)
                     }
                     Spacer()
-                    Button(action: onContinue) {
+                    Button(action: { vm.paywallContinueFree() }) {
                         Text(String(localized:"Continue"))
                             .font(.system(size: 18))
                             .frame(maxWidth: .infinity)
@@ -129,7 +129,7 @@ struct PaywallView: View {
             Alert(title: Text(wrapper.message))
         }
         .onChange(of: purchase.isProUnlocked) {
-            if purchase.isProUnlocked { onContinue() }
+            if purchase.isProUnlocked { vm.paywallContinueFree() }
         }
     }
 }
@@ -140,7 +140,6 @@ private struct LocalizedErrorWrapper: Identifiable {
 }
 
 #Preview {
-    PaywallView(purchase: PurchaseManager.shared, onContinue: {})
+    PaywallView()
+        .environmentObject(ImageToolsViewModel())
 }
-
-

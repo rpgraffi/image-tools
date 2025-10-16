@@ -28,18 +28,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		B7B69C582E83FC5700BE3883 /* image-tools.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "image-tools.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "image-toolsUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7B69C582E83FC5700BE3883 /* convert-compress.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "convert-compress.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7B69C592E83FC5700BE3883 /* convert-compress-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "convert-compress-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		B7B69C5A2E83FC5700BE3883 /* convert-compress-ui-tests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "convert-compress-ui-tests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "image-tools" target */ = {
+		B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "convert-compress" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = B77ECCC32E45573200C28347 /* image-tools */;
+			target = B77ECCC32E45573200C28347 /* convert-compress */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -47,19 +47,19 @@
 		B77ECCC62E45573200C28347 /* image-tools */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "image-tools" target */,
+				B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "convert-compress" target */,
 			);
 			path = "image-tools";
 			sourceTree = "<group>";
 		};
-		B77ECCD52E45573400C28347 /* image-toolsTests */ = {
+		B77ECCD52E45573400C28347 /* convert-compress-tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "image-toolsTests";
+			path = "convert-compress-tests";
 			sourceTree = "<group>";
 		};
-		B77ECCDF2E45573400C28347 /* image-toolsUITests */ = {
+		B77ECCDF2E45573400C28347 /* convert-compress-ui-tests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = "image-toolsUITests";
+			path = "convert-compress-ui-tests";
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -94,20 +94,20 @@
 			isa = PBXGroup;
 			children = (
 				B77ECCC62E45573200C28347 /* image-tools */,
-				B77ECCD52E45573400C28347 /* image-toolsTests */,
-				B77ECCDF2E45573400C28347 /* image-toolsUITests */,
-				B7B69C582E83FC5700BE3883 /* image-tools.app */,
-				B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */,
-				B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */,
+				B77ECCD52E45573400C28347 /* convert-compress-tests */,
+				B77ECCDF2E45573400C28347 /* convert-compress-ui-tests */,
+				B7B69C582E83FC5700BE3883 /* convert-compress.app */,
+				B7B69C592E83FC5700BE3883 /* convert-compress-tests.xctest */,
+				B7B69C5A2E83FC5700BE3883 /* convert-compress-ui-tests.xctest */,
 			);
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		B77ECCC32E45573200C28347 /* image-tools */ = {
+		B77ECCC32E45573200C28347 /* convert-compress */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B77ECCE62E45573400C28347 /* Build configuration list for PBXNativeTarget "image-tools" */;
+			buildConfigurationList = B77ECCE62E45573400C28347 /* Build configuration list for PBXNativeTarget "convert-compress" */;
 			buildPhases = (
 				B77ECCC02E45573200C28347 /* Sources */,
 				B77ECCC12E45573200C28347 /* Frameworks */,
@@ -120,17 +120,17 @@
 			fileSystemSynchronizedGroups = (
 				B77ECCC62E45573200C28347 /* image-tools */,
 			);
-			name = "image-tools";
+			name = "convert-compress";
 			packageProductDependencies = (
 				B7438E632E7DA6F3003E7442 /* SDWebImageWebPCoder */,
 			);
 			productName = "image-tools";
-			productReference = B7B69C582E83FC5700BE3883 /* image-tools.app */;
+			productReference = B7B69C582E83FC5700BE3883 /* convert-compress.app */;
 			productType = "com.apple.product-type.application";
 		};
-		B77ECCD12E45573400C28347 /* image-toolsTests */ = {
+		B77ECCD12E45573400C28347 /* convert-compress-tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B77ECCE92E45573400C28347 /* Build configuration list for PBXNativeTarget "image-toolsTests" */;
+			buildConfigurationList = B77ECCE92E45573400C28347 /* Build configuration list for PBXNativeTarget "convert-compress-tests" */;
 			buildPhases = (
 				B77ECCCE2E45573400C28347 /* Sources */,
 				B77ECCCF2E45573400C28347 /* Frameworks */,
@@ -142,18 +142,18 @@
 				B77ECCD42E45573400C28347 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				B77ECCD52E45573400C28347 /* image-toolsTests */,
+				B77ECCD52E45573400C28347 /* convert-compress-tests */,
 			);
-			name = "image-toolsTests";
+			name = "convert-compress-tests";
 			packageProductDependencies = (
 			);
-			productName = "image-toolsTests";
-			productReference = B7B69C592E83FC5700BE3883 /* image-toolsTests.xctest */;
+			productName = "convert-compress-tests";
+			productReference = B7B69C592E83FC5700BE3883 /* convert-compress-tests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
 		};
-		B77ECCDB2E45573400C28347 /* image-toolsUITests */ = {
+		B77ECCDB2E45573400C28347 /* convert-compress-ui-tests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = B77ECCEC2E45573400C28347 /* Build configuration list for PBXNativeTarget "image-toolsUITests" */;
+			buildConfigurationList = B77ECCEC2E45573400C28347 /* Build configuration list for PBXNativeTarget "convert-compress-ui-tests" */;
 			buildPhases = (
 				B77ECCD82E45573400C28347 /* Sources */,
 				B77ECCD92E45573400C28347 /* Frameworks */,
@@ -165,13 +165,13 @@
 				B77ECCDE2E45573400C28347 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
-				B77ECCDF2E45573400C28347 /* image-toolsUITests */,
+				B77ECCDF2E45573400C28347 /* convert-compress-ui-tests */,
 			);
-			name = "image-toolsUITests";
+			name = "convert-compress-ui-tests";
 			packageProductDependencies = (
 			);
 			productName = "image-toolsUITests";
-			productReference = B7B69C5A2E83FC5700BE3883 /* image-toolsUITests.xctest */;
+			productReference = B7B69C5A2E83FC5700BE3883 /* convert-compress-ui-tests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -197,7 +197,7 @@
 					};
 				};
 			};
-			buildConfigurationList = B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "image-tools" */;
+			buildConfigurationList = B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "convert-compress" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -232,9 +232,9 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				B77ECCC32E45573200C28347 /* image-tools */,
-				B77ECCD12E45573400C28347 /* image-toolsTests */,
-				B77ECCDB2E45573400C28347 /* image-toolsUITests */,
+				B77ECCC32E45573200C28347 /* convert-compress */,
+				B77ECCD12E45573400C28347 /* convert-compress-tests */,
+				B77ECCDB2E45573400C28347 /* convert-compress-ui-tests */,
 			);
 		};
 /* End PBXProject section */
@@ -290,12 +290,12 @@
 /* Begin PBXTargetDependency section */
 		B77ECCD42E45573400C28347 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = B77ECCC32E45573200C28347 /* image-tools */;
+			target = B77ECCC32E45573200C28347 /* convert-compress */;
 			targetProxy = B77ECCD32E45573400C28347 /* PBXContainerItemProxy */;
 		};
 		B77ECCDE2E45573400C28347 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = B77ECCC32E45573200C28347 /* image-tools */;
+			target = B77ECCC32E45573200C28347 /* convert-compress */;
 			targetProxy = B77ECCDD2E45573400C28347 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -531,7 +531,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "raffistudio.image-toolsTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "raffistudio.convert-compress-tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -555,7 +555,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
 				MACOSX_DEPLOYMENT_TARGET = 15.5;
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "raffistudio.image-toolsTests";
+				PRODUCT_BUNDLE_IDENTIFIER = "raffistudio.convert-compress-tests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
 				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx xros xrsimulator";
@@ -616,7 +616,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "image-tools" */ = {
+		B77ECCBF2E45573200C28347 /* Build configuration list for PBXProject "convert-compress" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B77ECCE42E45573400C28347 /* Debug */,
@@ -625,7 +625,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B77ECCE62E45573400C28347 /* Build configuration list for PBXNativeTarget "image-tools" */ = {
+		B77ECCE62E45573400C28347 /* Build configuration list for PBXNativeTarget "convert-compress" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B77ECCE72E45573400C28347 /* Debug */,
@@ -634,7 +634,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B77ECCE92E45573400C28347 /* Build configuration list for PBXNativeTarget "image-toolsTests" */ = {
+		B77ECCE92E45573400C28347 /* Build configuration list for PBXNativeTarget "convert-compress-tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B77ECCEA2E45573400C28347 /* Debug */,
@@ -643,7 +643,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		B77ECCEC2E45573400C28347 /* Build configuration list for PBXNativeTarget "image-toolsUITests" */ = {
+		B77ECCEC2E45573400C28347 /* Build configuration list for PBXNativeTarget "convert-compress-ui-tests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				B77ECCED2E45573400C28347 /* Debug */,

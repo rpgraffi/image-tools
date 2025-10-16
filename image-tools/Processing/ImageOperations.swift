@@ -101,6 +101,43 @@ struct FlipVerticalOperation: ImageOperation {
     // Disk write handled at pipeline end
 }
 
+struct CropOperation: ImageOperation {
+    let targetWidth: Int
+    let targetHeight: Int
+    
+    // Resize to cover target dimensions, then center crop to exact size
+    func transformed(_ input: CIImage) throws -> CIImage {
+        let extent = input.extent
+        let currentWidth = extent.width
+        let currentHeight = extent.height
+        
+        let targetW = CGFloat(targetWidth)
+        let targetH = CGFloat(targetHeight)
+        
+        // Calculate scale to COVER the target dimensions (not fit within)
+        let scaleX = targetW / currentWidth
+        let scaleY = targetH / currentHeight
+        let scale = max(scaleX, scaleY) // Use max to cover, not min to fit
+        
+        // Resize to cover the target dimensions
+        let lanczos = CIFilter.lanczosScaleTransform()
+        lanczos.inputImage = input
+        lanczos.scale = Float(scale)
+        lanczos.aspectRatio = 1.0
+        guard let scaled = lanczos.outputImage else { throw ImageOperationError.exportFailed }
+        
+        let scaledExtent = scaled.extent
+        
+        // Now center crop to exact target dimensions
+        // Round x and y to avoid sub-pixel positioning that can cause off-by-one errors
+        let x = ((scaledExtent.width - targetW) / 2).rounded(.toNearestOrEven)
+        let y = ((scaledExtent.height - targetH) / 2).rounded(.toNearestOrEven)
+        
+        let cropRect = CGRect(x: x, y: y, width: targetW, height: targetH)
+        return scaled.cropped(to: cropRect)
+    }
+}
+
 struct RemoveBackgroundOperation: ImageOperation {
     func transformed(_ input: CIImage) throws -> CIImage {
         guard let masked = try? removeBackgroundCIImage(input) else {

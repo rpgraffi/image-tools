@@ -8,8 +8,7 @@ extension ImageToolsViewModel {
     func triggerEstimationForVisible(_ visibleAssets: [ImageAsset]) {
         // Cancel previous run
         estimationTask?.cancel()
-        let sizeUnit = self.sizeUnit
-        let resizePercent = self.resizePercent
+        let resizeMode = self.resizeMode
         let resizeWidth = self.resizeWidth
         let resizeHeight = self.resizeHeight
         let selectedFormat = self.selectedFormat
@@ -23,8 +22,7 @@ extension ImageToolsViewModel {
             let enabled = visibleAssets
             let map = await TrueSizeEstimator.estimate(
                 assets: enabled,
-                sizeUnit: sizeUnit,
-                resizePercent: resizePercent,
+                resizeMode: resizeMode,
                 resizeWidth: resizeWidth,
                 resizeHeight: resizeHeight,
                 selectedFormat: selectedFormat,
