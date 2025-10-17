@@ -252,7 +252,7 @@ struct ResizeSliderControl: View {
             set: { newValue in
                 assignActive(newValue.isEmpty ? nil : newValue)
             }
-        ).numericOnly()
+        )
     }
 }
 

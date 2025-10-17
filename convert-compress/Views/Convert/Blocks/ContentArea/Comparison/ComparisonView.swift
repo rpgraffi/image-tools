@@ -9,7 +9,7 @@ import SwiftUI
 /// - Drag: Pan when zoomed
 /// - Handle drag: Move comparison slider
 /// - Mouse wheel + Option: Zoom (for mouse users)
-/// - Keyboard: 0 (reset), +/- (zoom), arrows (navigate)
+/// - Keyboard: Space/Esc (close), arrows (navigate), C (toggle comparison)
 struct ComparisonView: View {
     @EnvironmentObject private var vm: ImageToolsViewModel
     let asset: ImageAsset
@@ -23,8 +23,6 @@ struct ComparisonView: View {
     @State private var lastDragLocation: CGPoint = .zero
     @State private var lastPointerLocation: CGPoint = .zero
     @State private var handleDragStartPosition: CGFloat? = nil
-    @State private var showZoomBadge: Bool = false
-    @State private var zoomBadgeHideTask: Task<Void, Never>?
     
     private var preview: ComparisonPreviewState { vm.comparisonPreview }
     private var fileName: String { asset.originalURL.lastPathComponent }
@@ -65,22 +63,27 @@ struct ComparisonView: View {
                     .allowsHitTesting(true)
                 }
             }
-                                .overlay(alignment: .top) {
-                        if showUI {
-                            topBar
-                                .transition(
-                                    .move(edge: .top).combined(with: .opacity)
-                                )
-                        }
-                    }
-                    .overlay(alignment: .bottom) {
-                        if showUI {
-                            bottomLabels
-                                .transition(
-                                    .move(edge: .bottom).combined(with: .opacity)
-                                )
-                        }
-                    }
+            .overlay(alignment: .top) {
+                if showUI {
+                    ComparisonTop(
+                        asset: asset,
+                        heroNamespace: heroNamespace,
+                        sliderPosition: $sliderPosition,
+                        zoomPanState: zoomPanState
+                    )
+                    .transition(
+                        .move(edge: .top).combined(with: .opacity)
+                    )
+                }
+            }
+            .overlay(alignment: .bottom) {
+                if showUI {
+                    ComparisonBottom(asset: asset)
+                        .transition(
+                            .move(edge: .bottom).combined(with: .opacity)
+                        )
+                }
+            }
             .onChange(of: containerSize) { _, newSize in
                 updateZoomPanContainer(size: newSize, imageFrame: imageFrame)
             }
@@ -93,7 +96,7 @@ struct ComparisonView: View {
     var body: some View {
         mainContent
             .comparisonScrollHandler(zoomPanState: zoomPanState)
-        .onAppear {
+            .onAppear {
             sliderPosition = 0.5
             vm.refreshComparisonPreview()
             withAnimation(Theme.Animations.fastSpring()) {
@@ -111,28 +114,8 @@ struct ComparisonView: View {
                 vm.triggerEstimationForVisible([asset])
             }
         }
-        .onChange(of: preview.cropRegion) { _, _ in
-            // Reset zoom when crop region changes (user changed crop settings)
-            zoomPanState.reset(animated: false)
-        }
-        .onChange(of: zoomPanState.scale) { _, _ in
-            // Show badge when zooming
-            showZoomBadge = true
-            
-            // Cancel existing hide task
-            zoomBadgeHideTask?.cancel()
-            
-            // Schedule new hide task for 3 seconds
-            zoomBadgeHideTask = Task {
-                try? await Task.sleep(for: .seconds(3))
-                if !Task.isCancelled {
-                    showZoomBadge = false
-                }
-            }
-        }
         .onDisappear {
             removeKeyMonitor()
-            zoomBadgeHideTask?.cancel()
         }
         .focusable()
         .focusEffectDisabled()
@@ -194,18 +177,25 @@ struct ComparisonView: View {
             imageFrame: imageFrame,
             cropRegion: preview.cropRegion
         )
+        let isCropped = preview.cropRegion != nil
         
         return GeometryReader { geo in
             Image(nsImage: image)
                 .resizable()
                 .aspectRatio(contentMode: .fit)
                 .frame(width: cropAlignment.size.width, height: cropAlignment.size.height)
+                .overlay {
+                    if isCropped {
+                        RoundedRectangle(cornerRadius: 2, style: .continuous)
+                            .strokeBorder(.secondary, lineWidth: 0.5)
+                            .frame(width: cropAlignment.size.width, height: cropAlignment.size.height)
+                    }
+                }
                 .offset(x: cropAlignment.offset.x, y: cropAlignment.offset.y)
                 .scaleEffect(zoomPanState.scale, anchor: .center)
                 .offset(x: zoomPanState.offset.x, y: zoomPanState.offset.y)
                 .position(x: geo.size.width / 2, y: geo.size.height / 2)
                 .drawingGroup(opaque: false, colorMode: .nonLinear)
-
                 .mask(alignment: .trailing) {
                     Rectangle()
                         .frame(width: (1.0 - sliderPosition) * geo.size.width)
@@ -284,7 +274,6 @@ struct ComparisonView: View {
     private func handleDragGesture(containerSize: CGSize) -> some Gesture {
         DragGesture(minimumDistance: 0)
             .onChanged { value in
-                
                 // Calculate position relative to container, accounting for initial click offset
                 let adjustedX = value.location.x - (handleDragStartPosition ?? 0)
                 let normalized = min(max(0, adjustedX / containerSize.width), 1)
@@ -333,138 +322,10 @@ struct ComparisonView: View {
             }
     }
     
-    private var topBar: some View {
-        HStack(alignment: .top, spacing: 4) {
-            SingleLineOverlayBadge(text: fileName)
-                .matchedGeometryEffect(
-                    id: "filename-\(asset.id)",
-                    in: heroNamespace
-                )
-            SingleLineOverlayBadge(text: "\(zoomPanState.zoomPercent)%")
-                .opacity(showZoomBadge ? 1 : 0)
-                .animation(.easeInOut(duration: 0.2), value: showZoomBadge)
-            Spacer()
-            Button(action: { 
-                // Toggle between 0 and 1 without animation
-                sliderPosition = sliderPosition < 0.5 ? 1.0 : 0.0
-            }) {
-                ZStack {
-                    Circle()
-                        .fill(.regularMaterial)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
-                        )
-                    Image(systemName: sliderPosition < 0.99 ? "inset.filled.righthalf.lefthalf.rectangle" : "inset.filled.lefthalf.righthalf.rectangle")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.primary)
-                }
-            }
-            .buttonStyle(.plain)
-            .frame(width: 32, height: 32)
-            .contentShape(Circle())
-            .help(sliderPosition < 0.5 ? String(localized: "Show processed image") : String(localized: "Show original image"))
-            
-            Button(action: { vm.dismissComparison() }) {
-                ZStack {
-                    Circle()
-                        .fill(.regularMaterial)
-                        .overlay(
-                            Circle()
-                                .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)
-                        )
-                    Image(systemName: "xmark")
-                        .font(.system(size: 13, weight: .semibold, design: .rounded))
-                        .foregroundStyle(.primary)
-                }
-            }
-            .buttonStyle(.plain)
-            .frame(width: 32, height: 32)
-            .contentShape(Circle())
-            .help(String(localized: "Close comparison"))
-            
-        }
-        .padding(16)
-    }
-    
-    private var bottomLabels: some View {
-        return HStack(alignment: .bottom) {
-            VStack(alignment: .leading, spacing: 6) {
-                imageInfoBadges(isOriginal: true)
-                    .transition(.opacity.combined(with: .move(edge: .leading)))
-            }
-            Spacer()
-            VStack(alignment: .trailing, spacing: 6) {
-                imageInfoBadges(isOriginal: false)
-                    .transition(.opacity.combined(with: .move(edge: .trailing)))
-            }
-            
-        }
-        .padding(16)
-    }
-    
-    // MARK: - Image Info Badges
-    
-    private func imageInfoBadges(isOriginal: Bool) -> some View {
-        HStack(alignment: .bottom, spacing: 6) {
-            if isOriginal {
-                SingleLineOverlayBadge(text: String(localized: "Original"), padding: 4)
-            } else {
-                SingleLineOverlayBadge(text: String(localized: "Preview"), padding: 4)
-            }
-            
-            // Format badge
-            if let format = isOriginal ? originalFormat : targetFormat {
-                SingleLineOverlayBadge(text: format.displayName, padding: 4)
-            }
-            
-            // Resolution badge
-            if let size = isOriginal ? asset.originalPixelSize : targetPixelSize
-            {
-                SingleLineOverlayBadge(text: "\(Int(size.width))×\(Int(size.height))", padding: 4)
-            }
-            
-            // File size badge
-            if let bytes = isOriginal
-                ? asset.originalFileSizeBytes : estimatedOutputBytes
-            {
-                SingleLineOverlayBadge(text: formatBytes(bytes), padding: 4)
-            }
-            
-            // Savings badges (only for preview/processed side)
-            if !isOriginal, let original = asset.originalFileSizeBytes, let estimated = estimatedOutputBytes, original != estimated {
-                let difference = original - estimated
-                let sign = difference > 0 ? "-" : "+"
-                let absValue = abs(difference)
-                let percentChange = Int(round(Double(absValue) / Double(original) * 100))
-                
-                SingleLineOverlayBadge(text: "\(sign)\(formatBytes(absValue))", padding: 4)
-                SingleLineOverlayBadge(text: "\(sign)\(percentChange)%", padding: 4)
-            }
-        }
-    }
-    
-    private var originalFormat: ImageFormat? {
-        ImageExporter.inferFormat(from: asset.originalURL)
-    }
-    
-    private var targetFormat: ImageFormat? {
-        vm.selectedFormat ?? originalFormat
-    }
-    
-    private var targetPixelSize: CGSize? {
-        vm.previewInfo(for: asset).targetPixelSize
-    }
-    
-    private var estimatedOutputBytes: Int? {
-        vm.estimatedBytes[asset.id]
-        ?? vm.previewInfo(for: asset).estimatedOutputBytes
-    }
-    
     // MARK: - Image Frame Calculation
     
-    /// Calculates the actual frame of the fitted image within the container
-    /// Always uses original image to prevent view shrinking when cropping
+    /// Calculates the frame of the fitted image within the container.
+    /// Always uses original image to prevent view shrinking when cropping.
     private func calculateImageFrame(containerSize: CGSize) -> CGRect {
         guard let image = preview.originalImage ?? asset.thumbnail,
               image.size.width > 0, image.size.height > 0
@@ -475,16 +336,15 @@ struct ComparisonView: View {
         let imageAspect = image.size.width / image.size.height
         let containerAspect = containerSize.width / containerSize.height
         
-        let fittedSize =
-        imageAspect > containerAspect
-        ? CGSize(
-            width: containerSize.width,
-            height: containerSize.width / imageAspect
-        )
-        : CGSize(
-            width: containerSize.height * imageAspect,
-            height: containerSize.height
-        )
+        let fittedSize = imageAspect > containerAspect
+            ? CGSize(
+                width: containerSize.width,
+                height: containerSize.width / imageAspect
+            )
+            : CGSize(
+                width: containerSize.height * imageAspect,
+                height: containerSize.height
+            )
         
         let origin = CGPoint(
             x: (containerSize.width - fittedSize.width) / 2,
@@ -494,13 +354,16 @@ struct ComparisonView: View {
         return CGRect(origin: origin, size: fittedSize)
     }
     
-    
     // MARK: - Keyboard Handling
     
     private func installKeyMonitor() {
         removeKeyMonitor()
-        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak vm, weak zoomPanState] event in
-            guard let vm = vm, let zoomPanState = zoomPanState else { return event }
+        keyEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            
+            // Check if a text field is currently focused - if so, let arrow keys pass through
+            if isTextFieldFocused() && (event.keyCode == 123 || event.keyCode == 124) {
+                return event
+            }
             
             switch event.keyCode {
             case 49, 53: // Spacebar or Escape
@@ -512,22 +375,8 @@ struct ComparisonView: View {
             case 124: // Right arrow
                 vm.navigateToNextImage()
                 return nil
-            case 29: // 0 key - reset zoom
-                zoomPanState.reset(animated: true)
-                return nil
-            case 24: // + key - zoom in
-                let center = CGPoint(
-                    x: zoomPanState.containerSize.width / 2,
-                    y: zoomPanState.containerSize.height / 2
-                )
-                zoomPanState.zoom(by: 1.25, at: center)
-                return nil
-            case 27: // - key - zoom out
-                let center = CGPoint(
-                    x: zoomPanState.containerSize.width / 2,
-                    y: zoomPanState.containerSize.height / 2
-                )
-                zoomPanState.zoom(by: 0.8, at: center)
+            case 8: // C key - toggle comparison slider
+                sliderPosition = sliderPosition < 0.5 ? 1.0 : 0.0
                 return nil
             default:
                 return event
@@ -542,4 +391,8 @@ struct ComparisonView: View {
         }
     }
     
+    private func isTextFieldFocused() -> Bool {
+        guard let firstResponder = NSApp.keyWindow?.firstResponder else { return false }
+        return firstResponder is NSText || firstResponder is NSTextField
+    }
 }

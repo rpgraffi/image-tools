@@ -36,8 +36,7 @@ struct PercentPill: View {
                         InlinePercentEditor(
                             isEditing: $isEditing,
                             text: $percentString,
-                            onCommit: commitPercent,
-                            onChangeFilter: { $0.filter(\.isNumber) }
+                            onCommit: commitPercent
                         )
                     } else {
                         Text("\(Int(progress * 100))%")

@@ -5,7 +5,7 @@ struct OverlayBackground: View {
     
     var body: some View {
         RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-            .fill(Material.ultraThin)
+            .fill(Material.thin)
             .overlay(
                 RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
                     .stroke(Color.primary.opacity(0.15), lineWidth: 0.5)

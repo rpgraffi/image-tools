@@ -10,13 +10,12 @@ struct InlinePercentEditor: View {
     var maxWidth: CGFloat = 44
     var font: Font = Theme.Fonts.button
     var onCommit: (() -> Void)?
-    var onChangeFilter: ((String) -> String)?
     
     var body: some View {
         Group {
             if isEditing {
                 HStack(spacing: 2) {
-                    TextField("", text: textBinding())
+                    TextField("", text: $text)
                         .textFieldStyle(.plain)
                         .multilineTextAlignment(.trailing)
                         .font(font)
@@ -41,13 +40,6 @@ struct InlinePercentEditor: View {
                 }
             }
         }
-    }
-    
-    private func textBinding() -> Binding<String> {
-        if let filter = onChangeFilter {
-            return $text.filtered(by: filter)
-        }
-        return $text
     }
     
     private func commitAndClose() {

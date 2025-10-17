@@ -41,7 +41,7 @@ struct InputPillField: View {
             
             Spacer()
             
-            TextField("px", text: $text.numericOnly())
+            TextField("px", text: $text)
                 .textFieldStyle(.plain)
                 .multilineTextAlignment(.trailing)
                 .focused($isFocused)
