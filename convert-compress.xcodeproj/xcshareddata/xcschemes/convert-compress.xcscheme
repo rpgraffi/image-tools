@@ -56,7 +56,7 @@
          </AdditionalOption>
       </AdditionalOptions>
       <StoreKitConfigurationFileReference
-         identifier = "../../image-tools/StoreKit/StoreKitConfig.storekit">
+         identifier = "../../convert-compress/StoreKit/StoreKitConfig.storekit">
       </StoreKitConfigurationFileReference>
    </LaunchAction>
    <ProfileAction

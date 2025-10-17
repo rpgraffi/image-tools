@@ -34,7 +34,7 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "convert-compress" target */ = {
+		B7B69C572E83CBDA00BE3883 /* Exceptions for "convert-compress" folder in "convert-compress" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
@@ -44,12 +44,12 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		B77ECCC62E45573200C28347 /* image-tools */ = {
+		B77ECCC62E45573200C28347 /* convert-compress */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				B7B69C572E83CBDA00BE3883 /* Exceptions for "image-tools" folder in "convert-compress" target */,
+				B7B69C572E83CBDA00BE3883 /* Exceptions for "convert-compress" folder in "convert-compress" target */,
 			);
-			path = "image-tools";
+			path = "convert-compress";
 			sourceTree = "<group>";
 		};
 		B77ECCD52E45573400C28347 /* convert-compress-tests */ = {
@@ -93,7 +93,7 @@
 		B77ECCBB2E45573200C28347 = {
 			isa = PBXGroup;
 			children = (
-				B77ECCC62E45573200C28347 /* image-tools */,
+				B77ECCC62E45573200C28347 /* convert-compress */,
 				B77ECCD52E45573400C28347 /* convert-compress-tests */,
 				B77ECCDF2E45573400C28347 /* convert-compress-ui-tests */,
 				B7B69C582E83FC5700BE3883 /* convert-compress.app */,
@@ -118,7 +118,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				B77ECCC62E45573200C28347 /* image-tools */,
+				B77ECCC62E45573200C28347 /* convert-compress */,
 			);
 			name = "convert-compress";
 			packageProductDependencies = (
@@ -431,7 +431,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "image-tools/image_tools.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "convert-compress/ConvertCompress.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
@@ -442,7 +442,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "image-tools/Info.plist";
+				INFOPLIST_FILE = "convert-compress/Info.plist";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
@@ -478,7 +478,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_INCLUDE_ALL_APPICON_ASSETS = YES;
-				CODE_SIGN_ENTITLEMENTS = "image-tools/image_tools.entitlements";
+				CODE_SIGN_ENTITLEMENTS = "convert-compress/ConvertCompress.entitlements";
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
@@ -489,7 +489,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "image-tools/Info.plist";
+				INFOPLIST_FILE = "convert-compress/Info.plist";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
