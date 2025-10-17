@@ -2,7 +2,6 @@ import SwiftUI
 
 struct PrimaryApplyControl: View {
     @EnvironmentObject private var vm: ImageToolsViewModel
-    @State private var labelSize: CGSize = .zero
     @State private var showDoneText: Bool = false
     
     var body: some View {
@@ -15,11 +14,7 @@ struct PrimaryApplyControl: View {
         let ingestProgress: Double = vm.ingestFraction
         
         let height: CGFloat = 40
-        let horizontalPadding: CGFloat = 20
-        let maxWidth: CGFloat = 200
-        
-        let huggedWidth = max(labelSize.width + horizontalPadding * 2, height)
-        let targetWidth = (isInProgress || ingestText != nil) ? maxWidth : min(maxWidth, huggedWidth)
+        let progressWidth: CGFloat = 200
         let label: String = {
             if let ingestText {
                 return ingestText
@@ -60,44 +55,36 @@ struct PrimaryApplyControl: View {
             guard !isInProgress && ingestText == nil else { return }
             vm.applyPipelineAsync()
         } label: {
-            ZStack(alignment: .leading) {
-                // Progress fill
-                GeometryReader { proxy in
-                    // Default: 100% fill; when saving or ingesting, animating to current progress
-                    let w = displayedProgress * proxy.size.width
-                    Rectangle()
-                        .fill(Color.accentColor)
-                        .frame(width: w)
-                        .animation(Theme.Animations.spring(), value: displayedProgress)
-                }
-                
-                HStack(spacing: 8) {
-                    Image(systemName: iconName)
-                        .contentTransition(.symbolEffect(.replace))
-                    Text(label)
-                        .contentTransition(textTransition)
-                        .transition(.opacity)
-                        .monospacedDigit()
-                }
-                .font(Theme.Fonts.button)
-                .foregroundStyle(Color.white)
-                .padding(.horizontal, horizontalPadding)
-                // Measure intrinsic label size to hug width in default state
-                .background(
-                    GeometryReader { proxy in
-                        Color.clear
-                            .preference(key: SizePreferenceKey.self, value: proxy.size)
-                    }
-                )
-                .onPreferenceChange(SizePreferenceKey.self) { newSize in
-                    labelSize = newSize
-                }
-                .frame(maxWidth: .infinity, alignment: .center)
-                .animation(Theme.Animations.spring(), value: counterText)
-                .animation(Theme.Animations.spring(), value: ingestText)
+            HStack(spacing: 8) {
+                Image(systemName: iconName)
+                    .contentTransition(.symbolEffect(.replace))
+                Text(label)
+                    .contentTransition(textTransition)
+                    .transition(.opacity)
+                    .monospacedDigit()
             }
-            .frame(width: targetWidth, height: height)
-            .background(.secondary.opacity(0.2))
+            .font(Theme.Fonts.button)
+            .foregroundStyle(Color.white)
+            .padding(.horizontal, 20)
+            .frame(width: (isInProgress || ingestText != nil) ? progressWidth : nil, height: height)
+            .frame(minWidth: height)
+            .background {
+                ZStack(alignment: .leading) {
+                    // Background
+                    Color.secondary.opacity(0.2)
+                    
+                    // Full accent color when active, or progress fill when in progress
+                    if isInProgress || ingestText != nil {
+                        GeometryReader { proxy in
+                            Rectangle()
+                                .fill(Color.accentColor)
+                                .frame(width: displayedProgress * proxy.size.width)
+                        }
+                    } else if !isDisabled {
+                        Color.accentColor
+                    }
+                }
+            }
             .clipShape(RoundedRectangle(cornerRadius: .infinity, style: .continuous))
             .contentShape(Rectangle())
         }
@@ -127,16 +114,6 @@ struct PrimaryApplyControl: View {
         .animation(Theme.Animations.spring(), value: isInProgress)
         .animation(Theme.Animations.spring(), value: showDoneText)
         .animation(Theme.Animations.spring(), value: ingestText)
-    }
-} 
-
-// PreferenceKey to measure child size
-private struct SizePreferenceKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        let next = nextValue()
-        // Prefer the latest non-zero value
-        value = next == .zero ? value : next
     }
 }
 
