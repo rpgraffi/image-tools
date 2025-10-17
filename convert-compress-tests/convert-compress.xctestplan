@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "BDF9E3FA-419D-48AF-B94A-EFB34764CF26",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:convert-compress.xcodeproj",
+        "identifier" : "B77ECCD12E45573400C28347",
+        "name" : "convert-compress-tests"
+      }
+    }
+  ],
+  "version" : 1
+}
