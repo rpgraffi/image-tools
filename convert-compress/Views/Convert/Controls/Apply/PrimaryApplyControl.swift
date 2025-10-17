@@ -16,7 +16,7 @@ struct PrimaryApplyControl: View {
         
         let height: CGFloat = 40
         let horizontalPadding: CGFloat = 20
-        let maxWidth: CGFloat = 160
+        let maxWidth: CGFloat = 200
         
         let huggedWidth = max(labelSize.width + horizontalPadding * 2, height)
         let targetWidth = (isInProgress || ingestText != nil) ? maxWidth : min(maxWidth, huggedWidth)
@@ -82,7 +82,6 @@ struct PrimaryApplyControl: View {
                 .font(Theme.Fonts.button)
                 .foregroundStyle(Color.white)
                 .padding(.horizontal, horizontalPadding)
-                .frame(maxWidth: .infinity, alignment: .center)
                 // Measure intrinsic label size to hug width in default state
                 .background(
                     GeometryReader { proxy in
@@ -93,6 +92,7 @@ struct PrimaryApplyControl: View {
                 .onPreferenceChange(SizePreferenceKey.self) { newSize in
                     labelSize = newSize
                 }
+                .frame(maxWidth: .infinity, alignment: .center)
                 .animation(Theme.Animations.spring(), value: counterText)
                 .animation(Theme.Animations.spring(), value: ingestText)
             }

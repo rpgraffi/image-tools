@@ -17,7 +17,6 @@ struct BottomBar: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             
             PrimaryApplyControl()
-                .frame(maxWidth: .infinity)
             
             HStack(spacing: 8) {
                 ExportDirectoryControl(
